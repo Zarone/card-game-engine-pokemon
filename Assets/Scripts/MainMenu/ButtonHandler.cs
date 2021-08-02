@@ -368,25 +368,14 @@ namespace MainMenu
                     {
                         PlayerInfoManager.CardType type = data.Deck[i + j + k].Type;
                         string card = data.Deck[i + j + k].Art;
-                        if (type == PlayerInfoManager.CardType.SpecialCharacter)
-                        {
-                            tempSpecialsList.Add(new Card()
-                            {
-                                art = card,
-                                type = type
-                            });
 
-                            j++;
-                        }
-                        else
+                        PlayerInfoManager.fullDeck[i] = new Card()
                         {
-                            PlayerInfoManager.fullDeck[i] = new Card()
-                            {
-                                art = card,
-                                type = type
-                            };
-                            i++;
-                        }
+                            art = card,
+                            type = type
+                        };
+                        i++;
+
                     }
                     else
                     {

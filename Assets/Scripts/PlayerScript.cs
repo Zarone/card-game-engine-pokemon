@@ -27,7 +27,6 @@ public class PlayerScript : NetworkBehaviour
         Flip,
         LevelUpStart,
         LevelDown,
-        UntapAll,
         AddCounter,
         ViewTopOfDeck,
         Mill,
@@ -278,9 +277,7 @@ public class PlayerScript : NetworkBehaviour
                          {
                              gameManagerReference.OnCardRightClick(image);
 
-                             gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0,
-                                 (Hand.Value[byte.Parse(EditingCard.name)].type == PlayerInfoManager.CardType.Event ||
-                             Hand.Value[byte.Parse(EditingCard.name)].type == PlayerInfoManager.CardType.EventClimax) ? -90 : 0);
+                             //gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
                          };
 
                         EditingCard.name = i.ToString();
@@ -291,20 +288,10 @@ public class PlayerScript : NetworkBehaviour
                                 RenderHandSelecting();
 
                                 Card localCard = Hand.Value[int.Parse(EditingCard.name)];
-                                if (localCard.type == PlayerInfoManager.CardType.Action ||
-                                    localCard.type == PlayerInfoManager.CardType.ActionLocation ||
-                                    localCard.type == PlayerInfoManager.CardType.ActionPerpetual ||
-                                    localCard.type == PlayerInfoManager.CardType.ActionUnity)
-                                {
-                                    GameStateManager.selectingMode = GameStateManager.SelectingMode.Attaching;
-                                    gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.Attaching);
-                                    GameAction(Action.AttachStart);
-                                }
-                                else
-                                {
-                                    GameStateManager.selectingMode = GameStateManager.SelectingMode.Hand;
-                                    gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.Hand);
-                                }
+
+                                GameStateManager.selectingMode = GameStateManager.SelectingMode.Hand;
+                                gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.Hand);
+
                             }
 
                             if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Hand ||
@@ -808,9 +795,7 @@ public class PlayerScript : NetworkBehaviour
                 else if (gameStateY != null)
                 {
                     newGameStateY[index] = new bool[2];
-                    newGameStateY[index][0] =
-                        newY[index].type == PlayerInfoManager.CardType.Event
-                        || newY[index].type == PlayerInfoManager.CardType.EventClimax;
+                    newGameStateY[index][0] = false;
                     newGameStateY[index][1] = false;
                 }
 
@@ -821,15 +806,7 @@ public class PlayerScript : NetworkBehaviour
 
                 if (countersY != null)
                 {
-                    if (newY[index].type == PlayerInfoManager.CardType.SpecialCharacter && newY.Length == 1)
-                    {
-                        newCountersY[index] = PlayerInfoManager.StartingLife;
-                    }
-                    else
-                    {
-                        newCountersY[index] = -1;
-                    }
-
+                    newCountersY[index] = -1;
                 }
             }
 
@@ -1402,45 +1379,6 @@ public class PlayerScript : NetworkBehaviour
             flipStates.Value = newFlipStates;
             cardSection.RenderSectionSelectingCancel(flipObj);
         }
-        else if (action == Action.UntapAll)
-        {
-            bool[][] newReserveCardStates = new bool[cardSection.ReserveCardStates.Value.Length][];
-            for (int i = 0; i < newReserveCardStates.Length; i++)
-            {
-                newReserveCardStates[i] = new bool[2];
-                newReserveCardStates[i][0] = cardSection.Reserve.Value[i].type == PlayerInfoManager.CardType.Event
-                    || cardSection.Reserve.Value[i].type == PlayerInfoManager.CardType.EventClimax;
-                newReserveCardStates[i][1] = cardSection.ReserveCardStates.Value[i][1];
-            }
-
-            bool[][] newBattlefieldCardStates = new bool[cardSection.BattlefieldCardStates.Value.Length][];
-            for (int i = 0; i < newBattlefieldCardStates.Length; i++)
-            {
-                newBattlefieldCardStates[i] = new bool[2];
-                newBattlefieldCardStates[i][0] = cardSection.Battlefield.Value[i].type == PlayerInfoManager.CardType.Event
-                    || cardSection.Battlefield.Value[i].type == PlayerInfoManager.CardType.EventClimax;
-                newBattlefieldCardStates[i][1] = cardSection.BattlefieldCardStates.Value[i][1];
-            }
-
-            bool[][] newExtraZoneCardStates = new bool[cardSection.ExtraZoneCardStates.Value.Length][];
-            for (int i = 0; i < newExtraZoneCardStates.Length; i++)
-            {
-                newExtraZoneCardStates[i] = new bool[2];
-                newExtraZoneCardStates[i][0] = cardSection.ExtraZone.Value[i].type == PlayerInfoManager.CardType.Event
-                    || cardSection.ExtraZone.Value[i].type == PlayerInfoManager.CardType.EventClimax;
-                newExtraZoneCardStates[i][1] = cardSection.ExtraZoneCardStates.Value[i][1];
-            }
-
-            cardSection.ReserveCardStates.Value = null;
-            cardSection.ReserveCardStates.Value = newReserveCardStates;
-
-            cardSection.BattlefieldCardStates.Value = null;
-            cardSection.BattlefieldCardStates.Value = newBattlefieldCardStates;
-
-            cardSection.ExtraZoneCardStates.Value = null;
-            cardSection.ExtraZoneCardStates.Value = newExtraZoneCardStates;
-
-        }
         else if (action == Action.AddCounter)
         {
             if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Reserve)
@@ -1522,10 +1460,6 @@ public class PlayerScript : NetworkBehaviour
 
     public void ManageStartOfTurn()
     {
-        if (AutoUntap)
-        {
-            GameAction(Action.UntapAll);
-        }
         if (AutoDraw)
         {
             GameStateManager.howMany = 1;

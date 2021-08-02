@@ -72,3 +72,4 @@ crashlytics-build.properties
 Assets/Resources/Cards/.DS_Store
 
 .DS_Store
+/Assets/Resources/Cards

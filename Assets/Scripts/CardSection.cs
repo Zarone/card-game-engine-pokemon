@@ -279,9 +279,7 @@ public class CardSection : NetworkBehaviour
                 {
                     playerRef.gameManagerReference.OnCardRightClick(image);
 
-                    playerRef.gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0,
-                        (cardlist[byte.Parse(EditingCard.name)].type == PlayerInfoManager.CardType.Event ||
-                    cardlist[byte.Parse(EditingCard.name)].type == PlayerInfoManager.CardType.EventClimax) ? -90 : 0);
+                    //playerRef.gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 };
 
                 EditingCard.GetComponent<Canvas>().sortingOrder = 2;

@@ -11,14 +11,9 @@ using System;
 public class DeckScript : MonoBehaviour
 {
     public Dictionary<PlayerInfoManager.CardType, Dictionary<string, int>> CurrentDeck = new Dictionary<PlayerInfoManager.CardType, Dictionary<string, int>>() {
-        { PlayerInfoManager.CardType.SpecialCharacter, new Dictionary<string, int>() },
-        { PlayerInfoManager.CardType.BasicCharacter, new Dictionary<string, int>() },
-        { PlayerInfoManager.CardType.Action, new Dictionary<string, int>() },
-        { PlayerInfoManager.CardType.ActionUnity, new Dictionary<string, int>() },
-        { PlayerInfoManager.CardType.ActionLocation, new Dictionary<string, int>() },
-        { PlayerInfoManager.CardType.ActionPerpetual, new Dictionary<string, int>() },
-        { PlayerInfoManager.CardType.EventClimax, new Dictionary<string, int>() },
-        { PlayerInfoManager.CardType.Event, new Dictionary<string, int>() },
+        { PlayerInfoManager.CardType.Pokemon, new Dictionary<string, int>() },
+        { PlayerInfoManager.CardType.Trainer, new Dictionary<string, int>() },
+        { PlayerInfoManager.CardType.Energy, new Dictionary<string, int>() },
     };
 
     [SerializeField] private Transform deckContent;
@@ -39,48 +34,9 @@ public class DeckScript : MonoBehaviour
         {
             LoadOption();
         }
-        AddAllSpecialCharacterCards();
     }
 
-    public void AddAllSpecialCharacterCards()
-    {
-        string directoryPath = Application.dataPath + @"/Resources" + @"/Cards";
-
-        try
-        {
-
-            //Get the path of all files inside the directory and save them on a List  
-            fileNames = new List<string>(Directory.GetFiles(directoryPath + @"/0"));
-
-            //For each string in the fileNames List   
-            for (int i = 0; i < fileNames.Count; i++)
-            {
-                string currentPath = Path.GetFileName(fileNames[i]);
-                if (currentPath.EndsWith(".jpg"))
-                {
-                    AddToDeck(currentPath.Split(new string[] { "-01" }, StringSplitOptions.None)[0], PlayerInfoManager.CardType.SpecialCharacter);
-                }
-            }
-        }
-        catch (UnauthorizedAccessException UAEx)
-        {
-            Debug.LogError("ERROR: " + UAEx.Message);
-        }
-        catch (PathTooLongException PathEx)
-        {
-            Debug.LogError("ERROR: " + PathEx.Message);
-        }
-        catch (DirectoryNotFoundException DirNfEx)
-        {
-            Debug.LogError("ERROR: " + DirNfEx.Message);
-        }
-        catch (ArgumentException aEX)
-        {
-            Debug.LogError("ERROR: " + aEX.Message);
-        }
-    }
-
-    public void RenderDeck(bool showSpecial = false)
+    public void RenderDeck()
     {
         int countNormal = 0;
         int countSpecial = 0;
@@ -99,43 +55,36 @@ public class DeckScript : MonoBehaviour
                 {
                     if (card.Value > 0)
                     {
-                        if (section.Key == PlayerInfoManager.CardType.SpecialCharacter)
+
+                        countNormal += card.Value;
+
+
+
+                        GameObject cardObj = Instantiate(cardPrefab, deckContentChild);
+                        cardObj.transform.GetChild(0).GetComponentInChildren<Text>().text = $"{card.Key} x  {card.Value}";
+                        cardObj.transform.GetChild(0).GetComponent<Button>().onClick.AddListener(() =>
                         {
-                            countSpecial += card.Value;
-                        }
-                        else
+
+                            string targetPath = @"Cards/" + (int)section.Key + @"/" + card.Key + "-01";
+
+                            Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
+                            if (cardSprites.Length != 1)
+                            {
+                                Debug.LogError("the number of sprites found for selected card was not zero");
+                                return;
+                            }
+
+                            collectionScript.ViewCard(cardSprites[0]);
+                        });
+                        cardObj.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(() =>
                         {
-                            countNormal += card.Value;
-                        }
-
-                        if ((showSpecial && deckContentChild.name == "Special Character") ||
-                            (!showSpecial && deckContentChild.name != "Special Character"))
+                            RemoveFromDeck(card.Key, section.Key);
+                        });
+                        cardObj.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(() =>
                         {
-                            GameObject cardObj = Instantiate(cardPrefab, deckContentChild);
-                            cardObj.transform.GetChild(0).GetComponentInChildren<Text>().text = $"{card.Key} x  {card.Value}";
-                            cardObj.transform.GetChild(0).GetComponent<Button>().onClick.AddListener(() => 
-                            {
+                            AddToDeck(card.Key, section.Key);
+                        });
 
-                                string targetPath = @"Cards/" + (int)section.Key + @"/" + card.Key + "-01";
-
-                                Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
-                                if (cardSprites.Length != 1)
-                                {
-                                    Debug.LogError("the number of sprites found for selected card was not zero");
-                                    return;
-                                } 
-
-                                collectionScript.ViewCard(cardSprites[0], section.Key == PlayerInfoManager.CardType.Event || section.Key == PlayerInfoManager.CardType.EventClimax);
-                            });
-                            cardObj.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(() => 
-                            {
-                                RemoveFromDeck(card.Key, section.Key);
-                            });
-                            cardObj.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(() =>
-                            {
-                                AddToDeck(card.Key, section.Key);
-                            });
-                        }
                     }
                 }
             }
@@ -239,14 +188,9 @@ public class DeckScript : MonoBehaviour
             SerializableDeck data = formatter.Deserialize(stream) as SerializableDeck;
 
             CurrentDeck = new Dictionary<PlayerInfoManager.CardType, Dictionary<string, int>>() {
-                { PlayerInfoManager.CardType.SpecialCharacter, new Dictionary<string, int>() },
-                { PlayerInfoManager.CardType.BasicCharacter, new Dictionary<string, int>() },
-                { PlayerInfoManager.CardType.Action, new Dictionary<string, int>() },
-                { PlayerInfoManager.CardType.ActionUnity, new Dictionary<string, int>() },
-                { PlayerInfoManager.CardType.ActionLocation, new Dictionary<string, int>() },
-                { PlayerInfoManager.CardType.ActionPerpetual, new Dictionary<string, int>() },
-                { PlayerInfoManager.CardType.EventClimax, new Dictionary<string, int>() },
-                { PlayerInfoManager.CardType.Event, new Dictionary<string, int>() },
+                { PlayerInfoManager.CardType.Pokemon, new Dictionary<string, int>() },
+                { PlayerInfoManager.CardType.Trainer, new Dictionary<string, int>() },
+                { PlayerInfoManager.CardType.Energy, new Dictionary<string, int>() },
             };
 
 
@@ -314,12 +258,12 @@ public class DeckScript : MonoBehaviour
 
     public void OnViewSpecialDeck()
     {
-        RenderDeck(true);
+        RenderDeck();
     }
 
     public void OnViewDeck()
     {
-        RenderDeck(false);
+        RenderDeck();
     }
 
     public void RemoveFromDeck(string card, PlayerInfoManager.CardType type)
@@ -329,7 +273,7 @@ public class DeckScript : MonoBehaviour
             CurrentDeck[type][card] -= 1;
         }
 
-        RenderDeck(type == PlayerInfoManager.CardType.SpecialCharacter);
+        RenderDeck();
     }
 
     public void AddToDeck(string card, PlayerInfoManager.CardType type)
@@ -343,6 +287,6 @@ public class DeckScript : MonoBehaviour
             CurrentDeck[type][card] += 1;
         }
 
-        RenderDeck(type == PlayerInfoManager.CardType.SpecialCharacter);
+        RenderDeck();
     }
 }

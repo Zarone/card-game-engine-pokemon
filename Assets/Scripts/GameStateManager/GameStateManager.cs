@@ -670,18 +670,6 @@ public class GameStateManager : MonoBehaviour
         RenderCorrectButtons(SelectingMode.None);
     }
 
-    public void OnUntapAll()
-    {
-        foreach (GameObject client in PlayerInfoManager.players)
-        {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (player.IsLocalPlayer)
-            {
-                player.GameAction(PlayerScript.Action.UntapAll);
-            }
-        }
-    }
-
     public void OnFlip()
     {
         foreach (GameObject client in PlayerInfoManager.players)
@@ -849,9 +837,7 @@ public class GameStateManager : MonoBehaviour
             {
                 OnCardRightClick(image);
 
-                CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0,
-                    (clientCode.Deck.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.Event ||
-                clientCode.Deck.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.EventClimax) ? -90 : 0);
+                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
 
@@ -927,9 +913,7 @@ public class GameStateManager : MonoBehaviour
             {
                 OnCardRightClick(image);
 
-                CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0,
-                    (clientCode.SpecialDeck.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.Event ||
-                clientCode.SpecialDeck.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.EventClimax) ? -90 : 0);
+                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
             cardObj.GetComponent<Button>().onClick.RemoveAllListeners();
@@ -1003,9 +987,7 @@ public class GameStateManager : MonoBehaviour
             {
                 OnCardRightClick(image);
 
-                CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0,
-                    (clientCode.Deck.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.Event ||
-                clientCode.Deck.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.EventClimax) ? -90 : 0);
+                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
             cardObj.GetComponent<Button>().onClick.RemoveAllListeners();
@@ -1080,9 +1062,7 @@ public class GameStateManager : MonoBehaviour
             {
                 OnCardRightClick(image);
 
-                CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0,
-                    (clientCode.Discard.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.Event ||
-                clientCode.Discard.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.EventClimax) ? -90 : 0);
+                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
             cardObj.GetComponent<Button>().onClick.RemoveAllListeners();
@@ -1157,9 +1137,7 @@ public class GameStateManager : MonoBehaviour
             {
                 OnCardRightClick(image);
 
-                CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0,
-                    (clientCode.RemoveFromPlay.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.Event ||
-                clientCode.RemoveFromPlay.Value[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.EventClimax) ? -90 : 0);
+                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
             cardObj.GetComponent<Button>().onClick.RemoveAllListeners();
@@ -1311,9 +1289,7 @@ public class GameStateManager : MonoBehaviour
             {
                 OnCardRightClick(image);
 
-                CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0,
-                    (cards[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.Event ||
-                cards[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.EventClimax) ? -90 : 0);
+                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
             string query = "Cards/" + ((int)cards[i].type).ToString() + "/" + cards[i].art + "-01";
@@ -1347,9 +1323,7 @@ public class GameStateManager : MonoBehaviour
             {
                 OnCardRightClick(image);
 
-                CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0,
-                    (cards[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.Event ||
-                cards[byte.Parse(cardObj.name)].type == PlayerInfoManager.CardType.EventClimax) ? -90 : 0);
+                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
             cardObj.GetComponent<Button>().onClick.RemoveAllListeners();

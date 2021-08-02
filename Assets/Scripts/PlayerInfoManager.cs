@@ -20,14 +20,9 @@ public class PlayerInfoManager
 
     public enum CardType
     {
-        SpecialCharacter,
-        BasicCharacter,
-        Action,
-        ActionUnity,
-        ActionLocation,
-        ActionPerpetual,
-        EventClimax,
-        Event
+        Pokemon,
+        Trainer,
+        Energy
     }
 
     public static List<GameObject> players = new List<GameObject>();
