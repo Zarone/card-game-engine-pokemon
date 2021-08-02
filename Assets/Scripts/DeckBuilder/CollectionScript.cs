@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System;
+using Newtonsoft.Json;
 
 public class CollectionScript : MonoBehaviour
 {
@@ -23,22 +24,26 @@ public class CollectionScript : MonoBehaviour
 
     [SerializeField] private GameObject SearchField;
 
+    string directoryPath;
+
     void Start()
     {
-        ContentDiv = gameObject.transform.GetChild(0).GetChild(0).GetChild(0);
+        directoryPath = Application.dataPath + @"/Resources/Cards/";
 
-        string directoryPath = Application.dataPath + @"/Resources/Cards/";
+        ContentDiv = gameObject.transform.GetChild(0).GetChild(0).GetChild(0);
 
         try
         {
+            int limit = 5;
+            int cardsAdded = 0;
 
             //Get the path of all files inside the directory and save them on a List  
             List<string> eraList = new List<string>(Directory.GetDirectories(directoryPath));
 
             foreach (string era in eraList)
             {
-                print(era);
-                RenderEra(era + "/", 5);
+                //print(Path.GetFileName(era));
+                cardsAdded += RenderEra(Path.GetFileName(era), limit - cardsAdded);
             }
 
         }
@@ -61,49 +66,52 @@ public class CollectionScript : MonoBehaviour
 
     }
 
-    public void RenderEra(string dir, int limit)
+    public int RenderEra(string eraName, int limit)
     {
-        List<string> setList = new List<string>(Directory.GetDirectories(dir));
+        List<string> setList = new List<string>(Directory.GetDirectories(directoryPath+eraName+"/"));
 
         int cardsAdded = 0;
 
+        // for each set
         for (int i = 0; i < setList.Count; i++)
         {
-            string currentPath = setList[0];
-            //print(currentPath);
-            cardsAdded += RenderSet(currentPath + "/", limit-cardsAdded);
+            string currentPath = setList[i];
+
+            //StreamReader reader = new StreamReader(currentPath+".json");
+            ////Debug.Log(reader.ReadToEnd());
+            //Dictionary<string, string> setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
+
+            //reader.Close();
+
+            cardsAdded += RenderSet(eraName, Path.GetFileName(currentPath), limit-cardsAdded);
         }
+
+        return cardsAdded;
     }
 
-    public int RenderSet(string dir, int limit)
+    public int RenderSet(string eraName, string setName, int limit)
     {
-        List<string> typeList = new List<string>(Directory.GetDirectories(dir));
+        List<string> typeList = new List<string>(Directory.GetDirectories(directoryPath + eraName + "/" + setName + "/"));
 
         int cardsAdded = 0;
+
+        // for each type
         for (int i = 0; i < typeList.Count; i++)
         {
-            //print(typeList[i]);
             List<string> fileNames = new List<string>(Directory.GetFiles(typeList[i] + "/"));
 
-            //For each string in the fileNames List   
+            // for each card
             for (int j = 0; j < fileNames.Count && cardsAdded < limit; j++)
             {
                 string currentPath = Path.GetFileName(fileNames[j]);
 
-                
+
                 string targetPath = fileNames[j].Split(new string[] { "Resources/" }, StringSplitOptions.None)[1];
                 targetPath = targetPath.Remove(targetPath.IndexOf("."), 4);
                 if (currentPath.EndsWith(".png"))
                 {
-                    //print(dir);
 
-                    print(
-                        targetPath
-                        );
 
-                    //print(Path.GetFileName(dir));
-                    //print();
-                    //print(Path.GetDirectoryName(era) + "/" + Path.GetFileName(dir) + "/" + Path.GetFileName(typeList[i]));
                     Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
                     if (cardSprites.Length == 1)
                     {
@@ -115,36 +123,37 @@ public class CollectionScript : MonoBehaviour
                             clone.GetComponentInChildren<Image>().sprite = card;
                             cardsAdded++;
 
-                            //        PlayerInfoManager.CardType cardType = (PlayerInfoManager.CardType)path;
+                            PlayerInfoManager.CardType cardType = (PlayerInfoManager.CardType)i;
 
-                            //        //Add
-                            //        clone.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(
-                            //            () =>
-                            //            {
-                            //                Deck.AddToDeck(currentPath.Split(new string[] { "-01" }, StringSplitOptions.None)[0], cardType);
-                            //            }
-                            //        );
+                            //Add
+                            clone.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(
+                                () =>
+                                {
+                                    //print(targetPath);
+                                    Deck.AddToDeck(targetPath, cardType);
+                                }
+                            );
 
-                            //        //Remove
-                            //        clone.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(
-                            //            () =>
-                            //            {
-                            //                Deck.RemoveFromDeck(currentPath.Split(new string[] { "-01" }, StringSplitOptions.None)[0], cardType);
-                            //            }
-                            //        );
+                            //Remove
+                            clone.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(
+                                () =>
+                                {
+                                    Deck.RemoveFromDeck(targetPath, cardType);
+                                }
+                            );
 
-                            //        //View
-                            //        clone.transform.GetChild(3).GetComponent<Button>().onClick.AddListener(
-                            //            () =>
-                            //            {
-                            //                ViewCard(cardSprites[0], cardType == PlayerInfoManager.CardType.Event || cardType == PlayerInfoManager.CardType.EventClimax);
-                            //            }
-                            //        );
+                            //View
+                            clone.transform.GetChild(3).GetComponent<Button>().onClick.AddListener(
+                                () =>
+                                {
+                                    ViewCard(cardSprites[0]);
+                                }
+                            );
                         }
-                        //    else
-                        //    {
-                        //        Debug.LogError("Content object or Card Prefab not found");
-                        //    }
+                        else
+                        {
+                            Debug.LogError("Content object or Card Prefab not found");
+                        }
                     }
                     else
                     {
@@ -158,6 +167,23 @@ public class CollectionScript : MonoBehaviour
         return cardsAdded;
     }
 
+    public string fileToName(string fileAfterDirectoryPath)
+    {
+        string[] cardInfo = fileAfterDirectoryPath.Split('/');
+        string era = cardInfo[1];
+        string set = cardInfo[2];
+        //string type = cardInfo[3];
+        string cardNumber = cardInfo[4];
+
+        StreamReader reader = new StreamReader(directoryPath + era + "/" + set + ".json");
+        //Debug.Log(reader.ReadToEnd());
+        Dictionary<string, string> setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
+
+        reader.Close();
+
+        //print(setInfo[cardNumber]);
+        return setInfo[cardNumber];
+    }
 
     public void ViewCard(Sprite image)
     {

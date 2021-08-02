@@ -61,7 +61,8 @@ public class DeckScript : MonoBehaviour
 
 
                         GameObject cardObj = Instantiate(cardPrefab, deckContentChild);
-                        cardObj.transform.GetChild(0).GetComponentInChildren<Text>().text = $"{card.Key} x  {card.Value}";
+                        cardObj.transform.GetChild(0).GetComponentInChildren<Text>().text = 
+                            $"{collectionScript.fileToName(card.Key)} x  {card.Value}";
                         cardObj.transform.GetChild(0).GetComponent<Button>().onClick.AddListener(() =>
                         {
 
