@@ -108,9 +108,6 @@ public class CollectionScript : MonoBehaviour
 
                 string targetPath = fileNames[j].Split(new string[] { "Resources/" }, StringSplitOptions.None)[1];
                 targetPath = targetPath.Remove(targetPath.IndexOf("."), 4);
-                print(setName);
-                print(Path.GetFileName(targetPath));
-                //print(setInfo[Path.GetFileName(targetPath)].ToLower());
                 if (currentPath.EndsWith(".png") && (filter == default || setInfo[Path.GetFileName(targetPath)].ToLower().Contains(filter)))
                 {
                     Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
