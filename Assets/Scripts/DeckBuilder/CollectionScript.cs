@@ -42,7 +42,6 @@ public class CollectionScript : MonoBehaviour
 
             foreach (string era in eraList)
             {
-                //print(Path.GetFileName(era));
                 cardsAdded += RenderEra(Path.GetFileName(era), limit - cardsAdded);
             }
 
@@ -66,30 +65,32 @@ public class CollectionScript : MonoBehaviour
 
     }
 
-    public int RenderEra(string eraName, int limit)
+    public int RenderEra(string eraName, int limit, string filter = default, bool passSetInfo = false)
     {
-        List<string> setList = new List<string>(Directory.GetDirectories(directoryPath+eraName+"/"));
+        List<string> setList = new List<string>(Directory.GetDirectories(directoryPath + eraName + "/"));
 
         int cardsAdded = 0;
 
         // for each set
         for (int i = 0; i < setList.Count; i++)
         {
-            string currentPath = setList[i];
+            string currentPath = Path.GetFileName(setList[i]);
 
-            //StreamReader reader = new StreamReader(currentPath+".json");
-            ////Debug.Log(reader.ReadToEnd());
-            //Dictionary<string, string> setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
+            Dictionary<string, string> setInfo = null;
+            if (passSetInfo)
+            {
+                StreamReader reader = new StreamReader(directoryPath + eraName + "/" + currentPath + ".json");
+                setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
+                reader.Close();
+            }
 
-            //reader.Close();
-
-            cardsAdded += RenderSet(eraName, Path.GetFileName(currentPath), limit-cardsAdded);
+            cardsAdded += RenderSet(eraName, currentPath, limit - cardsAdded, filter, setInfo);
         }
 
         return cardsAdded;
     }
 
-    public int RenderSet(string eraName, string setName, int limit)
+    public int RenderSet(string eraName, string setName, int limit, string filter = default, Dictionary<string, string> setInfo = null)
     {
         List<string> typeList = new List<string>(Directory.GetDirectories(directoryPath + eraName + "/" + setName + "/"));
 
@@ -105,13 +106,13 @@ public class CollectionScript : MonoBehaviour
             {
                 string currentPath = Path.GetFileName(fileNames[j]);
 
-
                 string targetPath = fileNames[j].Split(new string[] { "Resources/" }, StringSplitOptions.None)[1];
                 targetPath = targetPath.Remove(targetPath.IndexOf("."), 4);
-                if (currentPath.EndsWith(".png"))
+                print(setName);
+                print(Path.GetFileName(targetPath));
+                //print(setInfo[Path.GetFileName(targetPath)].ToLower());
+                if (currentPath.EndsWith(".png") && (filter == default || setInfo[Path.GetFileName(targetPath)].ToLower().Contains(filter)))
                 {
-
-
                     Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
                     if (cardSprites.Length == 1)
                     {
@@ -167,21 +168,18 @@ public class CollectionScript : MonoBehaviour
         return cardsAdded;
     }
 
-    public string fileToName(string fileAfterDirectoryPath)
+    public string FileToName(string fileAfterDirectoryPath)
     {
         string[] cardInfo = fileAfterDirectoryPath.Split('/');
         string era = cardInfo[1];
         string set = cardInfo[2];
-        //string type = cardInfo[3];
         string cardNumber = cardInfo[4];
 
         StreamReader reader = new StreamReader(directoryPath + era + "/" + set + ".json");
-        //Debug.Log(reader.ReadToEnd());
         Dictionary<string, string> setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
 
         reader.Close();
 
-        //print(setInfo[cardNumber]);
         return setInfo[cardNumber];
     }
 
@@ -201,14 +199,45 @@ public class CollectionScript : MonoBehaviour
 
     public void OnSearch()
     {
-        //    string check = SearchField.GetComponent<Text>().text.ToLower();
+        string check = SearchField.GetComponent<Text>().text.ToLower();
 
-        //    var children = new List<GameObject>();
+        var children = new List<GameObject>();
 
-        //    foreach (Transform child in ContentDiv) children.Add(child.gameObject);
-        //    children.ForEach(child => Destroy(child));
+        foreach (Transform child in ContentDiv) children.Add(child.gameObject);
+        children.ForEach(child => Destroy(child));
 
-        //    try
+        try
+        {
+            int limit = 50;
+            int cardsAdded = 0;
+
+            //Get the path of all files inside the directory and save them on a List  
+            List<string> eraList = new List<string>(Directory.GetDirectories(directoryPath));
+
+            foreach (string era in eraList)
+            {
+                cardsAdded += RenderEra(Path.GetFileName(era), limit - cardsAdded, check, true);
+            }
+
+        }
+        catch (UnauthorizedAccessException UAEx)
+        {
+            Debug.LogError("ERROR: " + UAEx.Message);
+        }
+        catch (PathTooLongException PathEx)
+        {
+            Debug.LogError("ERROR: " + PathEx.Message);
+        }
+        catch (DirectoryNotFoundException DirNfEx)
+        {
+            Debug.LogError("ERROR: " + DirNfEx.Message);
+        }
+        catch (ArgumentException aEX)
+        {
+            Debug.LogError("ERROR: " + aEX.Message);
+        }
+
+        //try
         //    {
         //        for (int path = 0; path < 8; path++)
         //        {
