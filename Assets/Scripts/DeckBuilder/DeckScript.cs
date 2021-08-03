@@ -22,7 +22,6 @@ public class DeckScript : MonoBehaviour
     [SerializeField] private GameObject alertObj;
     [SerializeField] private GameObject options;
     [SerializeField] private GameObject deckCount;
-    [SerializeField] private GameObject specialDeckCount;
 
     [SerializeField] private CollectionScript collectionScript;
 
@@ -254,16 +253,6 @@ public class DeckScript : MonoBehaviour
 
         }
     }
-
-    //public void OnViewSpecialDeck()
-    //{
-    //    RenderDeck();
-    //}
-
-    //public void OnViewDeck()
-    //{
-    //    RenderDeck();
-    //}
 
     public void RemoveFromDeck(string card, PlayerInfoManager.CardType type)
     {
