@@ -39,7 +39,6 @@ public class DeckScript : MonoBehaviour
     public void RenderDeck()
     {
         int countNormal = 0;
-        int countSpecial = 0;
         int i = 1;
         foreach (KeyValuePair<PlayerInfoManager.CardType, Dictionary<string, int>> section in CurrentDeck)
         {
@@ -66,7 +65,7 @@ public class DeckScript : MonoBehaviour
                         cardObj.transform.GetChild(0).GetComponent<Button>().onClick.AddListener(() =>
                         {
 
-                            string targetPath = @"Cards/" + (int)section.Key + @"/" + card.Key + "-01";
+                            string targetPath = card.Key;
 
                             Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
                             if (cardSprites.Length != 1)
@@ -98,7 +97,6 @@ public class DeckScript : MonoBehaviour
         }
 
         deckCount.GetComponent<Text>().text = "Deck: " + countNormal.ToString();
-        specialDeckCount.GetComponent<Text>().text = "Special Deck: " + countSpecial.ToString();
     }
 
     public void OnHome()
@@ -257,15 +255,15 @@ public class DeckScript : MonoBehaviour
         }
     }
 
-    public void OnViewSpecialDeck()
-    {
-        RenderDeck();
-    }
+    //public void OnViewSpecialDeck()
+    //{
+    //    RenderDeck();
+    //}
 
-    public void OnViewDeck()
-    {
-        RenderDeck();
-    }
+    //public void OnViewDeck()
+    //{
+    //    RenderDeck();
+    //}
 
     public void RemoveFromDeck(string card, PlayerInfoManager.CardType type)
     {
