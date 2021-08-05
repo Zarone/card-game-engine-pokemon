@@ -12,6 +12,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine.Networking;
 using SimpleJSON;
+using CardInformation;
 
 namespace MainMenu
 {
@@ -366,7 +367,7 @@ namespace MainMenu
                 {
                     if (data.Deck[i + j + k] != null)
                     {
-                        PlayerInfoManager.CardType type = data.Deck[i + j + k].Type;
+                        CardType type = data.Deck[i + j + k].Type;
                         string card = data.Deck[i + j + k].Art;
 
                         PlayerInfoManager.fullDeck[i] = new Card()

@@ -18,12 +18,12 @@ public class PlayerInfoManager
 
     public static int FirstTurnQueue = -1;
 
-    public enum CardType
-    {
-        Pokemon,
-        Trainer,
-        Energy
-    }
+    //public enum CardType
+    //{
+    //    Pokemon,
+    //    Trainer,
+    //    Energy
+    //}
 
     public static List<GameObject> players = new List<GameObject>();
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System;
 using Newtonsoft.Json;
+using CardInformation;
 
 public class CollectionScript : MonoBehaviour
 {
@@ -123,7 +124,7 @@ public class CollectionScript : MonoBehaviour
                             clone.GetComponentInChildren<Image>().sprite = card;
                             cardsAdded++;
 
-                            PlayerInfoManager.CardType cardType = (PlayerInfoManager.CardType)i;
+                            CardType cardType = (CardType)i;
 
                             //Add
                             clone.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(
@@ -263,7 +264,7 @@ public class CollectionScript : MonoBehaviour
         //                            GameObject clone = Instantiate(CardPrefab, ContentDiv);
         //                            clone.GetComponentInChildren<Image>().sprite = card;
 
-        //                            PlayerInfoManager.CardType cardType = (PlayerInfoManager.CardType)path;
+        //                            CardType cardType = (CardType)path;
 
         //                            //Add
         //                            clone.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(
@@ -285,7 +286,7 @@ public class CollectionScript : MonoBehaviour
         //                            clone.transform.GetChild(3).GetComponent<Button>().onClick.AddListener(
         //                                () =>
         //                                {
-        //                                    ViewCard(cardSprites[0], cardType == PlayerInfoManager.CardType.Event || cardType == PlayerInfoManager.CardType.EventClimax);
+        //                                    ViewCard(cardSprites[0], cardType == CardType.Event || cardType == CardType.EventClimax);
         //                                }
         //                            );
         //                        }

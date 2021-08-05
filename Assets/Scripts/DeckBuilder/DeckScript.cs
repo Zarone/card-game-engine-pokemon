@@ -7,13 +7,14 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using SimpleFileBrowser;
 using System;
+using CardInformation;
 
 public class DeckScript : MonoBehaviour
 {
-    public Dictionary<PlayerInfoManager.CardType, Dictionary<string, int>> CurrentDeck = new Dictionary<PlayerInfoManager.CardType, Dictionary<string, int>>() {
-        { PlayerInfoManager.CardType.Pokemon, new Dictionary<string, int>() },
-        { PlayerInfoManager.CardType.Trainer, new Dictionary<string, int>() },
-        { PlayerInfoManager.CardType.Energy, new Dictionary<string, int>() },
+    public Dictionary<CardType, Dictionary<string, int>> CurrentDeck = new Dictionary<CardType, Dictionary<string, int>>() {
+        { CardType.Pokemon, new Dictionary<string, int>() },
+        { CardType.Trainer, new Dictionary<string, int>() },
+        { CardType.Energy, new Dictionary<string, int>() },
     };
 
     [SerializeField] private Transform deckContent;
@@ -39,7 +40,7 @@ public class DeckScript : MonoBehaviour
     {
         int countNormal = 0;
         int i = 1;
-        foreach (KeyValuePair<PlayerInfoManager.CardType, Dictionary<string, int>> section in CurrentDeck)
+        foreach (KeyValuePair<CardType, Dictionary<string, int>> section in CurrentDeck)
         {
 
             Transform deckContentChild = deckContent.GetChild(i);
@@ -123,7 +124,7 @@ public class DeckScript : MonoBehaviour
         int i = 0;
 
         // for each section of cards
-        foreach (KeyValuePair<PlayerInfoManager.CardType, Dictionary<string, int>> section in CurrentDeck)
+        foreach (KeyValuePair<CardType, Dictionary<string, int>> section in CurrentDeck)
         {
 
             // for each card (multiples are grouped together)
@@ -185,10 +186,10 @@ public class DeckScript : MonoBehaviour
 
             SerializableDeck data = formatter.Deserialize(stream) as SerializableDeck;
 
-            CurrentDeck = new Dictionary<PlayerInfoManager.CardType, Dictionary<string, int>>() {
-                { PlayerInfoManager.CardType.Pokemon, new Dictionary<string, int>() },
-                { PlayerInfoManager.CardType.Trainer, new Dictionary<string, int>() },
-                { PlayerInfoManager.CardType.Energy, new Dictionary<string, int>() },
+            CurrentDeck = new Dictionary<CardType, Dictionary<string, int>>() {
+                { CardType.Pokemon, new Dictionary<string, int>() },
+                { CardType.Trainer, new Dictionary<string, int>() },
+                { CardType.Energy, new Dictionary<string, int>() },
             };
 
 
@@ -196,7 +197,7 @@ public class DeckScript : MonoBehaviour
             {
                 if (data.Deck[i] != null)
                 {
-                    PlayerInfoManager.CardType type = data.Deck[i].Type;
+                    CardType type = data.Deck[i].Type;
                     string card = data.Deck[i].Art;
 
                     if (!CurrentDeck[type].ContainsKey(card))
@@ -254,7 +255,7 @@ public class DeckScript : MonoBehaviour
         }
     }
 
-    public void RemoveFromDeck(string card, PlayerInfoManager.CardType type)
+    public void RemoveFromDeck(string card, CardType type)
     {
         if (CurrentDeck[type].ContainsKey(card) && CurrentDeck[type][card] > 0)
         {
@@ -264,7 +265,7 @@ public class DeckScript : MonoBehaviour
         RenderDeck();
     }
 
-    public void AddToDeck(string card, PlayerInfoManager.CardType type)
+    public void AddToDeck(string card, CardType type)
     {
         if (!CurrentDeck[type].ContainsKey(card))
         {
