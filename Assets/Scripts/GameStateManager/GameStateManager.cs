@@ -796,7 +796,8 @@ public class GameStateManager : MonoBehaviour
                 }
             });
 
-            string query = "Cards/" + ((int)clientCode.Deck.Value[i].type).ToString() + "/" + clientCode.Deck.Value[i].art + "-01";
+            //string query = "Cards/" + ((int)clientCode.Deck.Value[i].type).ToString() + "/" + clientCode.Deck.Value[i].art + "-01";
+            string query = clientCode.Deck.Value[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             cardObj.GetComponent<Image>().sprite = sprites[0];
         }
@@ -945,7 +946,8 @@ public class GameStateManager : MonoBehaviour
                 }
             });
 
-            string query = "Cards/" + ((int)clientCode.Discard.Value[i].type).ToString() + "/" + clientCode.Discard.Value[i].art + "-01";
+            //string query = "Cards/" + ((int)clientCode.Discard.Value[i].type).ToString() + "/" + clientCode.Discard.Value[i].art + "-01";
+            string query = clientCode.Discard.Value[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             cardObj.GetComponent<Image>().sprite = sprites[0];
         }

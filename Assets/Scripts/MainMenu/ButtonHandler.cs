@@ -89,7 +89,10 @@ namespace MainMenu
 
         IEnumerator AddRoomNameToServer(Action callback, string roomName, string roomIp)
         {
+
+#pragma warning disable IDE0028 // Simplify collection initialization
             List<IMultipartFormSection> formData = new List<IMultipartFormSection>();
+#pragma warning restore IDE0028 // Simplify collection initialization
 
 
             formData.Add(new MultipartFormDataSection($"roomName={roomName}&roomIp=" +

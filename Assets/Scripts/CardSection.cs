@@ -121,6 +121,7 @@ public class CardSection : NetworkBehaviour
 
         void ReRenderActive()
         {
+            print(Active.Value.Length);
             RenderSection(Active.Value, ActiveObj, GameStateManager.SelectingMode.Active,
                 ActiveAttachments, ActiveCardStates, ActiveCardOldEvolutions, ActiveCounters);
         }
@@ -135,7 +136,10 @@ public class CardSection : NetworkBehaviour
 
         Active.OnValueChanged += (Card[] oldValue, Card[] newValue) =>
         {
-            ReRenderActive();
+            if (newValue != null)
+            {
+                ReRenderActive();
+            }
         };
 
         BenchAttachments.OnValueChanged += (Card[][] oldValue, Card[][] newValue) =>
@@ -150,7 +154,7 @@ public class CardSection : NetworkBehaviour
 
         BenchCardStates.OnValueChanged += (bool[][] oldValue, bool[][] newValue) =>
         {
-            if (newValue!= null)
+            if (newValue != null)
             {
                 ReRenderBench();
             }
@@ -362,7 +366,8 @@ public class CardSection : NetworkBehaviour
                         {
                             playerRef.animTempSprite = Instantiate(playerRef.CardSpritePrefab, playerRef.gameManagerReference.playerHand.transform);
                             playerRef.animTempSprite.transform.rotation = Quaternion.identity;
-                            string query = "Cards/" + ((int)lastDiscardedCard.type).ToString() + "/" + lastDiscardedCard.art + "-01";
+                            //string query = "Cards/" + ((int)lastDiscardedCard.type).ToString() + "/" + lastDiscardedCard.art + "-01";
+                            string query = lastDiscardedCard.art;
                             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
                             playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
                             playerRef.animTempSprite.transform.localScale = new Vector3(10, 10);
@@ -378,92 +383,99 @@ public class CardSection : NetworkBehaviour
                     }
                     else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Evolve)
                     {
-                        print("commented out evolve code");
-                        //Card[] newLevelInfo = new Card[levelInfo.Value[int.Parse(EditingCard.name)].Length + 1];
-                        //for (int j = 0; j < levelInfo.Value[int.Parse(EditingCard.name)].Length; j++)
-                        //{
-                        //    newLevelInfo[j] = levelInfo.Value[int.Parse(EditingCard.name)][j];
-                        //}
+                        NetworkVariable<Card[]> section = playerRef.ModeToNetworkDeck(ownType);
 
-                        //newLevelInfo[levelInfo.Value[int.Parse(EditingCard.name)].Length] = Reserve.Value[int.Parse(EditingCard.name)];
+                        Card[] newLevelInfo = new Card[levelInfo.Value[int.Parse(EditingCard.name)].Length + 1];
+                        for (int j = 0; j < levelInfo.Value[int.Parse(EditingCard.name)].Length; j++)
+                        {
+                            newLevelInfo[j] = levelInfo.Value[int.Parse(EditingCard.name)][j];
+                        }
+
+                        newLevelInfo[levelInfo.Value[int.Parse(EditingCard.name)].Length] = section.Value[int.Parse(EditingCard.name)];
+
+                        Card[] newHand = new Card[playerRef.Hand.Value.Length - 1];
+                        int k = 0;
+                        for (byte j = 0; j < playerRef.Hand.Value.Length; j++)
+                        {
+                            if (j != playerRef.gameManagerReference.selectedCards[0])
+                            {
+                                newHand[k] = playerRef.Hand.Value[j];
+                                k++;
+                            }
+                        }
+
+                        void newCallback()
+                        {
+
+                            Card[][] tempLevelInfo = levelInfo.Value;
+                            tempLevelInfo[int.Parse(EditingCard.name)] = newLevelInfo;
+                            levelInfo.Value = null;
+                            levelInfo.Value = tempLevelInfo;
+
+                            if (playerRef.animTempSprite != null)
+                            {
+                                Destroy(playerRef.animTempSprite);
+                            }
+
+                            playerRef.isInAnimation = false;
+
+                            Card[] newSection = section.Value;
+
+                            newSection[int.Parse(EditingCard.name)] = playerRef.Hand.Value[
+                                playerRef.gameManagerReference.selectedCards[0]
+                            ];
+                            section.Value = null;
+                            section.Value = newSection;
+
+                            playerRef.Hand.Value = newHand;
+
+                            GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+                            playerRef.gameManagerReference.selectedCards = new List<byte>();
+
+                            foreach (Transform child in BenchObj.transform)
+                            {
+                                child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                            }
+
+                            foreach (Transform child in ActiveObj.transform)
+                            {
+                                child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                            }
+
+                            playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
 
 
-                        //Card[] newSpecialDeck = new Card[playerRef.SpecialDeck.Value.Length - 1];
-                        //int k = 0;
-                        //for (byte j = 0; j < playerRef.SpecialDeck.Value.Length; j++)
-                        //{
-                        //    if (j != playerRef.gameManagerReference.selectedCards[0])
-                        //    {
-                        //        newSpecialDeck[k] = playerRef.SpecialDeck.Value[j];
-                        //        k++;
-                        //    }
-                        //}
+                        }
 
-                        //void newCallback()
-                        //{
+                        if (playerRef.PlayerHand != null &&
+                            EditingCard.transform.GetChild(1).gameObject != null)
+                        {
+                            playerRef.animTempSprite = Instantiate(playerRef.CardSpritePrefab,
+                                playerRef.PlayerHand.transform);
+                            playerRef.animTempSprite.transform.rotation = Quaternion.identity;
+                            //string query = "Cards/" + (
+                            //    (int)(playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].type)
+                            //).ToString() + "/" + playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].art + "-01";
+                            string query = playerRef.Hand.Value[playerRef.gameManagerReference.selectedCards[0]].art;
+                            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                            playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
+                            playerRef.animTempSprite.transform.localScale = new Vector3(10, 10);
+                            playerRef.animTempTarget = EditingCard.transform.GetChild(1).gameObject.transform;
+                            playerRef.animCallback = newCallback;
 
-                        //    Card[][] tempLevelInfo = levelInfo.Value;
-                        //    tempLevelInfo[int.Parse(EditingCard.name)] = newLevelInfo;
-                        //    levelInfo.Value = null;
-                        //    levelInfo.Value = tempLevelInfo;
-
-                        //    if (playerRef.animTempSprite != null)
-                        //    {
-                        //        Destroy(playerRef.animTempSprite);
-                        //    }
-
-                        //    playerRef.isInAnimation = false;
-
-                        //    Card[] newReserve = Reserve.Value;
-
-                        //    newReserve[int.Parse(EditingCard.name)] = playerRef.SpecialDeck.Value[
-                        //        playerRef.gameManagerReference.selectedCards[0]
-                        //    ];
-                        //    Reserve.Value = null;
-                        //    Reserve.Value = newReserve;
-
-                        //    playerRef.SpecialDeck.Value = newSpecialDeck;
-
-                        //    GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
-                        //    playerRef.gameManagerReference.selectedCards = new List<byte>();
-
-                        //    foreach (Transform child in ReserveObj.transform)
-                        //    {
-                        //        child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
-                        //    }
-
-                        //    playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
-
-
-                        //}
-
-                        //if (playerRef.gameManagerReference.playerSpecialDeckSprite != null &&
-                        //    EditingCard.transform.GetChild(1).gameObject != null)
-                        //{
-                        //    playerRef.animTempSprite = Instantiate(playerRef.CardSpritePrefab,
-                        //        playerRef.gameManagerReference.playerSpecialDeckSprite.transform);
-                        //    playerRef.animTempSprite.transform.rotation = Quaternion.identity;
-                        //    string query = "Cards/" + (
-                        //        (int)(playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].type)
-                        //    ).ToString() + "/" + playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].art + "-01";
-                        //    Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-                        //    playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
-                        //    playerRef.animTempSprite.transform.localScale = new Vector3(10, 10);
-                        //    playerRef.animTempTarget = EditingCard.transform.GetChild(1).gameObject.transform;
-                        //    playerRef.animCallback = newCallback;
-
-                        //    StartCoroutine(playerRef.MoveSprite());
-                        //}
-                        //else
-                        //{
-                        //    newCallback();
-                        //}
+                            StartCoroutine(playerRef.MoveSprite());
+                        }
+                        else
+                        {
+                            newCallback();
+                        }
                     }
                 });
 
                 void setSprite()
                 {
-                    string query = "Cards/" + ((int)cardlist[i].type).ToString() + "/" + cardlist[i].art + "-01";
+                    //string query = "Cards/" + ((int)cardlist[i].type).ToString() + "/" + cardlist[i].art + "-01";
+                    string query = cardlist[i].art;
                     Sprite[] sprites = Resources.LoadAll<Sprite>(query);
                     if (sprites.Length == 1)
                     {
@@ -592,7 +604,8 @@ public class CardSection : NetworkBehaviour
                 playerRef.gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
-            string queryAttach = "Cards/" + ((int)levelInfo[j].type).ToString() + "/" + levelInfo[j].art + "-01";
+            //string queryAttach = "Cards/" + ((int)levelInfo[j].type).ToString() + "/" + levelInfo[j].art + "-01";
+            string queryAttach = levelInfo[j].art;
             Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
             if (spritesAttach.Length == 1)
             {
@@ -668,7 +681,8 @@ public class CardSection : NetworkBehaviour
                 }
             });
 
-            string queryAttach = "Cards/" + ((int)attachedCards[j].type).ToString() + "/" + attachedCards[j].art + "-01";
+            //string queryAttach = "Cards/" + ((int)attachedCards[j].type).ToString() + "/" + attachedCards[j].art + "-01";
+            string queryAttach = attachedCards[j].art;
             Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
             if (spritesAttach.Length == 1)
             {

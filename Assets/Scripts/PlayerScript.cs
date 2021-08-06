@@ -392,7 +392,8 @@ public class PlayerScript : NetworkBehaviour
         string query;
         if (Discard.Value.Length > 0)
         {
-            query = "Cards/" + ((int)Discard.Value[Discard.Value.Length - 1].type).ToString() + "/" + Discard.Value[Discard.Value.Length - 1].art + "-01";
+            //query = "Cards/" + ((int)Discard.Value[Discard.Value.Length - 1].type).ToString() + "/" + Discard.Value[Discard.Value.Length - 1].art + "-01";
+            query = Discard.Value[Discard.Value.Length - 1].art;
         }
         else
         {
@@ -468,6 +469,8 @@ public class PlayerScript : NetworkBehaviour
         gameManagerReference.TurnText.GetComponent<Text>().text = isActivePlayer.Value ? "Your turn" : "Opponent's turn";
         gameManagerReference.TurnButton.GetComponent<Button>().interactable = isActivePlayer.Value;
     }
+
+
 
     public LocalDeck ModeToLocalDeck(GameStateManager.SelectingMode mode)
     {
@@ -825,7 +828,8 @@ public class PlayerScript : NetworkBehaviour
         {
             animTempSprite = Instantiate(CardSpritePrefab, xObj.transform);
             animTempSprite.transform.rotation = Quaternion.identity;
-            string query = "Cards/" + ((int)lastDiscardedCard.type).ToString() + "/" + lastDiscardedCard.art + "-01";
+            //string query = "Cards/" + ((int)lastDiscardedCard.type).ToString() + "/" + lastDiscardedCard.art + "-01";
+            string query = lastDiscardedCard.art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
             animTempSprite.transform.localScale = new Vector3(10, 10);
