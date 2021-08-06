@@ -44,16 +44,13 @@ public class GameStateManager : MonoBehaviour
         DeckSection,
         OpponentsHand,
         Discard,
-        RemoveFromPlay,
-        Reserve,
-        Battlefield,
-        ExtraZone,
-        SpecialDeck,
+        LostZone,
+        Bench,
+        Active,
         Attaching,
-        AttachedReserve,
-        AttachedBattlefield,
-        AttachedExtraZone,
-        LevelingUp,
+        AttachedBench,
+        AttachedActive,
+        Evolve,
         DeckOptions,
         CustomSection,
     }
@@ -63,11 +60,11 @@ public class GameStateManager : MonoBehaviour
 
         { "Cancel", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Deck,
-            SelectingMode.Discard, SelectingMode.Reserve,
-            SelectingMode.Battlefield, SelectingMode.Attaching,
-            SelectingMode.AttachedReserve, SelectingMode.AttachedBattlefield,
-            SelectingMode.RemoveFromPlay, SelectingMode.DeckOptions,
-            SelectingMode.OpponentsHand, SelectingMode.SpecialDeck }
+            SelectingMode.Discard, SelectingMode.Bench,
+            SelectingMode.Active, SelectingMode.Attaching,
+            SelectingMode.AttachedBench, SelectingMode.AttachedActive,
+            SelectingMode.LostZone, SelectingMode.DeckOptions,
+            SelectingMode.OpponentsHand }
         },
 
         { "OwnInfo", new List<SelectingMode>(){ SelectingMode.None } },
@@ -85,14 +82,13 @@ public class GameStateManager : MonoBehaviour
 
         { "ToHand", new List<SelectingMode>(){
             SelectingMode.Deck,
-            SelectingMode.Discard, SelectingMode.RemoveFromPlay,
+            SelectingMode.Discard, SelectingMode.LostZone,
             SelectingMode.DeckSection
         }
         },
         { "Zone_ToHand", new List<SelectingMode>(){
-            SelectingMode.Reserve, SelectingMode.Battlefield, SelectingMode.ExtraZone,
-            SelectingMode.AttachedReserve, SelectingMode.AttachedBattlefield,
-            SelectingMode.AttachedExtraZone
+            SelectingMode.Bench, SelectingMode.Active,
+            SelectingMode.AttachedBench, SelectingMode.AttachedActive,
         }
         },
         { "Discard", new List<SelectingMode>(){
@@ -100,18 +96,16 @@ public class GameStateManager : MonoBehaviour
             SelectingMode.DeckSection }
         },
         { "Zone_Discard", new List<SelectingMode>(){
-            SelectingMode.Hand, SelectingMode.Reserve, SelectingMode.Battlefield,
-            SelectingMode.ExtraZone, SelectingMode.AttachedReserve,
-            SelectingMode.AttachedBattlefield, SelectingMode.AttachedExtraZone,
+            SelectingMode.Hand, SelectingMode.Bench, SelectingMode.Active,
+            SelectingMode.AttachedBench, SelectingMode.AttachedActive,
             SelectingMode.Attaching}
         },
         { "RemoveFromPlay", new List<SelectingMode>(){
             SelectingMode.Discard }
         },
         { "Zone_RemoveFromPlay", new List<SelectingMode>(){
-            SelectingMode.Hand, SelectingMode.Reserve, SelectingMode.Battlefield,
-            SelectingMode.ExtraZone, SelectingMode.AttachedReserve,
-            SelectingMode.AttachedBattlefield, SelectingMode.AttachedExtraZone,
+            SelectingMode.Hand, SelectingMode.Bench, SelectingMode.Active,
+            SelectingMode.AttachedBench, SelectingMode.AttachedActive, 
             SelectingMode.Attaching}
         },
         { "Zone_ToSpecialDeck", new List<SelectingMode>(){ SelectingMode.Hand } },
@@ -121,46 +115,42 @@ public class GameStateManager : MonoBehaviour
         { "ToTopOfDeck", new List<SelectingMode>(){ SelectingMode.Hand, SelectingMode.DeckSection,
             SelectingMode.Attaching } },
 
-        { "LevelUp", new List<SelectingMode>() { SelectingMode.SpecialDeck } },
-        { "LevelDown", new List<SelectingMode>() { SelectingMode.Reserve } },
+        { "LevelUp", new List<SelectingMode>() { SelectingMode.Hand } },
+        { "LevelDown", new List<SelectingMode>() { SelectingMode.Bench, SelectingMode.Active } },
         { "ShuffleIntoDeck", new List<SelectingMode>(){
-            SelectingMode.Hand, SelectingMode.Discard, SelectingMode.Reserve,
-            SelectingMode.Battlefield, SelectingMode.ExtraZone,
-            SelectingMode.AttachedReserve, SelectingMode.AttachedBattlefield,
-            SelectingMode.AttachedExtraZone, SelectingMode.Attaching}
+            SelectingMode.Hand, SelectingMode.Discard, SelectingMode.Bench,
+            SelectingMode.Active, SelectingMode.AttachedBench, 
+            SelectingMode.AttachedActive, SelectingMode.Attaching}
         },
         { "MoveToReserve", new List<SelectingMode>(){
-            SelectingMode.SpecialDeck }
+            SelectingMode.Deck }
         },
         { "MoveToBattlefield", new List<SelectingMode>(){
-            SelectingMode.SpecialDeck, SelectingMode.Attaching}
+            SelectingMode.Attaching}
         },
         { "MoveToExtraZone", new List<SelectingMode>(){} },
         { "Zone_MoveToReserve", new List<SelectingMode>(){
-            SelectingMode.Hand, SelectingMode.Battlefield, SelectingMode.ExtraZone }
+            SelectingMode.Hand, SelectingMode.Active }
         },
         { "Zone_MoveToBattlefield", new List<SelectingMode>(){
-            SelectingMode.Hand, SelectingMode.Reserve, SelectingMode.ExtraZone }
+            SelectingMode.Hand, SelectingMode.Bench }
         },
-        { "Zone_MoveToExtraZone", new List<SelectingMode>(){
-            SelectingMode.Hand, SelectingMode.Reserve, SelectingMode.Battlefield, SelectingMode.AttachedReserve }
+        { "Zone_MoveToExtraZone", new List<SelectingMode>(){}
         },
         { "Tap", new List<SelectingMode>(){
-            SelectingMode.Reserve, SelectingMode.Battlefield, SelectingMode.ExtraZone }
+            SelectingMode.Active, SelectingMode.Bench }
         },
         { "UntapAll", new List<SelectingMode>(){ SelectingMode.None } },
-        { "AddCounter", new List<SelectingMode>(){ SelectingMode.Reserve, SelectingMode.Battlefield,
-            SelectingMode.ExtraZone }
+        { "AddCounter", new List<SelectingMode>(){ SelectingMode.Active, SelectingMode.Bench }
         },
         { "Flip", new List<SelectingMode>(){
-            SelectingMode.Reserve, SelectingMode.Battlefield, SelectingMode.ExtraZone }
+            SelectingMode.Bench, SelectingMode.Active }
         },
         { "DeckIsSelected", new List<SelectingMode>() { SelectingMode.DeckOptions } },
         { "Reveal", new List<SelectingMode>() { SelectingMode.Hand, SelectingMode.Deck,
             SelectingMode.DeckSection, SelectingMode.Attaching}
         },
-        { "ViewCardAndAttachments", new List<SelectingMode>(){ SelectingMode.Reserve, SelectingMode.Battlefield,
-            SelectingMode.ExtraZone } },
+        { "ViewCardAndAttachments", new List<SelectingMode>(){ SelectingMode.Bench, SelectingMode.Active } },
         { "ManualCoinFlip", new List<SelectingMode>() { SelectingMode.None } },
         { "ManualDieRoll", new List<SelectingMode>() { SelectingMode.None } },
 
@@ -205,15 +195,13 @@ public class GameStateManager : MonoBehaviour
             CardSection section = client.GetComponent<CardSection>();
             if (section.IsLocalPlayer)
             {
-                section.ReserveObj = LocalReserve;
-                section.BattlefieldObj = LocalBattlefield;
-                section.ExtraZoneObj = LocalExtraZone;
+                section.BenchObj = LocalReserve;
+                section.ActiveObj = LocalBattlefield;
             }
             else
             {
-                section.ReserveObj = OppReserve;
-                section.BattlefieldObj = OppBattlefield;
-                section.ExtraZoneObj = OppExtraZone;
+                section.BenchObj = OppReserve;
+                section.ActiveObj = OppBattlefield;
             }
         }
         RenderCorrectButtons(SelectingMode.None);
@@ -320,40 +308,29 @@ public class GameStateManager : MonoBehaviour
                 }
             }
         }
-        else if (selectingMode == SelectingMode.Deck || selectingMode == SelectingMode.Discard || selectingMode == SelectingMode.RemoveFromPlay)
+        else if (selectingMode == SelectingMode.Deck || selectingMode == SelectingMode.Discard || selectingMode == SelectingMode.LostZone)
         {
             OnGallerySelectExit();
         }
-        else if (selectingMode == SelectingMode.Reserve)
+        else if (selectingMode == SelectingMode.Bench)
         {
             foreach (GameObject client in PlayerInfoManager.players)
             {
                 PlayerScript player = client.GetComponent<PlayerScript>();
                 if (player.IsLocalPlayer)
                 {
-                    player.cardSection.RenderSectionSelectingCancel(player.cardSection.ReserveObj);
+                    player.cardSection.RenderSectionSelectingCancel(player.cardSection.BenchObj);
                 }
             }
         }
-        else if (selectingMode == SelectingMode.Battlefield)
+        else if (selectingMode == SelectingMode.Active)
         {
             foreach (GameObject client in PlayerInfoManager.players)
             {
                 PlayerScript player = client.GetComponent<PlayerScript>();
                 if (player.IsLocalPlayer)
                 {
-                    player.cardSection.RenderSectionSelectingCancel(player.cardSection.BattlefieldObj);
-                }
-            }
-        }
-        else if (selectingMode == SelectingMode.ExtraZone)
-        {
-            foreach (GameObject client in PlayerInfoManager.players)
-            {
-                PlayerScript player = client.GetComponent<PlayerScript>();
-                if (player.IsLocalPlayer)
-                {
-                    player.cardSection.RenderSectionSelectingCancel(player.cardSection.ExtraZoneObj);
+                    player.cardSection.RenderSectionSelectingCancel(player.cardSection.ActiveObj);
                 }
             }
         }
@@ -373,70 +350,42 @@ public class GameStateManager : MonoBehaviour
                     }
 
                 }
-                foreach (Transform child in player.cardSection.ReserveObj.transform)
+                foreach (Transform child in player.cardSection.ActiveObj.transform)
                 {
                     child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                 }
 
-                foreach (Transform child in player.cardSection.ExtraZoneObj.transform)
+                foreach (Transform child in player.cardSection.BenchObj.transform)
                 {
                     child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                 }
             }
         }
-        else if (selectingMode == SelectingMode.AttachedReserve)
+        else if (selectingMode == SelectingMode.AttachedBench)
         {
             foreach (GameObject client in PlayerInfoManager.players)
             {
                 PlayerScript player = client.GetComponent<PlayerScript>();
                 if (player.IsLocalPlayer)
                 {
-                    player.cardSection.RenderAttachmentSelectionSelectingCancel(player.cardSection.ReserveObj.transform);
+                    player.cardSection.RenderAttachmentSelectionSelectingCancel(player.cardSection.BenchObj.transform);
                 }
             }
         }
-        else if (selectingMode == SelectingMode.AttachedBattlefield)
+        else if (selectingMode == SelectingMode.AttachedActive)
         {
             foreach (GameObject client in PlayerInfoManager.players)
             {
                 PlayerScript player = client.GetComponent<PlayerScript>();
                 if (player.IsLocalPlayer)
                 {
-                    player.cardSection.RenderAttachmentSelectionSelectingCancel(player.cardSection.BattlefieldObj.transform);
-                }
-            }
-        }
-        else if (selectingMode == SelectingMode.AttachedExtraZone)
-        {
-            foreach (GameObject client in PlayerInfoManager.players)
-            {
-                PlayerScript player = client.GetComponent<PlayerScript>();
-                if (player.IsLocalPlayer)
-                {
-                    player.cardSection.RenderAttachmentSelectionSelectingCancel(player.cardSection.ExtraZoneObj.transform);
+                    player.cardSection.RenderAttachmentSelectionSelectingCancel(player.cardSection.ActiveObj.transform);
                 }
             }
         }
         else if (selectingMode == SelectingMode.DeckOptions)
         {
             selectingMode = SelectingMode.None;
-        }
-        else if (selectingMode == SelectingMode.SpecialDeck)
-        {
-            selectingMode = SelectingMode.None;
-            selectedCards = new List<byte>();
-
-            foreach (GameObject client in PlayerInfoManager.players)
-            {
-                PlayerScript player = client.GetComponent<PlayerScript>();
-                if (player.IsLocalPlayer)
-                {
-                    foreach (Transform child in player.cardSection.ReserveObj.transform)
-                    {
-                        child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
-                    }
-                }
-            }
         }
 
         RenderCorrectButtons(SelectingMode.None);
@@ -479,11 +428,11 @@ public class GameStateManager : MonoBehaviour
                     foreach (GameObject _client in PlayerInfoManager.players)
                     {
                         CardSection playerCardSection = _client.GetComponent<PlayerScript>().cardSection;
-                        foreach (Transform child in playerCardSection.ReserveObj.transform)
+                        foreach (Transform child in playerCardSection.BenchObj.transform)
                         {
                             child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                         }
-                        foreach (Transform child in playerCardSection.ExtraZoneObj.transform)
+                        foreach (Transform child in playerCardSection.ActiveObj.transform)
                         {
                             child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                         }
@@ -519,7 +468,7 @@ public class GameStateManager : MonoBehaviour
             PlayerScript player = client.GetComponent<PlayerScript>();
             if (player.IsLocalPlayer)
             {
-                player.GameAction(PlayerScript.Action.RemoveFromPlay);
+                player.GameAction(PlayerScript.Action.LostZone);
             }
         }
 
@@ -599,7 +548,7 @@ public class GameStateManager : MonoBehaviour
             PlayerScript player = client.GetComponent<PlayerScript>();
             if (player.IsLocalPlayer)
             {
-                player.GameAction(PlayerScript.Action.Reserve);
+                player.GameAction(PlayerScript.Action.Bench);
             }
         }
         RenderCorrectButtons(SelectingMode.None);
@@ -612,33 +561,7 @@ public class GameStateManager : MonoBehaviour
             PlayerScript player = client.GetComponent<PlayerScript>();
             if (player.IsLocalPlayer)
             {
-                player.GameAction(PlayerScript.Action.Battlefield);
-            }
-        }
-        RenderCorrectButtons(SelectingMode.None);
-    }
-
-    public void OnMoveToExtraZone()
-    {
-        foreach (GameObject client in PlayerInfoManager.players)
-        {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (player.IsLocalPlayer)
-            {
-                player.GameAction(PlayerScript.Action.ExtraZone);
-            }
-        }
-        RenderCorrectButtons(SelectingMode.None);
-    }
-
-    public void OnMoveToSpecialDeck()
-    {
-        foreach (GameObject client in PlayerInfoManager.players)
-        {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (player.IsLocalPlayer)
-            {
-                player.GameAction(PlayerScript.Action.ToSpecialDeck);
+                player.GameAction(PlayerScript.Action.Active);
             }
         }
         RenderCorrectButtons(SelectingMode.None);
@@ -715,7 +638,7 @@ public class GameStateManager : MonoBehaviour
     {
         if (selectedCards.Count == 1)
         {
-            selectingMode = SelectingMode.LevelingUp;
+            selectingMode = SelectingMode.Evolve;
 
             foreach (GameObject client in PlayerInfoManager.players)
             {
@@ -725,7 +648,7 @@ public class GameStateManager : MonoBehaviour
                     player.GameAction(PlayerScript.Action.LevelUpStart);
                 }
             }
-            RenderCorrectButtons(SelectingMode.LevelingUp);
+            RenderCorrectButtons(SelectingMode.Evolve);
         }
 
     }
@@ -875,81 +798,6 @@ public class GameStateManager : MonoBehaviour
             });
 
             string query = "Cards/" + ((int)clientCode.Deck.Value[i].type).ToString() + "/" + clientCode.Deck.Value[i].art + "-01";
-            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            cardObj.GetComponent<Image>().sprite = sprites[0];
-        }
-
-        RenderCorrectButtons(SelectingMode.Gallery);
-    }
-
-    public void OnSpecialDeckView()
-    {
-        viewingMode = SelectingMode.SpecialDeck;
-        AdjustGalleryViewSize();
-        GalleryView.SetActive(true);
-
-        var children = new List<GameObject>();
-        foreach (Transform child in GalleryContent.transform) children.Add(child.gameObject);
-        children.ForEach(child => Destroy(child));
-
-        PlayerScript clientCode = null;
-
-        foreach (GameObject client in PlayerInfoManager.players)
-        {
-            clientCode = client.GetComponent<PlayerScript>();
-            if (clientCode.IsLocalPlayer)
-            {
-                break;
-            }
-        }
-
-
-        for (int i = 0; i < clientCode.SpecialDeck.Value.Length; i++)
-        {
-            GameObject cardObj = Instantiate(clientCode.CardPrefab, GalleryContent);
-            cardObj.name = i.ToString();
-            //cardObj.GetComponent<CardRightClickHandler>().onRightClick = OnCardRightClick;
-            cardObj.GetComponent<CardRightClickHandler>().onRightClick = (Sprite image) =>
-            {
-                OnCardRightClick(image);
-
-                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
-            };
-
-            cardObj.GetComponent<Button>().onClick.RemoveAllListeners();
-            cardObj.GetComponent<Button>().onClick.AddListener(() =>
-            {
-                if (clientCode.IsLocalPlayer && (selectingMode == SelectingMode.SpecialDeck || selectingMode == SelectingMode.None))
-                {
-                    if (selectingMode != SelectingMode.SpecialDeck)
-                    {
-                        RenderGalleryCardSelected();
-                        selectingMode = SelectingMode.SpecialDeck;
-                        RenderCorrectButtons(SelectingMode.SpecialDeck);
-                    }
-                    if (cardObj.GetComponent<Image>().color == CardManipulation.Unselected)
-                    {
-                        selectedCards.Add(byte.Parse(cardObj.name));
-                        cardObj.GetComponent<Image>().color = CardManipulation.Selected;
-                    }
-                    else if (cardObj.GetComponent<Image>().color == CardManipulation.Selected)
-                    {
-                        selectedCards.Remove(byte.Parse(cardObj.name));
-                        if (selectedCards.Count < 1)
-                        {
-                            selectingMode = SelectingMode.None;
-                            RenderGalleryCardSelectedCancel();
-                            RenderCorrectButtons(SelectingMode.None);
-                        }
-                        else
-                        {
-                            cardObj.GetComponent<Image>().color = CardManipulation.Unselected;
-                        }
-                    }
-                }
-            });
-
-            string query = "Cards/" + ((int)clientCode.SpecialDeck.Value[i].type).ToString() + "/" + clientCode.SpecialDeck.Value[i].art + "-01";
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             cardObj.GetComponent<Image>().sprite = sprites[0];
         }
@@ -1108,7 +956,7 @@ public class GameStateManager : MonoBehaviour
 
     public void OnRemoveFromPlayView()
     {
-        viewingMode = SelectingMode.RemoveFromPlay;
+        viewingMode = SelectingMode.LostZone;
         AdjustGalleryViewSize();
         GalleryView.SetActive(true);
 
@@ -1128,7 +976,7 @@ public class GameStateManager : MonoBehaviour
         }
 
 
-        for (int i = 0; i < clientCode.RemoveFromPlay.Value.Length; i++)
+        for (int i = 0; i < clientCode.LostZone.Value.Length; i++)
         {
             GameObject cardObj = Instantiate(clientCode.CardPrefab, GalleryContent);
             cardObj.name = i.ToString();
@@ -1143,13 +991,13 @@ public class GameStateManager : MonoBehaviour
             cardObj.GetComponent<Button>().onClick.RemoveAllListeners();
             cardObj.GetComponent<Button>().onClick.AddListener(() =>
             {
-                if (clientCode.IsLocalPlayer && (selectingMode == SelectingMode.RemoveFromPlay || selectingMode == SelectingMode.None))
+                if (clientCode.IsLocalPlayer && (selectingMode == SelectingMode.LostZone || selectingMode == SelectingMode.None))
                 {
-                    if (selectingMode != SelectingMode.RemoveFromPlay)
+                    if (selectingMode != SelectingMode.LostZone)
                     {
                         RenderGalleryCardSelected();
-                        selectingMode = SelectingMode.RemoveFromPlay;
-                        RenderCorrectButtons(SelectingMode.RemoveFromPlay);
+                        selectingMode = SelectingMode.LostZone;
+                        RenderCorrectButtons(SelectingMode.LostZone);
                     }
                     if (cardObj.GetComponent<Image>().color == CardManipulation.Unselected)
                     {
@@ -1173,7 +1021,7 @@ public class GameStateManager : MonoBehaviour
                 }
             });
 
-            string query = "Cards/" + ((int)clientCode.RemoveFromPlay.Value[i].type).ToString() + "/" + clientCode.RemoveFromPlay.Value[i].art + "-01";
+            string query = "Cards/" + ((int)clientCode.LostZone.Value[i].type).ToString() + "/" + clientCode.LostZone.Value[i].art + "-01";
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             cardObj.GetComponent<Image>().sprite = sprites[0];
         }
@@ -1214,7 +1062,7 @@ public class GameStateManager : MonoBehaviour
             PlayerScript player = client.GetComponent<PlayerScript>();
             if (!player.IsLocalPlayer)
             {
-                OnCustomViewOnly(player.RemoveFromPlay.Value);
+                OnCustomViewOnly(player.LostZone.Value);
                 break;
             }
         }
@@ -1250,15 +1098,11 @@ public class GameStateManager : MonoBehaviour
         selectingMode = SelectingMode.None;
         RenderCorrectButtons(SelectingMode.None);
 
-        foreach (Transform child in playerScript.cardSection.ReserveObj.transform)
+        foreach (Transform child in playerScript.cardSection.BenchObj.transform)
         {
             child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
         }
-        foreach (Transform child in playerScript.cardSection.BattlefieldObj.transform)
-        {
-            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
-        }
-        foreach (Transform child in playerScript.cardSection.ExtraZoneObj.transform)
+        foreach (Transform child in playerScript.cardSection.ActiveObj.transform)
         {
             child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
         }
@@ -1301,7 +1145,7 @@ public class GameStateManager : MonoBehaviour
     }
     
     private byte CustomViewBounds;
-    public void OnCustomViewWithEditAccess(Card[] cards, SelectingMode mode)
+    public void OnCustomViewWithEditAccess(Card[] cards)
     {
         CustomViewBounds = (byte)cards.Length;
         selectingMode = SelectingMode.Gallery;

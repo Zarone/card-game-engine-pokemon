@@ -35,7 +35,7 @@ public class CollectionScript : MonoBehaviour
 
         try
         {
-            int limit = 5;
+            int limit = 50;
             int cardsAdded = 0;
 
             //Get the path of all files inside the directory and save them on a List  
@@ -68,6 +68,7 @@ public class CollectionScript : MonoBehaviour
 
     public int RenderEra(string eraName, int limit, string filter = default, bool passSetInfo = false)
     {
+        if (filter == null || filter.Length < 1) return 0;
         List<string> setList = new List<string>(Directory.GetDirectories(directoryPath + eraName + "/"));
 
         int cardsAdded = 0;
@@ -109,9 +110,25 @@ public class CollectionScript : MonoBehaviour
 
                 string targetPath = fileNames[j].Split(new string[] { "Resources/" }, StringSplitOptions.None)[1];
                 targetPath = targetPath.Remove(targetPath.IndexOf("."), 4);
-                //print(setName);
-                //print(Path.GetFileName(targetPath));
-                if (currentPath.EndsWith(".png") && (filter == default || setInfo[Path.GetFileName(targetPath)].ToLower().Contains(filter)))
+
+                //bool passFilter = false;
+
+
+
+
+
+
+
+
+                if (!currentPath.EndsWith(".png"))
+                {
+                    continue;
+                }
+
+                if (filter[0] == '"' && filter[filter.Length - 1] == '"' ?
+                        setInfo[Path.GetFileName(targetPath)].ToLower() == filter.Substring(1, filter.Length - 2) :
+                        filter == default || setInfo[Path.GetFileName(targetPath)].ToLower().Contains(filter))
+
                 {
                     Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
                     if (cardSprites.Length == 1)

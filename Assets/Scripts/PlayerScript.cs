@@ -15,11 +15,10 @@ public class PlayerScript : NetworkBehaviour
         Setup,
         Draw,
         Discard,
-        RemoveFromPlay,
+        LostZone,
         ShuffleIntoDeck,
-        Reserve,
-        Battlefield,
-        ExtraZone,
+        Bench,
+        Active,
         ToHand,
         AttachStart,
         AttachConfirm,
@@ -34,7 +33,6 @@ public class PlayerScript : NetworkBehaviour
         ToTopOfDeck,
         ToTopOfDeckFromSection,
         RevealTopOfDeck,
-        ToSpecialDeck,
         AllowEditTopOfDeck
     }
 
@@ -79,7 +77,7 @@ public class PlayerScript : NetworkBehaviour
     );
 
     [System.NonSerialized]
-    public NetworkVariable<Card[]> RemoveFromPlay = new NetworkVariable<Card[]>(
+    public NetworkVariable<Card[]> LostZone = new NetworkVariable<Card[]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -196,7 +194,7 @@ public class PlayerScript : NetworkBehaviour
         {
             RenderSpecialDeck();
         };
-        RemoveFromPlay.OnValueChanged += (Card[] previousValue, Card[] newValue) =>
+        LostZone.OnValueChanged += (Card[] previousValue, Card[] newValue) =>
         {
             RenderRemoveFromPlay();
         };
@@ -232,7 +230,7 @@ public class PlayerScript : NetworkBehaviour
 
         if (IsLocalPlayer)
         {
-            GameAction(Action.Setup, CardManipulation.Shuffle(PlayerInfoManager.fullDeck), PlayerInfoManager.specialCharacterDeck);
+            GameAction(Action.Setup, CardManipulation.Shuffle(PlayerInfoManager.fullDeck));
         }
         HasStarted = true;
         //RenderHand();
@@ -314,11 +312,11 @@ public class PlayerScript : NetworkBehaviour
                                             foreach (GameObject client in PlayerInfoManager.players)
                                             {
                                                 CardSection playerCardSection = client.GetComponent<PlayerScript>().cardSection;
-                                                foreach (Transform child in playerCardSection.ReserveObj.transform)
+                                                foreach (Transform child in playerCardSection.BenchObj.transform)
                                                 {
                                                     child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                                                 }
-                                                foreach (Transform child in playerCardSection.ExtraZoneObj.transform)
+                                                foreach (Transform child in playerCardSection.ActiveObj.transform)
                                                 {
                                                     child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                                                 }
@@ -454,9 +452,9 @@ public class PlayerScript : NetworkBehaviour
     public void RenderRemoveFromPlay()
     {
         string query;
-        if (RemoveFromPlay.Value.Length > 0)
+        if (LostZone.Value.Length > 0)
         {
-            query = "Cards/" + ((int)RemoveFromPlay.Value[RemoveFromPlay.Value.Length - 1].type).ToString() + "/" + RemoveFromPlay.Value[RemoveFromPlay.Value.Length - 1].art + "-01";
+            query = "Cards/" + ((int)LostZone.Value[LostZone.Value.Length - 1].type).ToString() + "/" + LostZone.Value[LostZone.Value.Length - 1].art + "-01";
         }
         else
         {
@@ -531,12 +529,10 @@ public class PlayerScript : NetworkBehaviour
     {
         return mode switch
         {
-            GameStateManager.SelectingMode.SpecialDeck => SpecialDeck,
-            GameStateManager.SelectingMode.Battlefield => cardSection.Battlefield,
-            GameStateManager.SelectingMode.Reserve => cardSection.Reserve,
-            GameStateManager.SelectingMode.ExtraZone => cardSection.ExtraZone,
+            GameStateManager.SelectingMode.Active => cardSection.Active,
+            GameStateManager.SelectingMode.Bench => cardSection.Bench,
             GameStateManager.SelectingMode.Discard => Discard,
-            GameStateManager.SelectingMode.RemoveFromPlay => RemoveFromPlay,
+            GameStateManager.SelectingMode.LostZone => LostZone,
             _ => null,
         };
     }
@@ -545,9 +541,8 @@ public class PlayerScript : NetworkBehaviour
     {
         return mode switch
         {
-            GameStateManager.SelectingMode.AttachedReserve => cardSection.ReserveAttachments,
-            GameStateManager.SelectingMode.AttachedBattlefield => cardSection.BattlefieldAttachments,
-            GameStateManager.SelectingMode.AttachedExtraZone => cardSection.ExtraZoneAttachments,
+            GameStateManager.SelectingMode.AttachedBench => cardSection.BenchAttachments,
+            GameStateManager.SelectingMode.AttachedActive => cardSection.ActiveAttachments,
             _ => null,
         };
     }
@@ -568,19 +563,16 @@ public class PlayerScript : NetworkBehaviour
     {
         return mode switch
         {
-            GameStateManager.SelectingMode.SpecialDeck => gameManagerReference.playerSpecialDeckSprite,
             GameStateManager.SelectingMode.Deck => gameManagerReference.playerDeckSprite,
             GameStateManager.SelectingMode.DeckSection => gameManagerReference.playerDeckSprite,
             GameStateManager.SelectingMode.Discard => gameManagerReference.playerDiscardSprite,
-            GameStateManager.SelectingMode.RemoveFromPlay => gameManagerReference.playerRemoveFromPlaySprite,
+            GameStateManager.SelectingMode.LostZone => gameManagerReference.playerRemoveFromPlaySprite,
             GameStateManager.SelectingMode.Hand => gameManagerReference.playerHand,
             GameStateManager.SelectingMode.Attaching => gameManagerReference.playerHand,
-            GameStateManager.SelectingMode.Reserve => cardSection.ReserveObj,
-            GameStateManager.SelectingMode.Battlefield => cardSection.BattlefieldObj,
-            GameStateManager.SelectingMode.ExtraZone => cardSection.ExtraZoneObj,
-            GameStateManager.SelectingMode.AttachedReserve => cardSection.ReserveObj,
-            GameStateManager.SelectingMode.AttachedBattlefield => cardSection.BattlefieldObj,
-            GameStateManager.SelectingMode.AttachedExtraZone => cardSection.ExtraZoneObj,
+            GameStateManager.SelectingMode.Bench => cardSection.BenchObj,
+            GameStateManager.SelectingMode.Active => cardSection.ActiveObj,
+            GameStateManager.SelectingMode.AttachedBench => cardSection.BenchObj,
+            GameStateManager.SelectingMode.AttachedActive => cardSection.ActiveObj,
             _ => null,
         };
     }
@@ -589,9 +581,8 @@ public class PlayerScript : NetworkBehaviour
     {
         return mode switch
         {
-            GameStateManager.SelectingMode.Battlefield => cardSection.BattlefieldAttachments,
-            GameStateManager.SelectingMode.Reserve => cardSection.ReserveAttachments,
-            GameStateManager.SelectingMode.ExtraZone => cardSection.ExtraZoneAttachments,
+            GameStateManager.SelectingMode.Active => cardSection.ActiveAttachments,
+            GameStateManager.SelectingMode.Bench => cardSection.BenchAttachments,
             _ => null,
         };
     }
@@ -600,9 +591,8 @@ public class PlayerScript : NetworkBehaviour
     {
         return mode switch
         {
-            GameStateManager.SelectingMode.AttachedBattlefield => true,
-            GameStateManager.SelectingMode.AttachedReserve => true,
-            GameStateManager.SelectingMode.AttachedExtraZone => true,
+            GameStateManager.SelectingMode.AttachedBench => true,
+            GameStateManager.SelectingMode.AttachedActive => true,
             _ => false
         };
     }
@@ -611,9 +601,8 @@ public class PlayerScript : NetworkBehaviour
     {
         return mode switch
         {
-            GameStateManager.SelectingMode.Battlefield => cardSection.BattlefieldCardStates,
-            GameStateManager.SelectingMode.Reserve => cardSection.ReserveCardStates,
-            GameStateManager.SelectingMode.ExtraZone => cardSection.ExtraZoneCardStates,
+            GameStateManager.SelectingMode.Active => cardSection.ActiveCardStates,
+            GameStateManager.SelectingMode.Bench => cardSection.BenchCardStates,
             _ => null
         };
     }
@@ -622,7 +611,8 @@ public class PlayerScript : NetworkBehaviour
     {
         return mode switch
         {
-            GameStateManager.SelectingMode.Reserve => cardSection.CardOldLevels,
+            GameStateManager.SelectingMode.Bench => cardSection.BenchCardOldEvolutions,
+            GameStateManager.SelectingMode.Active => cardSection.ActiveCardOldEvolutions,
             _ => null
         };
     }
@@ -631,9 +621,8 @@ public class PlayerScript : NetworkBehaviour
     {
         return mode switch
         {
-            GameStateManager.SelectingMode.Reserve => cardSection.ReserveCounters,
-            GameStateManager.SelectingMode.Battlefield => cardSection.BattlefieldCounters,
-            GameStateManager.SelectingMode.ExtraZone => cardSection.ExtraZoneCounters,
+            GameStateManager.SelectingMode.Bench => cardSection.BenchCounters,
+            GameStateManager.SelectingMode.Active => cardSection.ActiveCounters,
             _ => null
         };
     }
@@ -1068,10 +1057,9 @@ public class PlayerScript : NetworkBehaviour
             );
 
 
-            if (fromMode == GameStateManager.SelectingMode.SpecialDeck ||
-                fromMode == GameStateManager.SelectingMode.Deck ||
+            if (fromMode == GameStateManager.SelectingMode.Deck ||
                 fromMode == GameStateManager.SelectingMode.Discard ||
-                fromMode == GameStateManager.SelectingMode.RemoveFromPlay)
+                fromMode == GameStateManager.SelectingMode.LostZone)
             {
                 gameManagerReference.OnGalleryViewExit();
             }
@@ -1090,11 +1078,11 @@ public class PlayerScript : NetworkBehaviour
                 foreach (GameObject client in PlayerInfoManager.players)
                 {
                     CardSection playerCardSection = client.GetComponent<PlayerScript>().cardSection;
-                    foreach (Transform child in playerCardSection.ReserveObj.transform)
+                    foreach (Transform child in playerCardSection.BenchObj.transform)
                     {
                         child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                     }
-                    foreach (Transform child in playerCardSection.ExtraZoneObj.transform)
+                    foreach (Transform child in playerCardSection.ActiveObj.transform)
                     {
                         child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                     }
@@ -1175,7 +1163,7 @@ public class PlayerScript : NetworkBehaviour
         animCallback();
     }
 
-    public void GameAction(Action action, Card[] extraArgs = null, Card[] extraArgsSpecial = null)
+    public void GameAction(Action action, Card[] extraArgs = null)
     {
 
         if (action == Action.Setup)
@@ -1185,12 +1173,6 @@ public class PlayerScript : NetworkBehaviour
                 Deck.Value = extraArgs;
             }
             else Debug.LogError("Invalid Action.Set call, missing deck");
-
-            if (extraArgsSpecial != null)
-            {
-                SpecialDeck.Value = extraArgsSpecial;
-            }
-            else Debug.LogError("Invalid Action.Set call, missing special deck");
 
             int steps;
             if (Deck.Value.Length > 6) steps = PlayerInfoManager.CardsInHandStartingTheGame;
@@ -1241,46 +1223,38 @@ public class PlayerScript : NetworkBehaviour
         {
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Discard);
         }
-        else if (action == Action.RemoveFromPlay)
+        else if (action == Action.LostZone)
         {
-            FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.RemoveFromPlay);
+            FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.LostZone);
         }
         else if (action == Action.ShuffleIntoDeck)
         {
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Deck, true);
 
         }
-        else if (action == Action.Reserve)
+        else if (action == Action.Bench)
         {
-            FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Reserve);
+            FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Bench);
         }
-        else if (action == Action.Battlefield)
+        else if (action == Action.Active)
         {
-            FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Battlefield);
+            FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Active);
 
-        }
-        else if (action == Action.ExtraZone)
-        {
-            FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.ExtraZone);
         }
         else if (action == Action.ToHand)
         {
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Hand);
         }
-        else if (action == Action.ToSpecialDeck)
-        {
-            FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.SpecialDeck);
-        }
         else if (action == Action.AttachStart)
         {
             foreach (GameObject playerClient in PlayerInfoManager.players)
             {
-                foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.ReserveObj.transform)
+                foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.BenchObj.transform)
                 {
                     child.gameObject.GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
                 }
 
-                foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.ExtraZoneObj.transform)
+                foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.ActiveObj.transform)
                 {
                     child.gameObject.GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
                 }
@@ -1288,58 +1262,65 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.LevelUpStart)
         {
-            if (cardSection.Reserve.Value.Length > 0)
+            if (cardSection.Bench.Value.Length > 0)
             {
-                foreach (Transform child in cardSection.ReserveObj.transform)
+                foreach (Transform child in cardSection.BenchObj.transform)
                 {
                     child.gameObject.GetComponent<Image>().color = CardManipulation.Unselected;
                 }
+            }
 
-                gameManagerReference.GalleryView.SetActive(false);
+            if (cardSection.Active.Value.Length > 0)
+            {
+                foreach (Transform child in cardSection.ActiveObj.transform)
+                {
+                    child.gameObject.GetComponent<Image>().color = CardManipulation.Unselected;
+                }
             }
         }
         else if (action == Action.LevelDown)
         {
-            if (cardSection.CardOldLevels.Value[
-                        gameManagerReference.selectedCards[0]
-                    ].Length == 0) return;
+            print("commented out leveldown in game action function ");
+            //if (cardSection.CardOldLevels.Value[
+            //            gameManagerReference.selectedCards[0]
+            //        ].Length == 0) return;
 
-            // send last levelup to Special Deck
-            Card[] newSpecialDeck = new Card[SpecialDeck.Value.Length + 1];
-            for (int i = 0; i < SpecialDeck.Value.Length; i++)
-            {
-                newSpecialDeck[i] = SpecialDeck.Value[i];
-            }
-            newSpecialDeck[newSpecialDeck.Length - 1] = cardSection.Reserve.Value[gameManagerReference.selectedCards[0]];
+            //// send last levelup to Special Deck
+            //Card[] newSpecialDeck = new Card[SpecialDeck.Value.Length + 1];
+            //for (int i = 0; i < SpecialDeck.Value.Length; i++)
+            //{
+            //    newSpecialDeck[i] = SpecialDeck.Value[i];
+            //}
+            //newSpecialDeck[newSpecialDeck.Length - 1] = cardSection.Reserve.Value[gameManagerReference.selectedCards[0]];
 
-            // switch selected card with it's last levelup
-            Card[] newReserve = cardSection.Reserve.Value;
-            newReserve[gameManagerReference.selectedCards[0]] = cardSection.CardOldLevels.Value[
-                gameManagerReference.selectedCards[0]
-            ][cardSection.CardOldLevels.Value[gameManagerReference.selectedCards[0]].Length - 1];
+            //// switch selected card with it's last levelup
+            //Card[] newReserve = cardSection.Reserve.Value;
+            //newReserve[gameManagerReference.selectedCards[0]] = cardSection.CardOldLevels.Value[
+            //    gameManagerReference.selectedCards[0]
+            //][cardSection.CardOldLevels.Value[gameManagerReference.selectedCards[0]].Length - 1];
 
-            Card[] newLevelUp = new Card[
-                cardSection.CardOldLevels.Value[
-                    gameManagerReference.selectedCards[0]
-                ].Length - 1
-            ];
+            //Card[] newLevelUp = new Card[
+            //    cardSection.CardOldLevels.Value[
+            //        gameManagerReference.selectedCards[0]
+            //    ].Length - 1
+            //];
 
-            for (byte i = 0; i < newLevelUp.Length; i++)
-            {
-                newLevelUp[i] = cardSection.CardOldLevels.Value[gameManagerReference.selectedCards[0]][i];
-            }
+            //for (byte i = 0; i < newLevelUp.Length; i++)
+            //{
+            //    newLevelUp[i] = cardSection.CardOldLevels.Value[gameManagerReference.selectedCards[0]][i];
+            //}
 
-            // set values
-            cardSection.CardOldLevels.Value[gameManagerReference.selectedCards[0]] = newLevelUp;
+            //// set values
+            //cardSection.CardOldLevels.Value[gameManagerReference.selectedCards[0]] = newLevelUp;
 
-            cardSection.Reserve.Value = null;
-            cardSection.Reserve.Value = newReserve;
+            //cardSection.Reserve.Value = null;
+            //cardSection.Reserve.Value = newReserve;
 
-            SpecialDeck.Value = newSpecialDeck;
+            //SpecialDeck.Value = newSpecialDeck;
 
-            gameManagerReference.selectedCards = new List<byte>();
-            GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
-            gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
+            //gameManagerReference.selectedCards = new List<byte>();
+            //GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+            //gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
         }
         else if (action == Action.Tap)
         {
@@ -1381,41 +1362,30 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.AddCounter)
         {
-            if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Reserve)
+            if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Bench)
             {
-                int[] newReserveCounters = cardSection.ReserveCounters.Value;
-                cardSection.ReserveCounters.Value = null;
+                int[] newBenchCounters = cardSection.BenchCounters.Value;
+                cardSection.BenchCounters.Value = null;
 
                 foreach (byte card in gameManagerReference.selectedCards)
                 {
-                    newReserveCounters[card] = 0;
+                    newBenchCounters[card] = 0;
                 }
-                cardSection.ReserveCounters.Value = newReserveCounters;
+                cardSection.BenchCounters.Value = newBenchCounters;
             }
-            else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Battlefield)
+            else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Active)
             {
-                int[] newBattlefieldCounters = cardSection.BattlefieldCounters.Value;
-                cardSection.BattlefieldCounters.Value = null;
+                int[] newActiveCounters = cardSection.ActiveCounters.Value;
+                cardSection.ActiveCounters.Value = null;
 
                 foreach (byte card in gameManagerReference.selectedCards)
                 {
-                    newBattlefieldCounters[card] = 0;
+                    newActiveCounters[card] = 0;
                 }
-                cardSection.BattlefieldCounters.Value = newBattlefieldCounters;
-            }
-            else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.ExtraZone)
-            {
-                int[] newExtraZoneCounters = cardSection.ExtraZoneCounters.Value;
-                cardSection.ExtraZoneCounters.Value = null;
-
-                foreach (byte card in gameManagerReference.selectedCards)
-                {
-                    newExtraZoneCounters[card] = 0;
-                }
-                cardSection.ExtraZoneCounters.Value = newExtraZoneCounters;
+                cardSection.ActiveCounters.Value = newActiveCounters;
             }
 
-            cardSection.RenderSectionSelectingCancel(cardSection.ExtraZoneObj);
+            //cardSection.RenderSectionSelectingCancel(cardSection.ExtraZoneObj);
         }
         else if (action == Action.Mill)
         {
@@ -1646,7 +1616,7 @@ public class PlayerScript : NetworkBehaviour
         clientScript.RenderTurnInfo();
         clientScript.Friendship.Value = 1;
         clientScript.TempFriendship.Value = 1;
-        clientScript.gameManagerReference.OnSpecialDeckView();
+        //clientScript.gameManagerReference.OnSpecialDeckView();
     }
 
 
@@ -1676,7 +1646,8 @@ public class PlayerScript : NetworkBehaviour
     {
         if (senderPlayerID != NetworkManager.Singleton.LocalClientId)
         {
-            gameManagerReference.OnCustomViewWithEditAccess(hand, GameStateManager.SelectingMode.Deck);
+            //gameManagerReference.OnCustomViewWithEditAccess(hand, GameStateManager.SelectingMode.Deck);
+            gameManagerReference.OnCustomViewWithEditAccess(hand);
         }
     }
 
@@ -1788,32 +1759,29 @@ public class PlayerScript : NetworkBehaviour
         playerScript.Deck.Value = new Card[0];
         playerScript.SpecialDeck.Value = new Card[0];
         playerScript.Discard.Value = new Card[0];
-        playerScript.RemoveFromPlay.Value = new Card[0];
+        playerScript.LostZone.Value = new Card[0];
         playerScript.Friendship.Value = 0;
         playerScript.TempFriendship.Value = 0;
 
         gameManagerReference.selectedCards = new List<byte>();
         GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
 
-        playerScript.cardSection.Reserve.Value = new Card[0];
-        playerScript.cardSection.Battlefield.Value = new Card[0];
-        playerScript.cardSection.ExtraZone.Value = new Card[0];
+        playerScript.cardSection.Bench.Value = new Card[0];
+        playerScript.cardSection.Active.Value = new Card[0];
 
-        playerScript.cardSection.ReserveAttachments.Value = new Card[0][];
-        playerScript.cardSection.BattlefieldAttachments.Value = new Card[0][];
-        playerScript.cardSection.ExtraZoneAttachments.Value = new Card[0][];
+        playerScript.cardSection.BenchAttachments.Value = new Card[0][];
+        playerScript.cardSection.ActiveAttachments.Value = new Card[0][];
 
-        playerScript.cardSection.ReserveCardStates.Value = new bool[0][];
-        playerScript.cardSection.BattlefieldCardStates.Value = new bool[0][];
-        playerScript.cardSection.ExtraZoneCardStates.Value = new bool[0][];
+        playerScript.cardSection.BenchCardStates.Value = new bool[0][];
+        playerScript.cardSection.ActiveCardStates.Value = new bool[0][];
 
-        playerScript.cardSection.ReserveCounters.Value = new int[0];
-        playerScript.cardSection.BattlefieldCounters.Value = new int[0];
-        playerScript.cardSection.ExtraZoneCounters.Value = new int[0];
+        playerScript.cardSection.BenchCounters.Value = new int[0];
+        playerScript.cardSection.ActiveCounters.Value = new int[0];
 
-        playerScript.cardSection.CardOldLevels.Value = new Card[0][];
+        playerScript.cardSection.BenchCardOldEvolutions.Value = new Card[0][];
+        playerScript.cardSection.ActiveCardOldEvolutions.Value = new Card[0][];
 
-        playerScript.GameAction(Action.Setup, CardManipulation.Shuffle(PlayerInfoManager.fullDeck), PlayerInfoManager.specialCharacterDeck);
+        playerScript.GameAction(Action.Setup, CardManipulation.Shuffle(PlayerInfoManager.fullDeck));
 
         gameManagerReference.gameSettingsManager.RematchPanel.SetActive(false);
         gameManagerReference.gameSettingsManager.SettingsMenu.SetActive(false);

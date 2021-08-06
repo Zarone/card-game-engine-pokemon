@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class CardSection : NetworkBehaviour
 {
     [System.NonSerialized]
-    public NetworkVariable<Card[]> Reserve = new NetworkVariable<Card[]>(
+    public NetworkVariable<Card[]> Bench = new NetworkVariable<Card[]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -18,7 +18,7 @@ public class CardSection : NetworkBehaviour
     );
 
     [System.NonSerialized]
-    public NetworkVariable<Card[]> Battlefield = new NetworkVariable<Card[]>(
+    public NetworkVariable<Card[]> Active = new NetworkVariable<Card[]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -28,17 +28,7 @@ public class CardSection : NetworkBehaviour
     );
 
     [System.NonSerialized]
-    public NetworkVariable<Card[]> ExtraZone = new NetworkVariable<Card[]>(
-        new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
-            ReadPermission = NetworkVariablePermission.Everyone
-        },
-        new Card[0]
-    );
-
-    [System.NonSerialized]
-    public NetworkVariable<Card[][]> ReserveAttachments = new NetworkVariable<Card[][]>(
+    public NetworkVariable<Card[][]> BenchAttachments = new NetworkVariable<Card[][]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.Everyone,
@@ -48,7 +38,7 @@ public class CardSection : NetworkBehaviour
     );
 
     [System.NonSerialized]
-    public NetworkVariable<Card[][]> BattlefieldAttachments = new NetworkVariable<Card[][]>(
+    public NetworkVariable<Card[][]> ActiveAttachments = new NetworkVariable<Card[][]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.Everyone,
@@ -58,17 +48,7 @@ public class CardSection : NetworkBehaviour
     );
 
     [System.NonSerialized]
-    public NetworkVariable<Card[][]> ExtraZoneAttachments = new NetworkVariable<Card[][]>(
-        new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.Everyone,
-            ReadPermission = NetworkVariablePermission.Everyone
-        },
-        new Card[0][]
-    );
-
-    [System.NonSerialized]
-    public NetworkVariable<bool[][]> ReserveCardStates = new NetworkVariable<bool[][]>(
+    public NetworkVariable<bool[][]> BenchCardStates = new NetworkVariable<bool[][]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -78,7 +58,7 @@ public class CardSection : NetworkBehaviour
     );
 
     [System.NonSerialized]
-    public NetworkVariable<bool[][]> BattlefieldCardStates = new NetworkVariable<bool[][]>(
+    public NetworkVariable<bool[][]> ActiveCardStates = new NetworkVariable<bool[][]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -88,18 +68,7 @@ public class CardSection : NetworkBehaviour
     );
 
     [System.NonSerialized]
-    public NetworkVariable<bool[][]> ExtraZoneCardStates = new NetworkVariable<bool[][]>(
-        new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
-            ReadPermission = NetworkVariablePermission.Everyone
-        },
-        new bool[0][]
-    );
-
-
-    [System.NonSerialized]
-    public NetworkVariable<Card[][]> CardOldLevels = new NetworkVariable<Card[][]>(
+    public NetworkVariable<Card[][]> BenchCardOldEvolutions = new NetworkVariable<Card[][]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -108,7 +77,17 @@ public class CardSection : NetworkBehaviour
         new Card[0][]
     );
 
-    public NetworkVariable<int[]> ReserveCounters = new NetworkVariable<int[]>(
+    [System.NonSerialized]
+    public NetworkVariable<Card[][]> ActiveCardOldEvolutions = new NetworkVariable<Card[][]>(
+        new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.OwnerOnly,
+            ReadPermission = NetworkVariablePermission.Everyone
+        },
+        new Card[0][]
+    );
+
+    public NetworkVariable<int[]> BenchCounters = new NetworkVariable<int[]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -117,7 +96,7 @@ public class CardSection : NetworkBehaviour
         new int[0]
     );
 
-    public NetworkVariable<int[]> BattlefieldCounters = new NetworkVariable<int[]>(
+    public NetworkVariable<int[]> ActiveCounters = new NetworkVariable<int[]>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -126,129 +105,94 @@ public class CardSection : NetworkBehaviour
         new int[0]
     );
 
-    public NetworkVariable<int[]> ExtraZoneCounters = new NetworkVariable<int[]>(
-        new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
-            ReadPermission = NetworkVariablePermission.Everyone
-        },
-        new int[0]
-    );
-
-
-    public GameObject ReserveObj;
-    public GameObject BattlefieldObj;
-    public GameObject ExtraZoneObj;
+    public GameObject BenchObj;
+    public GameObject ActiveObj;
 
     private PlayerScript playerRef;
 
     public void Start()
     {
 
-        void ReRenderReserve()
+        void ReRenderBench()
         {
-            RenderSection(Reserve.Value, ReserveObj, GameStateManager.SelectingMode.Reserve,
-                ReserveAttachments, ReserveCardStates, CardOldLevels, ReserveCounters);
+            RenderSection(Bench.Value, BenchObj, GameStateManager.SelectingMode.Bench,
+                BenchAttachments, BenchCardStates, BenchCardOldEvolutions, BenchCounters);
         }
 
-        void ReRenderBattlefield()
+        void ReRenderActive()
         {
-            RenderSection(Battlefield.Value, BattlefieldObj, GameStateManager.SelectingMode.Battlefield,
-                BattlefieldAttachments, BattlefieldCardStates, null, BattlefieldCounters);
+            RenderSection(Active.Value, ActiveObj, GameStateManager.SelectingMode.Active,
+                ActiveAttachments, ActiveCardStates, ActiveCardOldEvolutions, ActiveCounters);
         }
 
-        void ReRenderExtraZone()
+        Bench.OnValueChanged += (Card[] oldValue, Card[] newValue) =>
         {
-            RenderSection(ExtraZone.Value, ExtraZoneObj, GameStateManager.SelectingMode.ExtraZone,
-                ExtraZoneAttachments, ExtraZoneCardStates, null, ExtraZoneCounters);
-        }
-
-        Reserve.OnValueChanged += (Card[] oldReserve, Card[] newReserve) =>
-        {
-            if (newReserve != null)
+            if (newValue != null)
             {
-                ReRenderReserve();
+                ReRenderBench();
             }
         };
 
-        Battlefield.OnValueChanged += (Card[] oldBattlefield, Card[] newBattlefield) =>
+        Active.OnValueChanged += (Card[] oldValue, Card[] newValue) =>
         {
-            ReRenderBattlefield();
+            ReRenderActive();
         };
 
-        ExtraZone.OnValueChanged += (Card[] oldExtraZone, Card[] newExtraZone) =>
+        BenchAttachments.OnValueChanged += (Card[][] oldValue, Card[][] newValue) =>
         {
-            ReRenderExtraZone();
+            ReRenderBench();
         };
 
-        ReserveAttachments.OnValueChanged += (Card[][] oldAttackments, Card[][] newAttachments) =>
+        ActiveAttachments.OnValueChanged += (Card[][] oldValue, Card[][] newValue) =>
         {
-            ReRenderReserve();
+            ReRenderActive();
         };
 
-        BattlefieldAttachments.OnValueChanged += (Card[][] oldAttachments, Card[][] newAttachments) =>
+        BenchCardStates.OnValueChanged += (bool[][] oldValue, bool[][] newValue) =>
         {
-            ReRenderBattlefield();
-        };
-
-        ExtraZoneAttachments.OnValueChanged += (Card[][] oldAttachments, Card[][] newAttachments) =>
-        {
-            ReRenderExtraZone();
-        };
-
-        ReserveCardStates.OnValueChanged += (bool[][] oldStates, bool[][] newStates) =>
-        {
-            if (newStates != null)
+            if (newValue!= null)
             {
-                ReRenderReserve();
+                ReRenderBench();
             }
         };
 
-        BattlefieldCardStates.OnValueChanged += (bool[][] oldStates, bool[][] newStates) =>
+        ActiveCardStates.OnValueChanged += (bool[][] oldValue, bool[][] newValue) =>
         {
-            if (newStates != null)
+            if (newValue != null)
             {
-                ReRenderBattlefield();
+                ReRenderActive();
             }
         };
 
-        ExtraZoneCardStates.OnValueChanged += (bool[][] oldStates, bool[][] newStates) =>
+        BenchCardOldEvolutions.OnValueChanged += (Card[][] oldValue, Card[][] newValue) =>
         {
-            if (newStates != null)
+            if (newValue != null)
             {
-                ReRenderExtraZone();
+                ReRenderBench();
             }
         };
 
-        CardOldLevels.OnValueChanged += (Card[][] oldLevels, Card[][] newLevels) =>
+        ActiveCardOldEvolutions.OnValueChanged += (Card[][] oldValue, Card[][] newValue) =>
         {
-            if (newLevels != null)
+            if (newValue != null)
             {
-                ReRenderReserve();
+                ReRenderActive();
             }
         };
 
-        ReserveCounters.OnValueChanged += (int[] oldValues, int[] newValues) =>
+        BenchCounters.OnValueChanged += (int[] oldValue, int[] newValue) =>
         {
-            if (newValues != null)
+            if (newValue != null)
             {
-                ReRenderReserve();
+                ReRenderBench();
             }
         };
 
-        BattlefieldCounters.OnValueChanged += (int[] oldValues, int[] newValues) =>
+        ActiveCounters.OnValueChanged += (int[] oldValue, int[] newValue) =>
         {
-            if (newValues != null)
+            if (newValue != null)
             {
-                ReRenderBattlefield();
-            }
-        };
-
-        ExtraZoneCounters.OnValueChanged += (int[] oldValues, int[] newValues) =>
-        {
-            if (newValues != null)
-            {
-                ReRenderExtraZone();
+                ReRenderActive();
             }
         };
 
@@ -398,12 +342,12 @@ public class CardSection : NetworkBehaviour
 
                             foreach (GameObject playerClient in PlayerInfoManager.players)
                             {
-                                foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.ReserveObj.transform)
+                                foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.ActiveObj.transform)
                                 {
                                     child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                                 }
 
-                                foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.ExtraZoneObj.transform)
+                                foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.BenchObj.transform)
                                 {
                                     child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
                                 }
@@ -432,87 +376,88 @@ public class CardSection : NetworkBehaviour
                             newCallback();
                         }
                     }
-                    else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.LevelingUp)
+                    else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Evolve)
                     {
-                        Card[] newLevelInfo = new Card[levelInfo.Value[int.Parse(EditingCard.name)].Length + 1];
-                        for (int j = 0; j < levelInfo.Value[int.Parse(EditingCard.name)].Length; j++)
-                        {
-                            newLevelInfo[j] = levelInfo.Value[int.Parse(EditingCard.name)][j];
-                        }
+                        print("commented out evolve code");
+                        //Card[] newLevelInfo = new Card[levelInfo.Value[int.Parse(EditingCard.name)].Length + 1];
+                        //for (int j = 0; j < levelInfo.Value[int.Parse(EditingCard.name)].Length; j++)
+                        //{
+                        //    newLevelInfo[j] = levelInfo.Value[int.Parse(EditingCard.name)][j];
+                        //}
 
-                        newLevelInfo[levelInfo.Value[int.Parse(EditingCard.name)].Length] = Reserve.Value[int.Parse(EditingCard.name)];
-
-
-                        Card[] newSpecialDeck = new Card[playerRef.SpecialDeck.Value.Length - 1];
-                        int k = 0;
-                        for (byte j = 0; j < playerRef.SpecialDeck.Value.Length; j++)
-                        {
-                            if (j != playerRef.gameManagerReference.selectedCards[0])
-                            {
-                                newSpecialDeck[k] = playerRef.SpecialDeck.Value[j];
-                                k++;
-                            }
-                        }
-
-                        void newCallback()
-                        {
-
-                            Card[][] tempLevelInfo = levelInfo.Value;
-                            tempLevelInfo[int.Parse(EditingCard.name)] = newLevelInfo;
-                            levelInfo.Value = null;
-                            levelInfo.Value = tempLevelInfo;
-
-                            if (playerRef.animTempSprite != null)
-                            {
-                                Destroy(playerRef.animTempSprite);
-                            }
-
-                            playerRef.isInAnimation = false;
-
-                            Card[] newReserve = Reserve.Value;
-
-                            newReserve[int.Parse(EditingCard.name)] = playerRef.SpecialDeck.Value[
-                                playerRef.gameManagerReference.selectedCards[0]
-                            ];
-                            Reserve.Value = null;
-                            Reserve.Value = newReserve;
-
-                            playerRef.SpecialDeck.Value = newSpecialDeck;
-
-                            GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
-                            playerRef.gameManagerReference.selectedCards = new List<byte>();
-
-                            foreach (Transform child in ReserveObj.transform)
-                            {
-                                child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
-                            }
-
-                            playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
+                        //newLevelInfo[levelInfo.Value[int.Parse(EditingCard.name)].Length] = Reserve.Value[int.Parse(EditingCard.name)];
 
 
-                        }
+                        //Card[] newSpecialDeck = new Card[playerRef.SpecialDeck.Value.Length - 1];
+                        //int k = 0;
+                        //for (byte j = 0; j < playerRef.SpecialDeck.Value.Length; j++)
+                        //{
+                        //    if (j != playerRef.gameManagerReference.selectedCards[0])
+                        //    {
+                        //        newSpecialDeck[k] = playerRef.SpecialDeck.Value[j];
+                        //        k++;
+                        //    }
+                        //}
 
-                        if (playerRef.gameManagerReference.playerSpecialDeckSprite != null &&
-                            EditingCard.transform.GetChild(1).gameObject != null)
-                        {
-                            playerRef.animTempSprite = Instantiate(playerRef.CardSpritePrefab,
-                                playerRef.gameManagerReference.playerSpecialDeckSprite.transform);
-                            playerRef.animTempSprite.transform.rotation = Quaternion.identity;
-                            string query = "Cards/" + (
-                                (int)(playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].type)
-                            ).ToString() + "/" + playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].art + "-01";
-                            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-                            playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
-                            playerRef.animTempSprite.transform.localScale = new Vector3(10, 10);
-                            playerRef.animTempTarget = EditingCard.transform.GetChild(1).gameObject.transform;
-                            playerRef.animCallback = newCallback;
+                        //void newCallback()
+                        //{
 
-                            StartCoroutine(playerRef.MoveSprite());
-                        }
-                        else
-                        {
-                            newCallback();
-                        }
+                        //    Card[][] tempLevelInfo = levelInfo.Value;
+                        //    tempLevelInfo[int.Parse(EditingCard.name)] = newLevelInfo;
+                        //    levelInfo.Value = null;
+                        //    levelInfo.Value = tempLevelInfo;
+
+                        //    if (playerRef.animTempSprite != null)
+                        //    {
+                        //        Destroy(playerRef.animTempSprite);
+                        //    }
+
+                        //    playerRef.isInAnimation = false;
+
+                        //    Card[] newReserve = Reserve.Value;
+
+                        //    newReserve[int.Parse(EditingCard.name)] = playerRef.SpecialDeck.Value[
+                        //        playerRef.gameManagerReference.selectedCards[0]
+                        //    ];
+                        //    Reserve.Value = null;
+                        //    Reserve.Value = newReserve;
+
+                        //    playerRef.SpecialDeck.Value = newSpecialDeck;
+
+                        //    GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+                        //    playerRef.gameManagerReference.selectedCards = new List<byte>();
+
+                        //    foreach (Transform child in ReserveObj.transform)
+                        //    {
+                        //        child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                        //    }
+
+                        //    playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
+
+
+                        //}
+
+                        //if (playerRef.gameManagerReference.playerSpecialDeckSprite != null &&
+                        //    EditingCard.transform.GetChild(1).gameObject != null)
+                        //{
+                        //    playerRef.animTempSprite = Instantiate(playerRef.CardSpritePrefab,
+                        //        playerRef.gameManagerReference.playerSpecialDeckSprite.transform);
+                        //    playerRef.animTempSprite.transform.rotation = Quaternion.identity;
+                        //    string query = "Cards/" + (
+                        //        (int)(playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].type)
+                        //    ).ToString() + "/" + playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].art + "-01";
+                        //    Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                        //    playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
+                        //    playerRef.animTempSprite.transform.localScale = new Vector3(10, 10);
+                        //    playerRef.animTempTarget = EditingCard.transform.GetChild(1).gameObject.transform;
+                        //    playerRef.animCallback = newCallback;
+
+                        //    StartCoroutine(playerRef.MoveSprite());
+                        //}
+                        //else
+                        //{
+                        //    newCallback();
+                        //}
                     }
                 });
 
@@ -665,9 +610,8 @@ public class CardSection : NetworkBehaviour
     {
         var ownType = ParentType switch
         {
-            GameStateManager.SelectingMode.Battlefield => GameStateManager.SelectingMode.AttachedBattlefield,
-            GameStateManager.SelectingMode.Reserve => GameStateManager.SelectingMode.AttachedReserve,
-            GameStateManager.SelectingMode.ExtraZone => GameStateManager.SelectingMode.AttachedExtraZone,
+            GameStateManager.SelectingMode.Active => GameStateManager.SelectingMode.AttachedActive,
+            GameStateManager.SelectingMode.Bench => GameStateManager.SelectingMode.AttachedBench,
             _ => (GameStateManager.SelectingMode)(-1),
         };
 
