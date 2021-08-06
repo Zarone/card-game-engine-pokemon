@@ -969,7 +969,8 @@ public class PlayerScript : NetworkBehaviour
         if (yObj != null && xObj != null)
         {
             animTempSprite = Instantiate(CardSpritePrefab, xObj.transform);
-            string query = "Cards/" + ((int)lastCardMovedFromXToY.type).ToString() + "/" + lastCardMovedFromXToY.art + "-01";
+            //string query = "Cards/" + ((int)lastCardMovedFromXToY.type).ToString() + "/" + lastCardMovedFromXToY.art + "-01";
+            string query = lastCardMovedFromXToY.art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
             animTempSprite.transform.localScale = new Vector3(10, 10);

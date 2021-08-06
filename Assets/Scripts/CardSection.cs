@@ -121,7 +121,6 @@ public class CardSection : NetworkBehaviour
 
         void ReRenderActive()
         {
-            print(Active.Value.Length);
             RenderSection(Active.Value, ActiveObj, GameStateManager.SelectingMode.Active,
                 ActiveAttachments, ActiveCardStates, ActiveCardOldEvolutions, ActiveCounters);
         }
@@ -203,6 +202,43 @@ public class CardSection : NetworkBehaviour
         playerRef = gameObject.GetComponent<PlayerScript>();
     }
 
+    public float GetProperWidth(GameStateManager.SelectingMode mode, bool isLocal)
+    {
+        if (isLocal)
+        {
+            if (mode == GameStateManager.SelectingMode.Active)
+            {
+                return 77f;
+            }
+            else if (mode == GameStateManager.SelectingMode.Bench)
+            {
+                return 65f;
+            }
+            else
+            {
+                Debug.LogError("confused by selecting mode");
+                return 0;
+            }
+        }
+        else
+        {
+            if (mode == GameStateManager.SelectingMode.Active)
+            {
+                return 63f;
+            }
+            else if (mode == GameStateManager.SelectingMode.Bench)
+            {
+                return 51f;
+            }
+            else
+            {
+                Debug.LogError("confused by selecting mode");
+                return 0;
+            }
+        }
+
+    }
+
     private void RenderSection(Card[] cardlist, GameObject obj,
         GameStateManager.SelectingMode ownType,
         NetworkVariable<Card[][]> attachedCards,
@@ -230,8 +266,8 @@ public class CardSection : NetworkBehaviour
                     //playerRef.gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 };
 
-                EditingCard.GetComponent<Canvas>().sortingOrder = 2;
-                EditingCard.GetComponent<RectTransform>().sizeDelta = new Vector2(57.6f, 79.1726f);
+                EditingCard.GetComponent<Canvas>().sortingOrder = 1;
+                EditingCard.GetComponent<RectTransform>().sizeDelta = new Vector2(GetProperWidth(ownType, playerRef.IsLocalPlayer), 79.1726f);
                 EditingCard.GetComponent<Button>().onClick.AddListener(() =>
                 {
                     if (IsLocalPlayer && (GameStateManager.selectingMode == GameStateManager.SelectingMode.None ||
@@ -523,7 +559,7 @@ public class CardSection : NetworkBehaviour
                 if (attachedCards.Value.Length > i)
                 {
                     attachmentSection.GetComponent<Canvas>().overrideSorting = true;
-                    attachmentSection.GetComponent<Canvas>().sortingOrder = 1;
+                    attachmentSection.GetComponent<Canvas>().sortingOrder = 2;
                     if (cardStates.Value.Length > i && cardStates.Value[i][0])
                     {
                         attachmentSection.transform.Rotate(0, 0, 90);

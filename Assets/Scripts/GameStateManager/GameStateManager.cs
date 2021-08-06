@@ -615,6 +615,8 @@ public class GameStateManager : MonoBehaviour
                 player.GameAction(PlayerScript.Action.AddCounter);
             }
         }
+        selectedCards = new List<byte>();
+        selectingMode = SelectingMode.None;
         RenderCorrectButtons(SelectingMode.None);
     }
 
@@ -1137,7 +1139,8 @@ public class GameStateManager : MonoBehaviour
                 //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
-            string query = "Cards/" + ((int)cards[i].type).ToString() + "/" + cards[i].art + "-01";
+            //string query = "Cards/" + ((int)cards[i].type).ToString() + "/" + cards[i].art + "-01";
+            string query = cards[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             cardObj.GetComponent<Image>().sprite = sprites[0];
         }
