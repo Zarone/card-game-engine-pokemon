@@ -357,7 +357,6 @@ namespace MainMenu
                 SerializableDeck data = formatter.Deserialize(stream) as SerializableDeck;
 
                 PlayerInfoManager.fullDeck = new Card[PlayerInfoManager.CardsPerNormalDeck];
-                List<Card> tempSpecialsList = new List<Card>();
 
                 int i = 0;
                 int j = 0;
@@ -384,9 +383,6 @@ namespace MainMenu
                     }
 
                 }
-
-                PlayerInfoManager.specialCharacterDeck = tempSpecialsList.ToArray();
-
 
                 stream.Close();
             }

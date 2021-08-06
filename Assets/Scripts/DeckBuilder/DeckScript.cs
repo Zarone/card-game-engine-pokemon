@@ -119,7 +119,7 @@ public class DeckScript : MonoBehaviour
 
         FileStream stream = new FileStream(path, FileMode.Create);
 
-        SerializableCard[] nonSerializedDeck = new SerializableCard[PlayerInfoManager.MaxCardPerFullDeck];
+        SerializableCard[] nonSerializedDeck = new SerializableCard[PlayerInfoManager.CardsPerNormalDeck];
 
         int i = 0;
 
@@ -193,7 +193,7 @@ public class DeckScript : MonoBehaviour
             };
 
 
-            for (int i = 0; i < PlayerInfoManager.MaxCardPerFullDeck; i++)
+            for (int i = 0; i < PlayerInfoManager.CardsPerNormalDeck; i++)
             {
                 if (data.Deck[i] != null)
                 {

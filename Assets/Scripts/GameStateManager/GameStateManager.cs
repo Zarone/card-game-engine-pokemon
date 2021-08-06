@@ -14,26 +14,24 @@ public class GameStateManager : MonoBehaviour
     public GameObject playerDiscardSprite;
     public GameObject oppDiscardSprite;
 
-    public GameObject playerRemoveFromPlaySprite;
-    public GameObject oppRemoveFromPlaySprite;
-
-    public GameObject playerSpecialDeckSprite;
-    public GameObject oppSpecialDeckSprite;
+    public GameObject playerLostZoneSprite;
+    public GameObject oppLostZoneSprite;
 
     public GameObject playerHand;
     public GameObject oppHand;
 
-    public GameObject LocalReserve;
-    public GameObject LocalBattlefield;
-    public GameObject LocalExtraZone;
-    public GameObject OppReserve;
-    public GameObject OppBattlefield;
-    public GameObject OppExtraZone;
+    public GameObject LocalBench;
+    public GameObject LocalActive;
+    public GameObject OppBench;
+    public GameObject OppActive;
 
     public GameObject AttachmentPrefab;
     public GameObject LevelContainer;
     public GameObject CounterContainerPlayer;
     public GameObject CounterContainerOpp;
+
+    public GameObject PlayerPrizeCounter;
+    public GameObject OppPrizeCounter;
 
     public enum SelectingMode
     {
@@ -73,6 +71,7 @@ public class GameStateManager : MonoBehaviour
         { "SpecialDeckView", new List<SelectingMode>(){ SelectingMode.None } },
         { "DiscardView", new List<SelectingMode>(){ SelectingMode.None } },
         { "RemoveFromPlayView", new List<SelectingMode>(){ SelectingMode.None } },
+        { "PrizesView", new List<SelectingMode>(){ SelectingMode.None } },
 
         { "Draw", new List<SelectingMode>(){ SelectingMode.DeckOptions } },
         { "Mill", new List<SelectingMode>(){ SelectingMode.DeckOptions } },
@@ -183,11 +182,11 @@ public class GameStateManager : MonoBehaviour
 
             if (player.IsLocalPlayer)
             {
-                player.FriendshipLabel = PlayerFriendshipCounter;
+                player.PrizeLabel = PlayerPrizeCounter;
             }
             else
             {
-                player.FriendshipLabel = OppFriendshipCounter;
+                player.PrizeLabel = OppPrizeCounter;
             }
 
             if (!player.HasStarted) player.RunFirst();
@@ -195,13 +194,13 @@ public class GameStateManager : MonoBehaviour
             CardSection section = client.GetComponent<CardSection>();
             if (section.IsLocalPlayer)
             {
-                section.BenchObj = LocalReserve;
-                section.ActiveObj = LocalBattlefield;
+                section.BenchObj = LocalBench;
+                section.ActiveObj = LocalActive;
             }
             else
             {
-                section.BenchObj = OppReserve;
-                section.ActiveObj = OppBattlefield;
+                section.BenchObj = OppBench;
+                section.ActiveObj = OppActive;
             }
         }
         RenderCorrectButtons(SelectingMode.None);
@@ -1425,23 +1424,6 @@ public class GameStateManager : MonoBehaviour
     {
         howMany--;
         howManyCountObj.GetComponent<Text>().text = howMany.ToString();
-    }
-
-
-
-    public GameObject PlayerFriendshipCounter;
-    public GameObject OppFriendshipCounter;
-
-    public void AddFriendship()
-    {
-        NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
-        client.PlayerObject.GetComponent<PlayerScript>().TempFriendship.Value++;
-    }
-
-    public void RemoveFriendship()
-    {
-        NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
-        client.PlayerObject.GetComponent<PlayerScript>().TempFriendship.Value--;
     }
 
 }

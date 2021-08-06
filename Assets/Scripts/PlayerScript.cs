@@ -152,7 +152,7 @@ public class PlayerScript : NetworkBehaviour
     private bool AutoUntap = false;
 
 
-    [System.NonSerialized] public GameObject FriendshipLabel;
+    [System.NonSerialized] public GameObject PrizeLabel;
 
     [System.NonSerialized] public CardSection cardSection;
 
@@ -190,18 +190,10 @@ public class PlayerScript : NetworkBehaviour
         {
             RenderDiscard();
         };
-        SpecialDeck.OnValueChanged += (Card[] previousValue, Card[] newValue) =>
-        {
-            RenderSpecialDeck();
-        };
+
         LostZone.OnValueChanged += (Card[] previousValue, Card[] newValue) =>
         {
             RenderRemoveFromPlay();
-        };
-
-        TempFriendship.OnValueChanged += (int oldValue, int newValue) =>
-        {
-            ShowFriendship();
         };
 
         PlayerInfoManager.players.Add(gameObject);
@@ -335,7 +327,8 @@ public class PlayerScript : NetworkBehaviour
                             }
                         });
 
-                        string query = "Cards/" + ((int)Hand.Value[i].type).ToString() + "/" + Hand.Value[i].art + "-01";
+                        //string query = "Cards/" + ((int)Hand.Value[i].type).ToString() + "/" + Hand.Value[i].art + "-01";
+                        string query = Hand.Value[i].art;
                         Sprite[] sprites = Resources.LoadAll<Sprite>(query);
                         if (sprites.Length == 1)
                         {
@@ -394,37 +387,6 @@ public class PlayerScript : NetworkBehaviour
         }
     }
 
-    public void RenderSpecialDeck()
-    {
-
-        if (!HasStarted || gameManagerReference == null || gameManagerReference.oppSpecialDeckSprite == null)
-        {
-            Invoke(nameof(RenderSpecialDeck), 2f);
-            return;
-        }
-
-        string query;
-        if (SpecialDeck.Value.Length > 0)
-        {
-            query = "Cards/" + ((int)SpecialDeck.Value[SpecialDeck.Value.Length - 1].type).ToString() + "/" + SpecialDeck.Value[SpecialDeck.Value.Length - 1].art + "-01";
-        }
-        else
-        {
-            query = CardManipulation.DefaultCard;
-        }
-        Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-        if (IsLocalPlayer)
-        {
-            gameManagerReference.playerSpecialDeckSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
-            gameManagerReference.playerSpecialDeckSprite.GetComponent<Image>().sprite = sprites[0];
-        }
-        else
-        {
-            gameManagerReference.oppSpecialDeckSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
-            gameManagerReference.oppSpecialDeckSprite.GetComponent<Image>().sprite = sprites[0];
-        }
-    }
-
     public void RenderDiscard()
     {
         string query;
@@ -463,13 +425,13 @@ public class PlayerScript : NetworkBehaviour
         Sprite[] sprites = Resources.LoadAll<Sprite>(query);
         if (IsLocalPlayer)
         {
-            gameManagerReference.playerRemoveFromPlaySprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
-            gameManagerReference.playerRemoveFromPlaySprite.GetComponent<Image>().sprite = sprites[0];
+            gameManagerReference.playerLostZoneSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
+            gameManagerReference.playerLostZoneSprite.GetComponent<Image>().sprite = sprites[0];
         }
         else
         {
-            gameManagerReference.oppRemoveFromPlaySprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
-            gameManagerReference.oppRemoveFromPlaySprite.GetComponent<Image>().sprite = sprites[0];
+            gameManagerReference.oppLostZoneSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
+            gameManagerReference.oppLostZoneSprite.GetComponent<Image>().sprite = sprites[0];
         }
     }
 
@@ -506,12 +468,6 @@ public class PlayerScript : NetworkBehaviour
         gameManagerReference.TurnText.GetComponent<Text>().text = isActivePlayer.Value ? "Your turn" : "Opponent's turn";
         gameManagerReference.TurnButton.GetComponent<Button>().interactable = isActivePlayer.Value;
     }
-
-    public void ShowFriendship()
-    {
-        FriendshipLabel.GetComponent<Text>().text = TempFriendship.Value.ToString();
-    }
-
 
     public LocalDeck ModeToLocalDeck(GameStateManager.SelectingMode mode)
     {
@@ -566,7 +522,7 @@ public class PlayerScript : NetworkBehaviour
             GameStateManager.SelectingMode.Deck => gameManagerReference.playerDeckSprite,
             GameStateManager.SelectingMode.DeckSection => gameManagerReference.playerDeckSprite,
             GameStateManager.SelectingMode.Discard => gameManagerReference.playerDiscardSprite,
-            GameStateManager.SelectingMode.LostZone => gameManagerReference.playerRemoveFromPlaySprite,
+            GameStateManager.SelectingMode.LostZone => gameManagerReference.playerLostZoneSprite,
             GameStateManager.SelectingMode.Hand => gameManagerReference.playerHand,
             GameStateManager.SelectingMode.Attaching => gameManagerReference.playerHand,
             GameStateManager.SelectingMode.Bench => cardSection.BenchObj,
