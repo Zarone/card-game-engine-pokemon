@@ -279,8 +279,29 @@ public class PlayerScript : NetworkBehaviour
 
                                 Card localCard = Hand.Value[int.Parse(EditingCard.name)];
 
-                                GameStateManager.selectingMode = GameStateManager.SelectingMode.Hand;
-                                gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.Hand);
+                                if (Hand.Value[byte.Parse(EditingCard.name)].type == CardInformation.CardType.Energy)
+                                {
+                                    foreach (GameObject playerClient in PlayerInfoManager.players)
+                                    {
+                                        foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.BenchObj.transform)
+                                        {
+                                            child.gameObject.GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
+                                        }
+
+                                        foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.ActiveObj.transform)
+                                        {
+                                            child.gameObject.GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
+                                        }
+                                    }
+
+                                    GameStateManager.selectingMode = GameStateManager.SelectingMode.Attaching;
+                                    gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.Attaching);
+                                }
+                                else
+                                {
+                                    GameStateManager.selectingMode = GameStateManager.SelectingMode.Hand;
+                                    gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.Hand);
+                                }
 
                             }
 
@@ -750,7 +771,7 @@ public class PlayerScript : NetworkBehaviour
 
                 if (levelsX != null && levelsY != null)
                 {
-                    
+
                     newLevelsY[index] = levelsX.Value[i];
                 }
                 else if (levelsY != null)
@@ -1868,6 +1889,7 @@ public class PlayerScript : NetworkBehaviour
     {
         ManualDieRollClientRpc(seed);
     }
+
     [ClientRpc]
     public void ManualDieRollClientRpc(int seed)
     {
