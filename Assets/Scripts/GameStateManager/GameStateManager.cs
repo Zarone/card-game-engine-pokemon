@@ -33,6 +33,8 @@ public class GameStateManager : MonoBehaviour
     public GameObject PlayerPrizeCounter;
     public GameObject OppPrizeCounter;
 
+    public GameObject PlayerPrizes;
+
     public enum SelectingMode
     {
         None,
@@ -51,6 +53,8 @@ public class GameStateManager : MonoBehaviour
         Evolve,
         DeckOptions,
         CustomSection,
+        Prizes,
+        SelectingStartingPokemon,
     }
 
     readonly Dictionary<string, List<SelectingMode>> ButtonNameKeyValuePairs = new Dictionary<string, List<SelectingMode>>()
@@ -70,7 +74,9 @@ public class GameStateManager : MonoBehaviour
         { "DeckOptions", new List<SelectingMode>(){ SelectingMode.None } },
         { "SpecialDeckView", new List<SelectingMode>(){ SelectingMode.None } },
         { "DiscardView", new List<SelectingMode>(){ SelectingMode.None } },
-        { "RemoveFromPlayView", new List<SelectingMode>(){ SelectingMode.None } },
+        { "LostZoneView", new List<SelectingMode>(){ SelectingMode.None } },
+
+        { "TakePrize", new List<SelectingMode>() { SelectingMode.None } },
         { "PrizesView", new List<SelectingMode>(){ SelectingMode.None } },
 
         { "Draw", new List<SelectingMode>(){ SelectingMode.DeckOptions } },
@@ -99,42 +105,38 @@ public class GameStateManager : MonoBehaviour
             SelectingMode.AttachedBench, SelectingMode.AttachedActive,
             SelectingMode.Attaching}
         },
-        { "RemoveFromPlay", new List<SelectingMode>(){
+        { "LostZone", new List<SelectingMode>(){
             SelectingMode.Discard }
         },
-        { "Zone_RemoveFromPlay", new List<SelectingMode>(){
+        { "Zone_LostZone", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Bench, SelectingMode.Active,
-            SelectingMode.AttachedBench, SelectingMode.AttachedActive, 
+            SelectingMode.AttachedBench, SelectingMode.AttachedActive,
             SelectingMode.Attaching}
         },
-        { "Zone_ToSpecialDeck", new List<SelectingMode>(){ SelectingMode.Hand } },
         { "Attach", new List<SelectingMode>() { SelectingMode.Hand } },
         { "ToBottomOfDeck", new List<SelectingMode>(){ SelectingMode.Hand, SelectingMode.DeckSection,
             SelectingMode.Attaching } },
         { "ToTopOfDeck", new List<SelectingMode>(){ SelectingMode.Hand, SelectingMode.DeckSection,
             SelectingMode.Attaching } },
 
-        { "LevelUp", new List<SelectingMode>() { SelectingMode.Hand } },
-        { "LevelDown", new List<SelectingMode>() { SelectingMode.Bench, SelectingMode.Active } },
+        { "Evolve", new List<SelectingMode>() { SelectingMode.Hand } },
+        { "Devolve", new List<SelectingMode>() { SelectingMode.Bench, SelectingMode.Active } },
         { "ShuffleIntoDeck", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Discard, SelectingMode.Bench,
-            SelectingMode.Active, SelectingMode.AttachedBench, 
+            SelectingMode.Active, SelectingMode.AttachedBench,
             SelectingMode.AttachedActive, SelectingMode.Attaching}
         },
-        { "MoveToReserve", new List<SelectingMode>(){
+        { "MoveToBench", new List<SelectingMode>(){
             SelectingMode.Deck }
         },
-        { "MoveToBattlefield", new List<SelectingMode>(){
+        { "MoveToActive", new List<SelectingMode>(){
             SelectingMode.Attaching}
         },
-        { "MoveToExtraZone", new List<SelectingMode>(){} },
-        { "Zone_MoveToReserve", new List<SelectingMode>(){
+        { "Zone_MoveToBench", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Active }
         },
-        { "Zone_MoveToBattlefield", new List<SelectingMode>(){
+        { "Zone_MoveToActive", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Bench }
-        },
-        { "Zone_MoveToExtraZone", new List<SelectingMode>(){}
         },
         { "Tap", new List<SelectingMode>(){
             SelectingMode.Active, SelectingMode.Bench }
@@ -152,6 +154,7 @@ public class GameStateManager : MonoBehaviour
         { "ViewCardAndAttachments", new List<SelectingMode>(){ SelectingMode.Bench, SelectingMode.Active } },
         { "ManualCoinFlip", new List<SelectingMode>() { SelectingMode.None } },
         { "ManualDieRoll", new List<SelectingMode>() { SelectingMode.None } },
+        { "Mulligan", new List<SelectingMode>(){ SelectingMode.SelectingStartingPokemon } },
 
         { "Remote_ToTopOfDeck", new List<SelectingMode>() { SelectingMode.CustomSection } }
     };
@@ -182,6 +185,7 @@ public class GameStateManager : MonoBehaviour
 
             if (player.IsLocalPlayer)
             {
+                player.PrizeObj = PlayerPrizes;
                 player.PrizeLabel = PlayerPrizeCounter;
             }
             else
@@ -203,7 +207,7 @@ public class GameStateManager : MonoBehaviour
                 section.ActiveObj = OppActive;
             }
         }
-        RenderCorrectButtons(SelectingMode.None);
+        //RenderCorrectButtons(SelectingMode.None);
     }
 
     public static IEnumerator DeleteRoom(System.Action callback = null)
@@ -676,6 +680,27 @@ public class GameStateManager : MonoBehaviour
         RenderCorrectButtons(SelectingMode.DeckOptions);
     }
 
+    public void OnRemoteToTopOfDeck()
+    {
+        NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
+        networkClient.PlayerObject.GetComponent<PlayerScript>().RemoteToTopOfDeckServerRpc(NetworkManager.Singleton.LocalClientId,
+            CustomViewBounds, selectedCards.ToArray());
+        selectedCards = new List<byte>();
+    }
+
+    public void OnMulligan()
+    {
+        foreach (GameObject client in PlayerInfoManager.players)
+        {
+            PlayerScript player = client.GetComponent<PlayerScript>();
+            if (player.IsLocalPlayer)
+            {
+                player.GameAction(PlayerScript.Action.Mulligan);
+            }
+        }
+    }
+
+
     public void OnTopOfDeckFirstButton()
     {
         actionQueue = PlayerScript.Action.ViewTopOfDeck;
@@ -716,12 +741,12 @@ public class GameStateManager : MonoBehaviour
         howManyObj.SetActive(true);
     }
 
-    public void OnRemoteToTopOfDeck()
+    public void OnTakePrizeFirstButton()
     {
-        NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
-        networkClient.PlayerObject.GetComponent<PlayerScript>().RemoteToTopOfDeckServerRpc(NetworkManager.Singleton.LocalClientId,
-            CustomViewBounds, selectedCards.ToArray());
-        selectedCards = new List<byte>();
+        actionQueue = PlayerScript.Action.TakePrize;
+        howMany = 0;
+        howManyCountObj.GetComponent<Text>().text = howMany.ToString();
+        howManyObj.SetActive(true);
     }
 
 
@@ -1148,7 +1173,7 @@ public class GameStateManager : MonoBehaviour
 
         RenderCorrectButtons(SelectingMode.Gallery);
     }
-    
+
     private byte CustomViewBounds;
     public void OnCustomViewWithEditAccess(Card[] cards)
     {
@@ -1298,9 +1323,9 @@ public class GameStateManager : MonoBehaviour
 
     [SerializeField] private GameObject UserInfoButtons;
     [SerializeField] private GameObject OppInfoButtons;
-    
+
     [SerializeField] private GameObject infoPanel;
-    
+
     [SerializeField] private Text infoDeckSize;
     [SerializeField] private Text infoDiscardSize;
     [SerializeField] private Text infoHandSize;
@@ -1409,6 +1434,14 @@ public class GameStateManager : MonoBehaviour
                 Draw_client.PlayerObject.GetComponent<PlayerScript>().GameAction(PlayerScript.Action.Draw);
 
                 break;
+            case PlayerScript.Action.TakePrize:
+                NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId,
+                    out var TakePrize_client);
+    
+                TakePrize_client.PlayerObject.GetComponent<PlayerScript>().GameAction(PlayerScript.Action.TakePrize);
+
+                break;
+
             default:
                 break;
         }

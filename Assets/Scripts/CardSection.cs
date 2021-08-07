@@ -479,7 +479,7 @@ public class CardSection : NetworkBehaviour
                             }
 
                             playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
-
+                            playerRef.RenderHand();
 
                         }
 

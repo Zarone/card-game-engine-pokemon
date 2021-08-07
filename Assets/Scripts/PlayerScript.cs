@@ -7,6 +7,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using MLAPI.Messaging;
 using System.Linq;
+using CardInformation;
 
 public class PlayerScript : NetworkBehaviour
 {
@@ -33,7 +34,9 @@ public class PlayerScript : NetworkBehaviour
         ToTopOfDeck,
         ToTopOfDeckFromSection,
         RevealTopOfDeck,
-        AllowEditTopOfDeck
+        AllowEditTopOfDeck,
+        TakePrize,
+        Mulligan
     }
 
     [System.NonSerialized]
@@ -97,17 +100,7 @@ public class PlayerScript : NetworkBehaviour
     );
 
     [System.NonSerialized]
-    public NetworkVariable<int> Friendship = new NetworkVariable<int>(
-        new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
-            ReadPermission = NetworkVariablePermission.Everyone
-        },
-        0
-    );
-
-    [System.NonSerialized]
-    public NetworkVariable<int> TempFriendship = new NetworkVariable<int>(
+    public NetworkVariable<int> PrizesRemaining = new NetworkVariable<int>(
         new NetworkVariableSettings
         {
             WritePermission = NetworkVariablePermission.OwnerOnly,
@@ -126,13 +119,18 @@ public class PlayerScript : NetworkBehaviour
         false
     );
 
-    [System.NonSerialized] public Card[] deck = new Card[0];
+    //[System.NonSerialized] private Card[] deck = new Card[0];
 
     [System.NonSerialized] public LocalDeck Deck;
 
-    [System.NonSerialized] public Card[] hand = new Card[0];
+    //[System.NonSerialized] private Card[] hand = new Card[0];
 
     [System.NonSerialized] public LocalDeck Hand;
+
+    //[System.NonSerialized] private Card[] prizes = new Card[0];
+
+    [System.NonSerialized] public LocalDeck Prizes;
+
 
     public GameObject CardPrefab;
 
@@ -153,21 +151,27 @@ public class PlayerScript : NetworkBehaviour
 
 
     [System.NonSerialized] public GameObject PrizeLabel;
+    [System.NonSerialized] public GameObject PrizeObj;
 
     [System.NonSerialized] public CardSection cardSection;
 
     public void Start()
     {
 
-        Deck = new LocalDeck(deck, () =>
+        Deck = new LocalDeck(new Card[0], () =>
         {
             deckSize.Value = Deck.Value.Length;
             gameManagerReference.RenderDeck(IsLocalPlayer, deckSize.Value);
         });
-        Hand = new LocalDeck(hand, () =>
+        Hand = new LocalDeck(new Card[0], () =>
         {
             handSize.Value = Hand.Value.Length;
-            RenderHand();
+            //RenderHand();
+        });
+        Prizes = new LocalDeck(new Card[0], () =>
+        {
+            PrizesRemaining.Value = Prizes.Value.Length;
+            RenderPrizes();
         });
 
         if (!IsLocalPlayer)
@@ -183,6 +187,11 @@ public class PlayerScript : NetworkBehaviour
                 {
                     gameManagerReference.RenderDeck(false, newValue);
                 }
+            };
+
+            PrizesRemaining.OnValueChanged += (int oldValue, int newValue) =>
+            {
+                RenderPrizes();
             };
         }
 
@@ -200,6 +209,7 @@ public class PlayerScript : NetworkBehaviour
 
         cardSection = gameObject.GetComponent<CardSection>();
     }
+
 
     public void RunFirst()
     {
@@ -239,11 +249,13 @@ public class PlayerScript : NetworkBehaviour
     public void RenderHand()
     {
         if (SceneManager.GetActiveScene().name != "GameScreen") return;
+        print("render hand");
         if (isInAnimation)
         {
             Invoke(nameof(RenderHand), 0.1f);
             return;
         }
+
 
         if (PlayerHand != null)
         {
@@ -346,6 +358,12 @@ public class PlayerScript : NetworkBehaviour
                                     }
                                 }
                             }
+                            else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.SelectingStartingPokemon)
+                            {
+                                gameManagerReference.selectedCards = new List<byte>() { byte.Parse(EditingCard.name) };
+                                GameAction(Action.Active);
+                                GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+                            }
                         });
 
                         //string query = "Cards/" + ((int)Hand.Value[i].type).ToString() + "/" + Hand.Value[i].art + "-01";
@@ -385,7 +403,7 @@ public class PlayerScript : NetworkBehaviour
 
             FormatHandSpacing(0, IsLocalPlayer);
 
-            if (gameManagerReference.selectedCards.Count == 0)
+            if (gameManagerReference.selectedCards.Count == 0 && GameStateManager.selectingMode != GameStateManager.SelectingMode.SelectingStartingPokemon)
             {
                 GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
                 gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
@@ -458,6 +476,11 @@ public class PlayerScript : NetworkBehaviour
         }
     }
 
+    private void RenderPrizes()
+    {
+        PrizeLabel.GetComponent<Text>().text = PrizesRemaining.Value.ToString();
+    }
+
     public void RenderHandSelecting()
     {
         //GameStateManager.selectingMode = GameStateManager.SelectingMode.Hand;
@@ -502,6 +525,8 @@ public class PlayerScript : NetworkBehaviour
             GameStateManager.SelectingMode.DeckSection => Deck,
             GameStateManager.SelectingMode.Hand => Hand,
             GameStateManager.SelectingMode.Attaching => Hand,
+            GameStateManager.SelectingMode.SelectingStartingPokemon => Hand,
+            GameStateManager.SelectingMode.Prizes => Prizes,
             _ => null,
         };
     }
@@ -536,6 +561,8 @@ public class PlayerScript : NetworkBehaviour
             GameStateManager.SelectingMode.DeckSection => true,
             GameStateManager.SelectingMode.Hand => true,
             GameStateManager.SelectingMode.Attaching => true,
+            GameStateManager.SelectingMode.SelectingStartingPokemon => true,
+            GameStateManager.SelectingMode.Prizes => true,
             _ => false,
         };
     }
@@ -554,6 +581,7 @@ public class PlayerScript : NetworkBehaviour
             GameStateManager.SelectingMode.Active => cardSection.ActiveObj,
             GameStateManager.SelectingMode.AttachedBench => cardSection.BenchObj,
             GameStateManager.SelectingMode.AttachedActive => cardSection.ActiveObj,
+            GameStateManager.SelectingMode.Prizes => PrizeObj,
             _ => null,
         };
     }
@@ -846,12 +874,16 @@ public class PlayerScript : NetworkBehaviour
             }
 
 
-            GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
-            gameManagerReference.selectedCards = new List<byte>();
+            if (GameStateManager.selectingMode != GameStateManager.SelectingMode.SelectingStartingPokemon)
+            {
+                GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+                gameManagerReference.selectedCards = new List<byte>();
+
+
+                RenderHand();
+            }
 
             isInAnimation = false;
-
-            RenderHand();
 
             additionalCallback?.Invoke();
         }
@@ -879,10 +911,10 @@ public class PlayerScript : NetworkBehaviour
     public void FromXToY(LocalDeck LocalX,
         LocalDeck LocalY, List<byte> selectedIndexes, GameObject xObj = null, GameObject yObj = null,
         bool shuffleOutput = false, NetworkVariable<Card[][]> attachmentsX = null, NetworkVariable<Card[][]> attachmentsY = null,
-        NetworkVariable<bool[][]> gameStateX = null, NetworkVariable<bool[][]> gameStateY = null)
+        NetworkVariable<bool[][]> gameStateX = null, NetworkVariable<bool[][]> gameStateY = null, System.Action callback = null)
     {
         FromXToY(false, false, selectedIndexes, xObj, yObj, shuffleOutput, false, null, null, LocalX, LocalY, attachmentsX, attachmentsY,
-            gameStateX, gameStateY);
+            gameStateX, gameStateY, null, null, null, null, 0, callback);
     }
 
     public void FromXToY(NetworkVariable<Card[][]> X, GameObject xObj, GameObject yObj, bool isLocalY,
@@ -1022,7 +1054,7 @@ public class PlayerScript : NetworkBehaviour
 
 
     public void FromToWithModes(GameStateManager.SelectingMode fromMode, GameStateManager.SelectingMode toMode,
-        bool shuffle = false, bool toTop = false)
+        bool shuffle = false, bool toTop = false, System.Action passedCallback = null)
     {
         if (IsAttachment(fromMode))
         {
@@ -1039,6 +1071,10 @@ public class PlayerScript : NetworkBehaviour
                 {
                     gameManagerReference.RenderGalleryCardSelectedCancel();
                 };
+            }
+            else if (passedCallback != null)
+            {
+                callback = passedCallback;
             }
             FromXToY(
                 !IsLocal(fromMode), !IsLocal(toMode), gameManagerReference.selectedCards, ModeToGameObject(fromMode),
@@ -1066,20 +1102,24 @@ public class PlayerScript : NetworkBehaviour
                 gameManagerReference.OnGalleryReload();
                 //gameManagerReference.shuffleDeckDialogue.ShuffleDialogue.SetActive(true);
             }
-            else if (fromMode == GameStateManager.SelectingMode.Attaching)
+            //else if (fromMode == GameStateManager.SelectingMode.Attaching)
+            //{
+            //    foreach (GameObject client in PlayerInfoManager.players)
+            //    {
+            //        CardSection playerCardSection = client.GetComponent<PlayerScript>().cardSection;
+            //        foreach (Transform child in playerCardSection.BenchObj.transform)
+            //        {
+            //            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+            //        }
+            //        foreach (Transform child in playerCardSection.ActiveObj.transform)
+            //        {
+            //            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+            //        }
+            //    }
+            //}
+            else if (fromMode == GameStateManager.SelectingMode.Hand)
             {
-                foreach (GameObject client in PlayerInfoManager.players)
-                {
-                    CardSection playerCardSection = client.GetComponent<PlayerScript>().cardSection;
-                    foreach (Transform child in playerCardSection.BenchObj.transform)
-                    {
-                        child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
-                    }
-                    foreach (Transform child in playerCardSection.ActiveObj.transform)
-                    {
-                        child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
-                    }
-                }
+                RenderHand();
             }
 
 
@@ -1189,7 +1229,8 @@ public class PlayerScript : NetworkBehaviour
             }
 
             Hand.Value = newHandSetup;
-            handSize.Value = Hand.Value.Length;
+            //handSize.Value = Hand.Value.Length;
+            RenderHand();
 
             Card[] newDeckSetup = new Card[Deck.Value.Length - steps];
             for (int i = 0; i < newDeckSetup.Length; i++)
@@ -1199,6 +1240,41 @@ public class PlayerScript : NetworkBehaviour
 
             Deck.Value = newDeckSetup;
 
+            GameStateManager.selectingMode = GameStateManager.SelectingMode.SelectingStartingPokemon;
+            gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.SelectingStartingPokemon);
+
+            for (byte i = 0; i < Hand.Value.Length; i++)
+            {
+                if (Hand.Value[i].type == CardType.Pokemon)
+                {
+                    PlayerHand.transform.GetChild(i).GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
+                }
+            }
+
+        }
+        else if (action == Action.Mulligan)
+        {
+            List<byte> allCardsInHand = new List<byte>() { 0, 1, 2, 3, 4, 5, 6 };
+            gameManagerReference.selectedCards = allCardsInHand;
+            FromToWithModes(GameStateManager.SelectingMode.Hand, GameStateManager.SelectingMode.Deck, true, false, () =>
+            {
+                FromXToY(Deck, Hand, allCardsInHand, gameManagerReference.playerDeckSprite, gameManagerReference.playerHand, false, null, null, null, null, () =>
+                {
+                    RenderHand();
+                    GameStateManager.selectingMode = GameStateManager.SelectingMode.SelectingStartingPokemon;
+                    gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.SelectingStartingPokemon);
+
+                    for (byte i = 0; i < Hand.Value.Length; i++)
+                    {
+                        if (Hand.Value[i].type == CardType.Pokemon)
+                        {
+                            print(Hand.Value[i].art);
+                            print(PlayerHand.transform.GetChild(i).GetComponent<Image>().sprite.ToString());
+                            PlayerHand.transform.GetChild(i).GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
+                        }
+                    }
+                });
+            });
         }
         else if (action == Action.Draw)
         {
@@ -1223,7 +1299,6 @@ public class PlayerScript : NetworkBehaviour
         else if (action == Action.ShuffleIntoDeck)
         {
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Deck, true);
-
         }
         else if (action == Action.Bench)
         {
@@ -1389,6 +1464,15 @@ public class PlayerScript : NetworkBehaviour
 
             FromToWithModes(GameStateManager.SelectingMode.Deck, GameStateManager.SelectingMode.Discard);
         }
+        else if (action == Action.TakePrize)
+        {
+            for (int i = 0; i < GameStateManager.howMany; i++)
+            {
+                gameManagerReference.selectedCards.Add((byte)i);
+            }
+
+            FromToWithModes(GameStateManager.SelectingMode.Prizes, GameStateManager.SelectingMode.Hand);
+        }
         else if (action == Action.ToBottomOfDeck)
         {
             if (GameStateManager.viewingMode == GameStateManager.SelectingMode.DeckSection)
@@ -1444,8 +1528,6 @@ public class PlayerScript : NetworkBehaviour
 
         NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
         PlayerScript player = client.PlayerObject.GetComponent<PlayerScript>();
-        player.Friendship.Value = System.Math.Min(player.Friendship.Value + 1, 10);
-        player.TempFriendship.Value = player.Friendship.Value;
         player.isActivePlayer.Value = playerID != NetworkManager.Singleton.LocalClientId;
         player.RenderTurnInfo();
         if (NetworkManager.Singleton.LocalClientId != playerID) // if it's now this player's turn
@@ -1607,8 +1689,6 @@ public class PlayerScript : NetworkBehaviour
         clientScript.isActivePlayer.Value = id == NetworkManager.Singleton.LocalClientId ?
             first : !first;
         clientScript.RenderTurnInfo();
-        clientScript.Friendship.Value = 1;
-        clientScript.TempFriendship.Value = 1;
         //clientScript.gameManagerReference.OnSpecialDeckView();
     }
 
@@ -1753,8 +1833,6 @@ public class PlayerScript : NetworkBehaviour
         playerScript.SpecialDeck.Value = new Card[0];
         playerScript.Discard.Value = new Card[0];
         playerScript.LostZone.Value = new Card[0];
-        playerScript.Friendship.Value = 0;
-        playerScript.TempFriendship.Value = 0;
 
         gameManagerReference.selectedCards = new List<byte>();
         GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
