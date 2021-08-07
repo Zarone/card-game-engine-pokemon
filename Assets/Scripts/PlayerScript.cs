@@ -438,7 +438,8 @@ public class PlayerScript : NetworkBehaviour
         string query;
         if (LostZone.Value.Length > 0)
         {
-            query = "Cards/" + ((int)LostZone.Value[LostZone.Value.Length - 1].type).ToString() + "/" + LostZone.Value[LostZone.Value.Length - 1].art + "-01";
+            //query = "Cards/" + ((int)LostZone.Value[LostZone.Value.Length - 1].type).ToString() + "/" + LostZone.Value[LostZone.Value.Length - 1].art + "-01";
+            query = LostZone.Value[LostZone.Value.Length - 1].art;
         }
         else
         {

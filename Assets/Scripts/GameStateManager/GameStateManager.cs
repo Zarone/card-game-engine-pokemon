@@ -1024,7 +1024,8 @@ public class GameStateManager : MonoBehaviour
                 }
             });
 
-            string query = "Cards/" + ((int)clientCode.LostZone.Value[i].type).ToString() + "/" + clientCode.LostZone.Value[i].art + "-01";
+            //string query = "Cards/" + ((int)clientCode.LostZone.Value[i].type).ToString() + "/" + clientCode.LostZone.Value[i].art + "-01";
+            string query = clientCode.LostZone.Value[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             cardObj.GetComponent<Image>().sprite = sprites[0];
         }

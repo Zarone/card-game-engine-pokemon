@@ -3320,7 +3320,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.785, y: 0}
   m_AnchorMax: {x: 0.875, y: 0.39}
-  m_AnchoredPosition: {x: -704.5, y: 92.4}
+  m_AnchoredPosition: {x: -695.4, y: 228.00003}
   m_SizeDelta: {x: 0, y: -20.796906}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &289249688
@@ -6672,11 +6672,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3233977959227818053, guid: a0a3fa502bfe8a54195c7c9d44b8d081, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 9.799988
       objectReference: {fileID: 0}
     - target: {fileID: 3233977959227818053, guid: a0a3fa502bfe8a54195c7c9d44b8d081, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: 136.6
       objectReference: {fileID: 0}
     - target: {fileID: 3233977959227818053, guid: a0a3fa502bfe8a54195c7c9d44b8d081, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -15414,7 +15414,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.785, y: 0.06}
   m_AnchorMax: {x: 0.875, y: 0.33}
-  m_AnchoredPosition: {x: -704.5, y: 92.39998}
+  m_AnchoredPosition: {x: -695.4, y: 228}
   m_SizeDelta: {x: 0, y: -14.397865}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1317791071
@@ -19558,7 +19558,7 @@ GameObject:
   - component: {fileID: 1681771633}
   - component: {fileID: 1681771632}
   m_Layer: 5
-  m_Name: SpecialDeck
+  m_Name: LostZoneView
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19629,7 +19629,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 414868566}
         m_TargetAssemblyTypeName: GameStateManager, Assembly-CSharp
-        m_MethodName: OnOppSpecialDeckView
+        m_MethodName: OnOppRemoveFromPlayView
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -23900,7 +23900,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.285}
   m_AnchorMax: {x: 0.09, y: 0.6}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 10.122, y: 136.88}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &2083800421
