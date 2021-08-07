@@ -266,7 +266,7 @@ public class CardSection : NetworkBehaviour
                     //playerRef.gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
                 };
 
-                EditingCard.GetComponent<Canvas>().sortingOrder = 1;
+                EditingCard.GetComponent<Canvas>().sortingOrder = 2;
                 EditingCard.GetComponent<RectTransform>().sizeDelta = new Vector2(GetProperWidth(ownType, playerRef.IsLocalPlayer), 79.1726f);
                 EditingCard.GetComponent<Button>().onClick.AddListener(() =>
                 {
@@ -559,7 +559,7 @@ public class CardSection : NetworkBehaviour
                 if (attachedCards.Value.Length > i)
                 {
                     attachmentSection.GetComponent<Canvas>().overrideSorting = true;
-                    attachmentSection.GetComponent<Canvas>().sortingOrder = 2;
+                    attachmentSection.GetComponent<Canvas>().sortingOrder = 3;
                     if (cardStates.Value.Length > i && cardStates.Value[i][0])
                     {
                         attachmentSection.transform.Rotate(0, 0, 90);
@@ -723,6 +723,7 @@ public class CardSection : NetworkBehaviour
             if (spritesAttach.Length == 1)
             {
                 attachment.GetComponent<Image>().sprite = spritesAttach[0];
+                attachment.GetComponent<RectTransform>().sizeDelta = new Vector2(48.6f, 67.8857143f);
             }
             else
             {

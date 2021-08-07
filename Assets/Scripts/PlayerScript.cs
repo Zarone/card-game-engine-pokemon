@@ -747,12 +747,22 @@ public class PlayerScript : NetworkBehaviour
                     newGameStateY[index][1] = false;
                 }
 
-                if (levelsY != null)
+
+                if (levelsX != null && levelsY != null)
+                {
+                    
+                    newLevelsY[index] = levelsX.Value[i];
+                }
+                else if (levelsY != null)
                 {
                     newLevelsY[index] = new Card[0];
                 }
 
-                if (countersY != null)
+                if (countersX != null && countersY != null)
+                {
+                    newCountersY[index] = countersX.Value[i];
+                }
+                else if (countersY != null)
                 {
                     newCountersY[index] = -1;
                 }
