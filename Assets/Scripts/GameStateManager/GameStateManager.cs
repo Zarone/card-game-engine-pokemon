@@ -1315,10 +1315,9 @@ public class GameStateManager : MonoBehaviour
             int cardsDrawn = MultiviewFinalIndex + 1 - localScript.mulligans.Length;
             if (cardsDrawn < 1) return;
             howMany = cardsDrawn;
-            actionQueue = PlayerScript.Action.Draw;
+            actionQueue = PlayerScript.Action.DrawMulligan;
             howManyCountObj.GetComponent<Text>().text = howMany.ToString();
             howManyObj.SetActive(true);
-
         }
     }
 
@@ -1469,6 +1468,12 @@ public class GameStateManager : MonoBehaviour
 
                 Draw_client.PlayerObject.GetComponent<PlayerScript>().GameAction(PlayerScript.Action.Draw);
 
+                break;
+            case PlayerScript.Action.DrawMulligan:
+                NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId,
+                    out var DrawMulligan_client);
+
+                DrawMulligan_client.PlayerObject.GetComponent<PlayerScript>().GameAction(PlayerScript.Action.DrawMulligan);
                 break;
             case PlayerScript.Action.TakePrize:
                 NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId,

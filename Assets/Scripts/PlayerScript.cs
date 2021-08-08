@@ -36,7 +36,8 @@ public class PlayerScript : NetworkBehaviour
         RevealTopOfDeck,
         AllowEditTopOfDeck,
         TakePrize,
-        Mulligan
+        Mulligan,
+        DrawMulligan
     }
 
     [System.NonSerialized]
@@ -374,9 +375,14 @@ public class PlayerScript : NetworkBehaviour
                                             {
                                                 ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, mulligans[0], 0, mulligans.Length - 1);
                                             }
+                                            else
+                                            {
+                                                ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, null, 0, -1);
+                                            }
 
                                         }
                                     }
+                                    break;
                                 }
 
                             }
@@ -1297,6 +1303,21 @@ public class PlayerScript : NetworkBehaviour
             FromXToY(Deck, Hand, cardsToDraw, gameManagerReference.playerDeckSprite, gameManagerReference.playerHand);
 
         }
+        else if (action == Action.DrawMulligan)
+        {
+            List<byte> cardsToDraw = new List<byte>();
+
+            for (byte i = 0; i < GameStateManager.howMany; i++)
+            {
+                if (i < Deck.Value.Length) cardsToDraw.Add(i);
+            }
+
+            FromXToY(Deck, Hand, cardsToDraw, gameManagerReference.playerDeckSprite, gameManagerReference.playerHand, false, null, null, null, null, () =>
+            {
+                print("setup prizes here");
+            });
+
+        }
         else if (action == Action.Discard)
         {
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Discard);
@@ -1998,7 +2019,15 @@ public class PlayerScript : NetworkBehaviour
     {
         if (NetworkManager.Singleton.LocalClientId != id)
         {
-            gameManagerReference.OnCustomViewOnly(mulligans, index != finalIndex, index, finalIndex);
+            if (finalIndex == -1)
+            {
+                print("setup prizes here");
+                // setup prizes here
+            }
+            else
+            {
+                gameManagerReference.OnCustomViewOnly(mulligans, index != finalIndex, index, finalIndex);
+            }
         }
     }
 
@@ -2018,8 +2047,14 @@ public class PlayerScript : NetworkBehaviour
             NetworkManager.Singleton.ConnectedClients.TryGetValue(localId, out var localClient);
             PlayerScript localScript = localClient.PlayerObject.GetComponent<PlayerScript>();
 
-            if (localScript.mulligans.Length < 1) return;
-            localScript.ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, localScript.mulligans[index], index, localScript.mulligans.Length - 1);
+            if (localScript.mulligans.Length > 1)
+            {
+                localScript.ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, localScript.mulligans[index], index, localScript.mulligans.Length - 1);
+            }
+            else
+            {
+                localScript.ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, null, 0,  -1);
+            }
         }
     }
 
