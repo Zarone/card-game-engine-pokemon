@@ -149,7 +149,7 @@ public class PlayerScript : NetworkBehaviour
     private bool AutoDraw = false;
     private bool AutoUntap = false;
 
-    private Card[][] mulligans = new Card[0][];
+    public Card[][] mulligans = new Card[0][];
 
     [System.NonSerialized] public GameObject PrizeLabel;
     [System.NonSerialized] public GameObject PrizeObj;
@@ -210,7 +210,6 @@ public class PlayerScript : NetworkBehaviour
 
         cardSection = gameObject.GetComponent<CardSection>();
     }
-
 
     public void RunFirst()
     {
@@ -361,18 +360,25 @@ public class PlayerScript : NetworkBehaviour
                                 gameManagerReference.selectedCards = new List<byte>() { byte.Parse(EditingCard.name) };
                                 GameAction(Action.Active);
                                 GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
-                                if (mulligans.Length > 0)
-                                {
-                                    //foreach (Card[] cards in mulligans)
-                                    //{
-                                    //    foreach (Card card in cards)
-                                    //    {
-                                    //        print(card.art);
-                                    //    }
-                                    //}
 
-                                    ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, mulligans[0], 0, mulligans.Length - 1);
+                                //PlayerScript opponent;
+                                foreach (GameObject player in PlayerInfoManager.players)
+                                {
+                                    PlayerScript tempPlayerScript = player.GetComponent<PlayerScript>();
+                                    if (!tempPlayerScript.IsLocalPlayer)
+                                    {
+                                        if (tempPlayerScript.cardSection.Active.Value.Length > 0)
+                                        {
+                                            RequestShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, 0);
+                                            if (mulligans.Length > 0)
+                                            {
+                                                ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, mulligans[0], 0, mulligans.Length - 1);
+                                            }
+
+                                        }
+                                    }
                                 }
+
                             }
                         });
 
@@ -397,14 +403,9 @@ public class PlayerScript : NetworkBehaviour
 
                 if (gameManagerReference.selectedCards.Count == 0 && GameStateManager.selectingMode != GameStateManager.SelectingMode.SelectingStartingPokemon)
                 {
-
-
-                    print("render hand");
                     GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
                     gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
                     gameManagerReference.selectedCards = new List<byte>();
-
-
                 }
             }
             else
@@ -2016,6 +2017,8 @@ public class PlayerScript : NetworkBehaviour
         {
             NetworkManager.Singleton.ConnectedClients.TryGetValue(localId, out var localClient);
             PlayerScript localScript = localClient.PlayerObject.GetComponent<PlayerScript>();
+
+            if (localScript.mulligans.Length < 1) return;
             localScript.ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, localScript.mulligans[index], index, localScript.mulligans.Length - 1);
         }
     }

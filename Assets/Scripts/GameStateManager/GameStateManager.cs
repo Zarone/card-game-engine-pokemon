@@ -709,7 +709,7 @@ public class GameStateManager : MonoBehaviour
             NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
             PlayerScript localScript = networkClient.PlayerObject.GetComponent<PlayerScript>();
 
-            localScript.RequestShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, MultiviewIndex+1);
+            localScript.RequestShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, MultiviewIndex + 1);
         }
     }
 
@@ -1153,6 +1153,7 @@ public class GameStateManager : MonoBehaviour
 
     private int MultiviewIndex;
     private int MultiviewFinalIndex;
+    // the multi view variables are for viewing mulligans
     public void OnCustomViewOnly(Card[] cards, bool multiview = false, int multiviewIndex = -1, int multiviewFinalIndex = -1)
     {
         PlayerScript clientCode = PlayerInfoManager.players[0].GetComponent<PlayerScript>();
@@ -1304,6 +1305,21 @@ public class GameStateManager : MonoBehaviour
 
         GalleryView.SetActive(false);
         viewingMode = SelectingMode.None;
+
+        if (MultiviewIndex != -1)
+        {
+            MultiviewIndex = -1;
+
+            PlayerScript localScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+
+            int cardsDrawn = MultiviewFinalIndex + 1 - localScript.mulligans.Length;
+            if (cardsDrawn < 1) return;
+            howMany = cardsDrawn;
+            actionQueue = PlayerScript.Action.Draw;
+            howManyCountObj.GetComponent<Text>().text = howMany.ToString();
+            howManyObj.SetActive(true);
+
+        }
     }
 
     public void OnGalleryReload()
