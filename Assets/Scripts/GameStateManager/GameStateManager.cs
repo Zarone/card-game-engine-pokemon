@@ -39,6 +39,7 @@ public class GameStateManager : MonoBehaviour
     {
         None,
         Gallery,
+        GalleryMultiview,
         Hand,
         Deck,
         DeckSection,
@@ -155,6 +156,7 @@ public class GameStateManager : MonoBehaviour
         { "ManualCoinFlip", new List<SelectingMode>() { SelectingMode.None } },
         { "ManualDieRoll", new List<SelectingMode>() { SelectingMode.None } },
         { "Mulligan", new List<SelectingMode>(){ SelectingMode.SelectingStartingPokemon } },
+        { "ViewNextMulligan", new List<SelectingMode>(){ SelectingMode.GalleryMultiview } },
 
         { "Remote_ToTopOfDeck", new List<SelectingMode>() { SelectingMode.CustomSection } }
     };
@@ -700,6 +702,16 @@ public class GameStateManager : MonoBehaviour
         }
     }
 
+    public void OnViewNextMulligan()
+    {
+        if (MultiviewIndex != MultiviewFinalIndex)
+        {
+            NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
+            PlayerScript localScript = networkClient.PlayerObject.GetComponent<PlayerScript>();
+
+            localScript.RequestShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, MultiviewIndex+1);
+        }
+    }
 
     public void OnTopOfDeckFirstButton()
     {
@@ -1139,11 +1151,13 @@ public class GameStateManager : MonoBehaviour
         OnCustomViewOnly(cards.ToArray());
     }
 
-    public void OnCustomViewOnly(Card[] cards)
+    private int MultiviewIndex;
+    private int MultiviewFinalIndex;
+    public void OnCustomViewOnly(Card[] cards, bool multiview = false, int multiviewIndex = -1, int multiviewFinalIndex = -1)
     {
         PlayerScript clientCode = PlayerInfoManager.players[0].GetComponent<PlayerScript>();
 
-        clientCode.RenderHandSelectingCancel();
+        //clientCode.RenderHandSelectingCancel();
 
         AdjustGalleryViewSize();
         GalleryView.SetActive(true);
@@ -1157,21 +1171,19 @@ public class GameStateManager : MonoBehaviour
         {
             GameObject cardObj = Instantiate(clientCode.CardPrefab, GalleryContent);
             cardObj.name = i.ToString();
-            //cardObj.GetComponent<CardRightClickHandler>().onRightClick = OnCardRightClick;
             cardObj.GetComponent<CardRightClickHandler>().onRightClick = (Sprite image) =>
             {
                 OnCardRightClick(image);
-
-                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
             };
 
-            //string query = "Cards/" + ((int)cards[i].type).ToString() + "/" + cards[i].art + "-01";
             string query = cards[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             cardObj.GetComponent<Image>().sprite = sprites[0];
         }
 
-        RenderCorrectButtons(SelectingMode.Gallery);
+        MultiviewIndex = multiviewIndex;
+        MultiviewFinalIndex = multiviewFinalIndex;
+        RenderCorrectButtons(multiview ? SelectingMode.GalleryMultiview : SelectingMode.Gallery);
     }
 
     private byte CustomViewBounds;
@@ -1278,10 +1290,18 @@ public class GameStateManager : MonoBehaviour
             shuffleDeckDialogue.ShuffleDialogue.SetActive(true);
 
         }
-        selectedCards = new List<byte>();
-        selectingMode = SelectingMode.None;
 
-        RenderCorrectButtons(SelectingMode.None);
+        if (selectingMode != SelectingMode.SelectingStartingPokemon)
+        {
+            selectedCards = new List<byte>();
+            selectingMode = SelectingMode.None;
+            RenderCorrectButtons(SelectingMode.None);
+        }
+        else
+        {
+            RenderCorrectButtons(SelectingMode.SelectingStartingPokemon);
+        }
+
         GalleryView.SetActive(false);
         viewingMode = SelectingMode.None;
     }
@@ -1437,7 +1457,7 @@ public class GameStateManager : MonoBehaviour
             case PlayerScript.Action.TakePrize:
                 NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId,
                     out var TakePrize_client);
-    
+
                 TakePrize_client.PlayerObject.GetComponent<PlayerScript>().GameAction(PlayerScript.Action.TakePrize);
 
                 break;

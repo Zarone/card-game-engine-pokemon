@@ -149,6 +149,7 @@ public class PlayerScript : NetworkBehaviour
     private bool AutoDraw = false;
     private bool AutoUntap = false;
 
+    private Card[][] mulligans = new Card[0][];
 
     [System.NonSerialized] public GameObject PrizeLabel;
     [System.NonSerialized] public GameObject PrizeObj;
@@ -166,7 +167,7 @@ public class PlayerScript : NetworkBehaviour
         Hand = new LocalDeck(new Card[0], () =>
         {
             handSize.Value = Hand.Value.Length;
-            //RenderHand();
+            RenderHand();
         });
         Prizes = new LocalDeck(new Card[0], () =>
         {
@@ -235,7 +236,6 @@ public class PlayerScript : NetworkBehaviour
             GameAction(Action.Setup, CardManipulation.Shuffle(PlayerInfoManager.fullDeck));
         }
         HasStarted = true;
-        //RenderHand();
     }
 
     void FormatHandSpacing(int extra = 0, bool isLocal = false)
@@ -249,7 +249,6 @@ public class PlayerScript : NetworkBehaviour
     public void RenderHand()
     {
         if (SceneManager.GetActiveScene().name != "GameScreen") return;
-        print("render hand");
         if (isInAnimation)
         {
             Invoke(nameof(RenderHand), 0.1f);
@@ -272,13 +271,12 @@ public class PlayerScript : NetworkBehaviour
                     {
                         GameObject EditingCard = Instantiate(CardPrefab, PlayerHand.transform);
                         EditingCard.GetComponent<RectTransform>().sizeDelta = new Vector2(67.5f, 109.5076f);
-                        //EditingCard.GetComponent<CardRightClickHandler>().onRightClick =
-                        //    gameManagerReference.OnCardRightClick;
 
                         EditingCard.GetComponent<CardRightClickHandler>().onRightClick = (Sprite image) =>
                          {
                              gameManagerReference.OnCardRightClick(image);
 
+                             // I could reuse this for BREAK cards
                              //gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
                          };
 
@@ -363,10 +361,21 @@ public class PlayerScript : NetworkBehaviour
                                 gameManagerReference.selectedCards = new List<byte>() { byte.Parse(EditingCard.name) };
                                 GameAction(Action.Active);
                                 GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+                                if (mulligans.Length > 0)
+                                {
+                                    //foreach (Card[] cards in mulligans)
+                                    //{
+                                    //    foreach (Card card in cards)
+                                    //    {
+                                    //        print(card.art);
+                                    //    }
+                                    //}
+
+                                    ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, mulligans[0], 0, mulligans.Length - 1);
+                                }
                             }
                         });
 
-                        //string query = "Cards/" + ((int)Hand.Value[i].type).ToString() + "/" + Hand.Value[i].art + "-01";
                         string query = Hand.Value[i].art;
                         Sprite[] sprites = Resources.LoadAll<Sprite>(query);
                         if (sprites.Length == 1)
@@ -377,10 +386,26 @@ public class PlayerScript : NetworkBehaviour
                         {
                             Debug.LogError($"{query} returned {sprites.Length} results");
                         }
+
+                        if (GameStateManager.selectingMode == GameStateManager.SelectingMode.SelectingStartingPokemon && Hand.Value[i].type == CardType.Pokemon)
+                        {
+                            EditingCard.GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
+                        }
                     }
                 }
 
 
+                if (gameManagerReference.selectedCards.Count == 0 && GameStateManager.selectingMode != GameStateManager.SelectingMode.SelectingStartingPokemon)
+                {
+
+
+                    print("render hand");
+                    GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+                    gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
+                    gameManagerReference.selectedCards = new List<byte>();
+
+
+                }
             }
             else
             {
@@ -403,13 +428,6 @@ public class PlayerScript : NetworkBehaviour
 
             FormatHandSpacing(0, IsLocalPlayer);
 
-            if (gameManagerReference.selectedCards.Count == 0 && GameStateManager.selectingMode != GameStateManager.SelectingMode.SelectingStartingPokemon)
-            {
-                GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
-                gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
-                gameManagerReference.selectedCards = new List<byte>();
-
-            }
 
         }
         else
@@ -431,7 +449,6 @@ public class PlayerScript : NetworkBehaviour
         string query;
         if (Discard.Value.Length > 0)
         {
-            //query = "Cards/" + ((int)Discard.Value[Discard.Value.Length - 1].type).ToString() + "/" + Discard.Value[Discard.Value.Length - 1].art + "-01";
             query = Discard.Value[Discard.Value.Length - 1].art;
         }
         else
@@ -456,7 +473,6 @@ public class PlayerScript : NetworkBehaviour
         string query;
         if (LostZone.Value.Length > 0)
         {
-            //query = "Cards/" + ((int)LostZone.Value[LostZone.Value.Length - 1].type).ToString() + "/" + LostZone.Value[LostZone.Value.Length - 1].art + "-01";
             query = LostZone.Value[LostZone.Value.Length - 1].art;
         }
         else
@@ -483,7 +499,6 @@ public class PlayerScript : NetworkBehaviour
 
     public void RenderHandSelecting()
     {
-        //GameStateManager.selectingMode = GameStateManager.SelectingMode.Hand;
         foreach (Transform child in PlayerHand.transform)
         {
             child.gameObject.GetComponent<Image>().color = CardManipulation.Unselected;
@@ -874,14 +889,14 @@ public class PlayerScript : NetworkBehaviour
             }
 
 
-            if (GameStateManager.selectingMode != GameStateManager.SelectingMode.SelectingStartingPokemon)
-            {
-                GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
-                gameManagerReference.selectedCards = new List<byte>();
+            //if (GameStateManager.selectingMode != GameStateManager.SelectingMode.SelectingStartingPokemon)
+            //{
+            GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+            gameManagerReference.selectedCards = new List<byte>();
 
 
-                RenderHand();
-            }
+            RenderHand();
+            //}
 
             isInAnimation = false;
 
@@ -892,7 +907,6 @@ public class PlayerScript : NetworkBehaviour
         {
             animTempSprite = Instantiate(CardSpritePrefab, xObj.transform);
             animTempSprite.transform.rotation = Quaternion.identity;
-            //string query = "Cards/" + ((int)lastDiscardedCard.type).ToString() + "/" + lastDiscardedCard.art + "-01";
             string query = lastDiscardedCard.art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
@@ -1023,7 +1037,6 @@ public class PlayerScript : NetworkBehaviour
 
             X.Value = newX;
 
-            //handSize.Value = Hand.Value.Length;
             RenderHand();
 
             gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
@@ -1033,7 +1046,6 @@ public class PlayerScript : NetworkBehaviour
         if (yObj != null && xObj != null)
         {
             animTempSprite = Instantiate(CardSpritePrefab, xObj.transform);
-            //string query = "Cards/" + ((int)lastCardMovedFromXToY.type).ToString() + "/" + lastCardMovedFromXToY.art + "-01";
             string query = lastCardMovedFromXToY.art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
@@ -1117,10 +1129,10 @@ public class PlayerScript : NetworkBehaviour
             //        }
             //    }
             //}
-            else if (fromMode == GameStateManager.SelectingMode.Hand)
-            {
-                RenderHand();
-            }
+            //else if (fromMode == GameStateManager.SelectingMode.Hand)
+            //{
+            //    RenderHand();
+            //}
 
 
         }
@@ -1228,9 +1240,9 @@ public class PlayerScript : NetworkBehaviour
                 newHandSetup[i + Hand.Value.Length] = drawnCards[i];
             }
 
+            GameStateManager.selectingMode = GameStateManager.SelectingMode.SelectingStartingPokemon;
+            gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.SelectingStartingPokemon);
             Hand.Value = newHandSetup;
-            //handSize.Value = Hand.Value.Length;
-            RenderHand();
 
             Card[] newDeckSetup = new Card[Deck.Value.Length - steps];
             for (int i = 0; i < newDeckSetup.Length; i++)
@@ -1240,39 +1252,35 @@ public class PlayerScript : NetworkBehaviour
 
             Deck.Value = newDeckSetup;
 
-            GameStateManager.selectingMode = GameStateManager.SelectingMode.SelectingStartingPokemon;
-            gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.SelectingStartingPokemon);
-
-            for (byte i = 0; i < Hand.Value.Length; i++)
-            {
-                if (Hand.Value[i].type == CardType.Pokemon)
-                {
-                    PlayerHand.transform.GetChild(i).GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
-                }
-            }
+            //for (byte i = 0; i < Hand.Value.Length; i++)
+            //{
+            //    if (Hand.Value[i].type == CardType.Pokemon)
+            //    {
+            //        PlayerHand.transform.GetChild(i).GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
+            //    }
+            //}
 
         }
         else if (action == Action.Mulligan)
         {
             List<byte> allCardsInHand = new List<byte>() { 0, 1, 2, 3, 4, 5, 6 };
             gameManagerReference.selectedCards = allCardsInHand;
+
+            Card[][] newMulliganInfo = new Card[mulligans.Length + 1][];
+            for (int i = 0; i < mulligans.Length; i++)
+            {
+                newMulliganInfo[i] = mulligans[i];
+            }
+            newMulliganInfo[mulligans.Length] = Hand.Value;
+            mulligans = newMulliganInfo;
+
             FromToWithModes(GameStateManager.SelectingMode.Hand, GameStateManager.SelectingMode.Deck, true, false, () =>
             {
                 FromXToY(Deck, Hand, allCardsInHand, gameManagerReference.playerDeckSprite, gameManagerReference.playerHand, false, null, null, null, null, () =>
                 {
-                    RenderHand();
                     GameStateManager.selectingMode = GameStateManager.SelectingMode.SelectingStartingPokemon;
                     gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.SelectingStartingPokemon);
-
-                    for (byte i = 0; i < Hand.Value.Length; i++)
-                    {
-                        if (Hand.Value[i].type == CardType.Pokemon)
-                        {
-                            print(Hand.Value[i].art);
-                            print(PlayerHand.transform.GetChild(i).GetComponent<Image>().sprite.ToString());
-                            PlayerHand.transform.GetChild(i).GetComponent<Image>().color = CardManipulation.PossibleMoveTo;
-                        }
-                    }
+                    RenderHand();
                 });
             });
         }
@@ -1864,10 +1872,12 @@ public class PlayerScript : NetworkBehaviour
 
         playerScript.isActivePlayer.Value = false;
 
+        playerScript.mulligans = new Card[0][];
+
         // manage coin flip
         playerScript.GetTurnInfo();
 
-        gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
+        gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.SelectingStartingPokemon);
 
     }
 
@@ -1973,6 +1983,41 @@ public class PlayerScript : NetworkBehaviour
     public void ManualDieRollClientRpc(int seed)
     {
         StartCoroutine(RollDie(seed));
+    }
+
+
+    [ServerRpc]
+    public void ShareMulliganInfoServerRpc(ulong id, Card[] mulligans, int index, int finalIndex)
+    {
+        ShareMulliganInfoClientRpc(id, mulligans, index, finalIndex);
+    }
+
+    [ClientRpc]
+    public void ShareMulliganInfoClientRpc(ulong id, Card[] mulligans, int index, int finalIndex)
+    {
+        if (NetworkManager.Singleton.LocalClientId != id)
+        {
+            gameManagerReference.OnCustomViewOnly(mulligans, index != finalIndex, index, finalIndex);
+        }
+    }
+
+
+    [ServerRpc]
+    public void RequestShareMulliganInfoServerRpc(ulong id, int index)
+    {
+        RequestShareMulliganInfoClientRpc(id, index);
+    }
+
+    [ClientRpc]
+    public void RequestShareMulliganInfoClientRpc(ulong id, int index)
+    {
+        ulong localId = NetworkManager.Singleton.LocalClientId;
+        if (localId != id)
+        {
+            NetworkManager.Singleton.ConnectedClients.TryGetValue(localId, out var localClient);
+            PlayerScript localScript = localClient.PlayerObject.GetComponent<PlayerScript>();
+            localScript.ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, localScript.mulligans[index], index, localScript.mulligans.Length - 1);
+        }
     }
 
 }
