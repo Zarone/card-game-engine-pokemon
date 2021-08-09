@@ -1313,11 +1313,18 @@ public class GameStateManager : MonoBehaviour
             PlayerScript localScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
 
             int cardsDrawn = MultiviewFinalIndex + 1 - localScript.mulligans.Length;
-            if (cardsDrawn < 1) return;
-            howMany = cardsDrawn;
-            actionQueue = PlayerScript.Action.DrawMulligan;
-            howManyCountObj.GetComponent<Text>().text = howMany.ToString();
-            howManyObj.SetActive(true);
+            if (cardsDrawn < 0)
+            {
+                howMany = 0;
+                localScript.GameAction(PlayerScript.Action.DrawMulligan);
+            }
+            else
+            {
+                howMany = cardsDrawn;
+                actionQueue = PlayerScript.Action.DrawMulligan;
+                howManyCountObj.GetComponent<Text>().text = howMany.ToString();
+                howManyObj.SetActive(true);
+            }
         }
     }
 
@@ -1491,6 +1498,16 @@ public class GameStateManager : MonoBehaviour
 
     public void OnHowManyCancel()
     {
+        if (actionQueue == PlayerScript.Action.DrawMulligan)
+        {
+            howMany = 0;
+            NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId,
+                out var client);
+
+            client.PlayerObject.GetComponent<PlayerScript>().GameAction(PlayerScript.Action.DrawMulligan);
+        }
+
+
         howManyObj.SetActive(false);
     }
 

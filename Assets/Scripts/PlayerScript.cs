@@ -315,6 +315,8 @@ public class PlayerScript : NetworkBehaviour
 
                             }
 
+                            print(GameStateManager.selectingMode);
+
                             if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Hand ||
                                 GameStateManager.selectingMode == GameStateManager.SelectingMode.Attaching)
                             {
@@ -370,6 +372,7 @@ public class PlayerScript : NetworkBehaviour
                                     {
                                         if (tempPlayerScript.cardSection.Active.Value.Length > 0)
                                         {
+                                            print("here");
                                             RequestShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, 0);
                                             if (mulligans.Length > 0)
                                             {
@@ -377,12 +380,13 @@ public class PlayerScript : NetworkBehaviour
                                             }
                                             else
                                             {
+                                                print("sent out mulligan info");
                                                 ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, null, 0, -1);
                                             }
 
                                         }
+                                        break;
                                     }
-                                    break;
                                 }
 
                             }
@@ -1203,6 +1207,10 @@ public class PlayerScript : NetworkBehaviour
         gameManagerReference.OnGalleryReload();
     }
 
+    private void AfterBasicPokemonSetup()
+    {
+        print("setup prizes here");
+    }
 
 
     public IEnumerator MoveSprite()
@@ -1270,6 +1278,7 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.Mulligan)
         {
+            if (Hand.Value.Length == 0) return;
             List<byte> allCardsInHand = new List<byte>() { 0, 1, 2, 3, 4, 5, 6 };
             gameManagerReference.selectedCards = allCardsInHand;
 
@@ -1307,15 +1316,23 @@ public class PlayerScript : NetworkBehaviour
         {
             List<byte> cardsToDraw = new List<byte>();
 
-            for (byte i = 0; i < GameStateManager.howMany; i++)
+            if (GameStateManager.howMany > 0)
             {
-                if (i < Deck.Value.Length) cardsToDraw.Add(i);
+                for (byte i = 0; i < GameStateManager.howMany; i++)
+                {
+                    if (i < Deck.Value.Length) cardsToDraw.Add(i);
+                }
+
+                FromXToY(Deck, Hand, cardsToDraw, gameManagerReference.playerDeckSprite, gameManagerReference.playerHand, false, null, null, null, null, () =>
+                {
+                    AfterBasicPokemonSetup();
+                });
+            }
+            else
+            {
+                AfterBasicPokemonSetup();
             }
 
-            FromXToY(Deck, Hand, cardsToDraw, gameManagerReference.playerDeckSprite, gameManagerReference.playerHand, false, null, null, null, null, () =>
-            {
-                print("setup prizes here");
-            });
 
         }
         else if (action == Action.Discard)
@@ -2021,8 +2038,7 @@ public class PlayerScript : NetworkBehaviour
         {
             if (finalIndex == -1)
             {
-                print("setup prizes here");
-                // setup prizes here
+                AfterBasicPokemonSetup();
             }
             else
             {
@@ -2047,13 +2063,13 @@ public class PlayerScript : NetworkBehaviour
             NetworkManager.Singleton.ConnectedClients.TryGetValue(localId, out var localClient);
             PlayerScript localScript = localClient.PlayerObject.GetComponent<PlayerScript>();
 
-            if (localScript.mulligans.Length > 1)
+            if (localScript.mulligans.Length > 0)
             {
                 localScript.ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, localScript.mulligans[index], index, localScript.mulligans.Length - 1);
             }
             else
             {
-                localScript.ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, null, 0,  -1);
+                localScript.ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, null, 0, -1);
             }
         }
     }
