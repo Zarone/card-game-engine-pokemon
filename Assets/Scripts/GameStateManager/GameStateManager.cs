@@ -1181,8 +1181,8 @@ public class GameStateManager : MonoBehaviour
         OnCustomViewOnly(cards.ToArray());
     }
 
-    private int MultiviewIndex;
-    private int MultiviewFinalIndex;
+    private int MultiviewIndex = -1;
+    private int MultiviewFinalIndex = -1;
     // the multi view variables are for viewing mulligans
     public void OnCustomViewOnly(Card[] cards, bool multiview = false, int multiviewIndex = -1, int multiviewFinalIndex = -1)
     {
@@ -1337,6 +1337,7 @@ public class GameStateManager : MonoBehaviour
         GalleryView.SetActive(false);
         viewingMode = SelectingMode.None;
 
+        print(MultiviewFinalIndex);
         if (MultiviewIndex != -1)
         {
             MultiviewIndex = -1;
@@ -1344,7 +1345,7 @@ public class GameStateManager : MonoBehaviour
             PlayerScript localScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
 
             int cardsDrawn = MultiviewFinalIndex + 1 - localScript.mulligans.Length;
-            if (cardsDrawn < 0)
+            if (cardsDrawn < 1)
             {
                 howMany = 0;
                 localScript.GameAction(PlayerScript.Action.DrawMulligan);

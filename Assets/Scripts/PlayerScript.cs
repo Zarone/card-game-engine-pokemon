@@ -733,6 +733,15 @@ public class PlayerScript : NetworkBehaviour
         };
         isInAnimation = true;
 
+        if ((isNetworkX ? NetworkX.Value.Length : localX.Value.Length) - selectedIndexes.Count < 0)
+        {
+            Debug.LogError(isNetworkX);
+            Debug.LogError(NetworkX.Value.Length);
+            Debug.LogError(localX.Value.Length);
+            Debug.LogError(selectedIndexes.Count);
+
+        }
+
         Card[] newX = new Card[(isNetworkX ? NetworkX.Value.Length : localX.Value.Length) - selectedIndexes.Count];
 
         Card[] newY = new Card[(isNetworkY ? NetworkY.Value.Length : localY.Value.Length)
@@ -1617,7 +1626,8 @@ public class PlayerScript : NetworkBehaviour
             }
 
             GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
-
+            gameManagerReference.selectedCards = new List<byte>();
+            gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
 
         }
         else
