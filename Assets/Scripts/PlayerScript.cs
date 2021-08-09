@@ -315,8 +315,6 @@ public class PlayerScript : NetworkBehaviour
 
                             }
 
-                            print(GameStateManager.selectingMode);
-
                             if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Hand ||
                                 GameStateManager.selectingMode == GameStateManager.SelectingMode.Attaching)
                             {
@@ -1209,7 +1207,18 @@ public class PlayerScript : NetworkBehaviour
 
     private void AfterBasicPokemonSetup()
     {
+        List<byte> cardsMoved = new List<byte>();
+        for (byte i = 0; i < 6; i++)
+        {
+            cardsMoved.Add(i);
+        }
+
         print("setup prizes here");
+        print(Deck.Value.Length);
+
+        PlayerScript localScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+
+        FromXToY(localScript.Deck, localScript.Prizes, cardsMoved, gameManagerReference.playerDeckSprite, localScript.gameManagerReference.PlayerPrizes);
     }
 
 
