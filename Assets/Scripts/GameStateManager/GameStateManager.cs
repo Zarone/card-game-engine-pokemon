@@ -35,8 +35,12 @@ public class GameStateManager : MonoBehaviour
 
     public GameObject PlayerPrizes;
 
-    public Image PlayerSupporter;
-    public Image OppSupporter;
+    public GameObject PlayerSupporter;
+    public GameObject OppSupporter;
+
+    public GameObject StadiumObj;
+    public ulong StadiumOwner;
+    public Card CurrentStadium;
 
     public enum SelectingMode
     {
@@ -133,9 +137,7 @@ public class GameStateManager : MonoBehaviour
         { "MoveToBench", new List<SelectingMode>(){
             SelectingMode.Deck }
         },
-        { "MoveToActive", new List<SelectingMode>(){
-            SelectingMode.Attaching}
-        },
+        { "MoveToActive", new List<SelectingMode>(){ } },
         { "Zone_MoveToBench", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Active }
         },
@@ -787,7 +789,28 @@ public class GameStateManager : MonoBehaviour
 
     public void OnPlayStadium()
     {
+        if (selectedCards.Count == 1)
+        {
+            PlayerScript localPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            localPlayer.PlayStadiumServerRpc(localPlayer.Hand.Value[selectedCards[0]]);
 
+            Card[] newHand = new Card[localPlayer.Hand.Value.Length - 1];
+
+            byte j = 0;
+            for (byte i = 0; i < newHand.Length; i++)
+            {
+                if (!selectedCards.Contains(i))
+                {
+                    newHand[i] = localPlayer.Hand.Value[j];
+                    j++;
+                }
+            }
+            localPlayer.Hand.Value = newHand;
+
+            selectingMode = SelectingMode.None;
+            RenderCorrectButtons(SelectingMode.None);
+            selectedCards = new List<byte>();
+        }
     }
 
 

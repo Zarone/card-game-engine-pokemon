@@ -166,7 +166,7 @@ public class PlayerScript : NetworkBehaviour
     [System.NonSerialized] public GameObject PrizeLabel;
     [System.NonSerialized] public GameObject PrizeObj;
 
-    [System.NonSerialized] public Image SupporterObj;
+    [System.NonSerialized] public GameObject SupporterObj;
 
     [System.NonSerialized] public CardSection cardSection;
 
@@ -530,19 +530,44 @@ public class PlayerScript : NetworkBehaviour
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             if (sprites.Length == 1)
             {
-                SupporterObj.color = Color.white;
-                SupporterObj.sprite = sprites[0];
+                SupporterObj.GetComponent<Image>().color = Color.white;
+                SupporterObj.GetComponent<Image>().sprite = sprites[0];
             }
             else
             {
                 Debug.LogError($"{query} returned {sprites.Length} results");
             }
+            SupporterObj.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
         }
         else
         {
-            SupporterObj.color = Color.clear;
+            SupporterObj.GetComponent<Image>().color = Color.clear;
         }
     }
+
+    private void RenderStadium()
+    {
+        if (gameManagerReference.CurrentStadium != null)
+        {
+            string query = gameManagerReference.CurrentStadium.art;
+            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            if (sprites.Length == 1)
+            {
+                gameManagerReference.StadiumObj.GetComponent<Image>().color = Color.white;
+                gameManagerReference.StadiumObj.GetComponent<Image>().sprite = sprites[0];
+            }
+            else
+            {
+                Debug.LogError($"{query} returned {sprites.Length} results");
+            }
+            gameManagerReference.StadiumObj.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
+        }
+        else
+        {
+            gameManagerReference.StadiumObj.GetComponent<Image>().color = Color.clear;
+        }
+    }
+
 
     public void RenderHandSelecting()
     {
@@ -2162,4 +2187,28 @@ public class PlayerScript : NetworkBehaviour
         }
     }
 
+
+    [ServerRpc]
+    public void PlayStadiumServerRpc(Card newStadium)
+    {
+        PlayStadiumClientRpc(newStadium);
+    }
+
+    [ClientRpc]
+    public void PlayStadiumClientRpc(Card newStadium)
+    {
+        if (gameManagerReference.StadiumOwner == NetworkManager.Singleton.LocalClientId && gameManagerReference.CurrentStadium != null)
+        {
+            PlayerScript localPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            Card[] newDiscard = new Card[localPlayer.Discard.Value.Length + 1];
+            for (int i = 0; i < localPlayer.Discard.Value.Length; i++)
+            {
+                newDiscard[i] = localPlayer.Discard.Value[i];
+            }
+            newDiscard[localPlayer.Discard.Value.Length] = gameManagerReference.CurrentStadium;
+            localPlayer.Discard.Value = newDiscard;
+        }
+        gameManagerReference.CurrentStadium = newStadium;
+        RenderStadium();
+    }
 }
