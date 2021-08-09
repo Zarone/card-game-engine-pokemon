@@ -35,6 +35,9 @@ public class GameStateManager : MonoBehaviour
 
     public GameObject PlayerPrizes;
 
+    public Image PlayerSupporter;
+    public Image OppSupporter;
+
     public enum SelectingMode
     {
         None,
@@ -139,6 +142,8 @@ public class GameStateManager : MonoBehaviour
         { "Zone_MoveToActive", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Bench }
         },
+        { "Zone_PlayStadium", new List<SelectingMode>(){ SelectingMode.Hand } },
+        { "Zone_PlaySupporter", new List<SelectingMode>(){ SelectingMode.Hand } },
         { "Tap", new List<SelectingMode>(){
             SelectingMode.Active, SelectingMode.Bench }
         },
@@ -157,8 +162,7 @@ public class GameStateManager : MonoBehaviour
         { "ManualDieRoll", new List<SelectingMode>() { SelectingMode.None } },
         { "Mulligan", new List<SelectingMode>(){ SelectingMode.SelectingStartingPokemon } },
         { "ViewNextMulligan", new List<SelectingMode>(){ SelectingMode.GalleryMultiview } },
-
-        { "Remote_ToTopOfDeck", new List<SelectingMode>() { SelectingMode.CustomSection } }
+        { "Remote_ToTopOfDeck", new List<SelectingMode>() { SelectingMode.CustomSection } },
     };
 
     [System.NonSerialized] public List<byte> selectedCards = new List<byte>();
@@ -189,10 +193,12 @@ public class GameStateManager : MonoBehaviour
             {
                 player.PrizeObj = PlayerPrizes;
                 player.PrizeLabel = PlayerPrizeCounter;
+                player.SupporterObj = PlayerSupporter;
             }
             else
             {
                 player.PrizeLabel = OppPrizeCounter;
+                player.SupporterObj = OppSupporter;
             }
 
             if (!player.HasStarted) player.RunFirst();
@@ -701,7 +707,7 @@ public class GameStateManager : MonoBehaviour
             }
         }
     }
-
+    
     public void OnViewNextMulligan()
     {
         if (MultiviewIndex != MultiviewFinalIndex)
@@ -712,7 +718,7 @@ public class GameStateManager : MonoBehaviour
             localScript.RequestShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, MultiviewIndex + 1);
         }
     }
-
+    
     public void OnTopOfDeckFirstButton()
     {
         actionQueue = PlayerScript.Action.ViewTopOfDeck;
@@ -759,6 +765,29 @@ public class GameStateManager : MonoBehaviour
         howMany = 0;
         howManyCountObj.GetComponent<Text>().text = howMany.ToString();
         howManyObj.SetActive(true);
+    }
+
+    public void OnPlaySupporter()
+    {
+        if (selectedCards.Count == 1)
+        {
+
+            foreach (GameObject client in PlayerInfoManager.players)
+            {
+                PlayerScript player = client.GetComponent<PlayerScript>();
+                if (player.IsLocalPlayer)
+                {
+                    player.GameAction(PlayerScript.Action.PlaySupporter);
+                }
+            }
+
+            RenderCorrectButtons(SelectingMode.None);
+        }
+    }
+
+    public void OnPlayStadium()
+    {
+
     }
 
 
@@ -910,7 +939,8 @@ public class GameStateManager : MonoBehaviour
                 }
             });
 
-            string query = "Cards/" + ((int)clientCode.Deck.Value[i].type).ToString() + "/" + clientCode.Deck.Value[i].art + "-01";
+            //string query = "Cards/" + ((int)clientCode.Deck.Value[i].type).ToString() + "/" + clientCode.Deck.Value[i].art + "-01";
+            string query = clientCode.Deck.Value[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             cardObj.GetComponent<Image>().sprite = sprites[0];
         }
@@ -1282,6 +1312,7 @@ public class GameStateManager : MonoBehaviour
 
     public void OnGalleryViewExit()
     {
+        print(selectingMode);
         if (viewingMode == SelectingMode.Deck)
         {
             OnShuffle();

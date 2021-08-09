@@ -37,7 +37,8 @@ public class PlayerScript : NetworkBehaviour
         AllowEditTopOfDeck,
         TakePrize,
         Mulligan,
-        DrawMulligan
+        DrawMulligan,
+        PlaySupporter
     }
 
     [System.NonSerialized]
@@ -88,6 +89,16 @@ public class PlayerScript : NetworkBehaviour
             ReadPermission = NetworkVariablePermission.Everyone
         },
         new Card[0]
+    );
+
+    [System.NonSerialized]
+    public NetworkVariable<Card> SupporterCard = new NetworkVariable<Card>(
+        new NetworkVariableSettings
+        {
+            WritePermission = NetworkVariablePermission.OwnerOnly,
+            ReadPermission = NetworkVariablePermission.Everyone
+        },
+        null
     );
 
     [System.NonSerialized]
@@ -155,6 +166,8 @@ public class PlayerScript : NetworkBehaviour
     [System.NonSerialized] public GameObject PrizeLabel;
     [System.NonSerialized] public GameObject PrizeObj;
 
+    [System.NonSerialized] public Image SupporterObj;
+
     [System.NonSerialized] public CardSection cardSection;
 
     public void Start()
@@ -205,6 +218,11 @@ public class PlayerScript : NetworkBehaviour
         LostZone.OnValueChanged += (Card[] previousValue, Card[] newValue) =>
         {
             RenderRemoveFromPlay();
+        };
+
+        SupporterCard.OnValueChanged += (Card previousValue, Card newValue) =>
+        {
+            RenderSupporterCard();
         };
 
         PlayerInfoManager.players.Add(gameObject);
@@ -370,7 +388,6 @@ public class PlayerScript : NetworkBehaviour
                                     {
                                         if (tempPlayerScript.cardSection.Active.Value.Length > 0)
                                         {
-                                            print("here");
                                             RequestShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, 0);
                                             if (mulligans.Length > 0)
                                             {
@@ -378,7 +395,6 @@ public class PlayerScript : NetworkBehaviour
                                             }
                                             else
                                             {
-                                                print("sent out mulligan info");
                                                 ShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, null, 0, -1);
                                             }
 
@@ -504,6 +520,28 @@ public class PlayerScript : NetworkBehaviour
     private void RenderPrizes()
     {
         PrizeLabel.GetComponent<Text>().text = PrizesRemaining.Value.ToString();
+    }
+
+    private void RenderSupporterCard()
+    {
+        if (SupporterCard.Value != null)
+        {
+            string query = SupporterCard.Value.art;
+            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            if (sprites.Length == 1)
+            {
+                SupporterObj.color = Color.white;
+                SupporterObj.sprite = sprites[0];
+            }
+            else
+            {
+                Debug.LogError($"{query} returned {sprites.Length} results");
+            }
+        }
+        else
+        {
+            SupporterObj.color = Color.clear;
+        }
     }
 
     public void RenderHandSelecting()
@@ -1213,9 +1251,6 @@ public class PlayerScript : NetworkBehaviour
             cardsMoved.Add(i);
         }
 
-        print("setup prizes here");
-        print(Deck.Value.Length);
-
         PlayerScript localScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
 
         FromXToY(localScript.Deck, localScript.Prizes, cardsMoved, gameManagerReference.playerDeckSprite, localScript.gameManagerReference.PlayerPrizes);
@@ -1550,6 +1585,39 @@ public class PlayerScript : NetworkBehaviour
             {
                 FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Deck, false, true);
             }
+
+        }
+        else if (action == Action.PlaySupporter)
+        {
+            Card[] newHand = new Card[Hand.Value.Length - 1];
+            Card newSupporter = null;
+
+            byte j = 0;
+            for (byte i = 0; i < Hand.Value.Length; i++)
+            {
+                if (gameManagerReference.selectedCards.Contains(i))
+                {
+                    newSupporter = Hand.Value[i];
+                }
+                else
+                {
+                    newHand[j] = Hand.Value[i];
+                    j++;
+                }
+            }
+
+            if (newSupporter != null)
+            {
+                Hand.Value = newHand;
+                SupporterCard.Value = newSupporter;
+            }
+            else
+            {
+                Debug.LogError("no card selected");
+            }
+
+            GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+
 
         }
         else
