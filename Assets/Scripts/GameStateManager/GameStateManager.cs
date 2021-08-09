@@ -1312,7 +1312,6 @@ public class GameStateManager : MonoBehaviour
 
     public void OnGalleryViewExit()
     {
-        print(selectingMode);
         if (viewingMode == SelectingMode.Deck)
         {
             OnShuffle();
@@ -1337,7 +1336,6 @@ public class GameStateManager : MonoBehaviour
         GalleryView.SetActive(false);
         viewingMode = SelectingMode.None;
 
-        print(MultiviewFinalIndex);
         if (MultiviewIndex != -1)
         {
             MultiviewIndex = -1;

@@ -1170,21 +1170,22 @@ public class PlayerScript : NetworkBehaviour
                 gameManagerReference.OnGalleryReload();
                 //gameManagerReference.shuffleDeckDialogue.ShuffleDialogue.SetActive(true);
             }
-            //else if (fromMode == GameStateManager.SelectingMode.Attaching)
-            //{
-            //    foreach (GameObject client in PlayerInfoManager.players)
-            //    {
-            //        CardSection playerCardSection = client.GetComponent<PlayerScript>().cardSection;
-            //        foreach (Transform child in playerCardSection.BenchObj.transform)
-            //        {
-            //            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
-            //        }
-            //        foreach (Transform child in playerCardSection.ActiveObj.transform)
-            //        {
-            //            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
-            //        }
-            //    }
-            //}
+            // this is important if you click on a trainer, then click to discard
+            else if (fromMode == GameStateManager.SelectingMode.Attaching)
+            {
+                foreach (GameObject client in PlayerInfoManager.players)
+                {
+                    CardSection playerCardSection = client.GetComponent<PlayerScript>().cardSection;
+                    foreach (Transform child in playerCardSection.BenchObj.transform)
+                    {
+                        child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                    }
+                    foreach (Transform child in playerCardSection.ActiveObj.transform)
+                    {
+                        child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                    }
+                }
+            }
             //else if (fromMode == GameStateManager.SelectingMode.Hand)
             //{
             //    RenderHand();
