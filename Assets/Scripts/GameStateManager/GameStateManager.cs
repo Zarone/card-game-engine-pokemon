@@ -63,6 +63,8 @@ public class GameStateManager : MonoBehaviour
         CustomSection,
         Prizes,
         SelectingStartingPokemon,
+        Supporter,
+        Stadium,
     }
 
     readonly Dictionary<string, List<SelectingMode>> ButtonNameKeyValuePairs = new Dictionary<string, List<SelectingMode>>()
@@ -74,7 +76,8 @@ public class GameStateManager : MonoBehaviour
             SelectingMode.Active, SelectingMode.Attaching,
             SelectingMode.AttachedBench, SelectingMode.AttachedActive,
             SelectingMode.LostZone, SelectingMode.DeckOptions,
-            SelectingMode.OpponentsHand }
+            SelectingMode.OpponentsHand, SelectingMode.Supporter,
+            SelectingMode.Stadium }
         },
 
         { "OwnInfo", new List<SelectingMode>(){ SelectingMode.None } },
@@ -111,7 +114,8 @@ public class GameStateManager : MonoBehaviour
         { "Zone_Discard", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Bench, SelectingMode.Active,
             SelectingMode.AttachedBench, SelectingMode.AttachedActive,
-            SelectingMode.Attaching}
+            SelectingMode.Attaching, SelectingMode.Stadium,
+            SelectingMode.Supporter }
         },
         { "LostZone", new List<SelectingMode>(){
             SelectingMode.Discard }
@@ -400,6 +404,16 @@ public class GameStateManager : MonoBehaviour
         {
             selectingMode = SelectingMode.None;
         }
+        else if (selectingMode == SelectingMode.Stadium)
+        {
+            StadiumObj.GetComponent<Image>().color = CardManipulation.Normal;
+            selectingMode = SelectingMode.None;
+        }
+        else if (selectingMode == SelectingMode.Supporter)
+        {
+            PlayerSupporter.GetComponent<Image>().color = CardManipulation.Normal;
+            selectingMode = SelectingMode.None;
+        }
 
         RenderCorrectButtons(SelectingMode.None);
     }
@@ -462,16 +476,55 @@ public class GameStateManager : MonoBehaviour
 
     public void OnDiscard()
     {
-        foreach (GameObject client in PlayerInfoManager.players)
+        if (selectingMode == SelectingMode.Supporter)
         {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (player.IsLocalPlayer)
-            {
-                player.GameAction(PlayerScript.Action.Discard);
-            }
-        }
+            PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            Card[] newDiscard = new Card[playerScript.Discard.Value.Length + 1];
 
-        RenderCorrectButtons(SelectingMode.None);
+            for (int i = 0; i < newDiscard.Length - 1; i++)
+            {
+                newDiscard[i] = playerScript.Discard.Value[i];
+            }
+            newDiscard[newDiscard.Length - 1] = playerScript.SupporterCard.Value;
+            playerScript.Discard.Value = newDiscard;
+
+            playerScript.SupporterCard.Value = null;
+            selectingMode = SelectingMode.None;
+            RenderCorrectButtons(SelectingMode.None);
+
+        }
+        else if (selectingMode == SelectingMode.Stadium)
+        {
+
+            PlayerScript localPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            localPlayer.PlayStadiumServerRpc(null, NetworkManager.Singleton.LocalClientId);
+
+            selectingMode = SelectingMode.None;
+            RenderCorrectButtons(SelectingMode.None);
+
+            //PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            //Card[] newDiscard = new Card[playerScript.Discard.Value.Length + 1];
+
+            //for (int i = 0; i < newDiscard.Length - 1; i++)
+            //{
+            //    newDiscard[i] = playerScript.Discard.Value[i];
+            //}
+            //newDiscard[newDiscard.Length - 1] = CurrentStadium;
+            //playerScript.Discard.Value = newDiscard;
+        }
+        else
+        {
+            foreach (GameObject client in PlayerInfoManager.players)
+            {
+                PlayerScript player = client.GetComponent<PlayerScript>();
+                if (player.IsLocalPlayer)
+                {
+                    player.GameAction(PlayerScript.Action.Discard);
+                }
+            }
+
+            RenderCorrectButtons(SelectingMode.None);
+        }
     }
 
     public void OnRemoveFromPlay()
@@ -709,7 +762,7 @@ public class GameStateManager : MonoBehaviour
             }
         }
     }
-    
+
     public void OnViewNextMulligan()
     {
         if (MultiviewIndex != MultiviewFinalIndex)
@@ -720,7 +773,7 @@ public class GameStateManager : MonoBehaviour
             localScript.RequestShareMulliganInfoServerRpc(NetworkManager.Singleton.LocalClientId, MultiviewIndex + 1);
         }
     }
-    
+
     public void OnTopOfDeckFirstButton()
     {
         actionQueue = PlayerScript.Action.ViewTopOfDeck;
@@ -792,16 +845,16 @@ public class GameStateManager : MonoBehaviour
         if (selectedCards.Count == 1)
         {
             PlayerScript localPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
-            localPlayer.PlayStadiumServerRpc(localPlayer.Hand.Value[selectedCards[0]]);
+            localPlayer.PlayStadiumServerRpc(localPlayer.Hand.Value[selectedCards[0]], NetworkManager.Singleton.LocalClientId);
 
             Card[] newHand = new Card[localPlayer.Hand.Value.Length - 1];
 
             byte j = 0;
-            for (byte i = 0; i < newHand.Length; i++)
+            for (byte i = 0; i < localPlayer.Hand.Value.Length; i++)
             {
                 if (!selectedCards.Contains(i))
                 {
-                    newHand[i] = localPlayer.Hand.Value[j];
+                    newHand[j] = localPlayer.Hand.Value[i];
                     j++;
                 }
             }
@@ -813,6 +866,37 @@ public class GameStateManager : MonoBehaviour
         }
     }
 
+    public void OnClickSupporter()
+    {
+        if (PlayerSupporter.GetComponent<Image>().color == CardManipulation.Selected)
+        {
+            PlayerSupporter.GetComponent<Image>().color = CardManipulation.Normal;
+            selectingMode = SelectingMode.None;
+            RenderCorrectButtons(SelectingMode.None);
+        }
+        else
+        {
+            selectingMode = SelectingMode.Supporter;
+            PlayerSupporter.GetComponent<Image>().color = CardManipulation.Selected;
+            RenderCorrectButtons(SelectingMode.Supporter);
+        }
+    }
+
+    public void OnClickStadium()
+    {
+        if (StadiumObj.GetComponent<Image>().color == CardManipulation.Selected)
+        {
+            StadiumObj.GetComponent<Image>().color = CardManipulation.Normal;
+            selectingMode = SelectingMode.None;
+            RenderCorrectButtons(SelectingMode.None);
+        }
+        else
+        {
+            selectingMode = SelectingMode.Stadium;
+            StadiumObj.GetComponent<Image>().color = CardManipulation.Selected;
+            RenderCorrectButtons(SelectingMode.Stadium);
+        }
+    }
 
 
     public GameObject GalleryView;

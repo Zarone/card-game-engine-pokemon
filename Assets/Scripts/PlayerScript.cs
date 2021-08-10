@@ -2189,13 +2189,13 @@ public class PlayerScript : NetworkBehaviour
 
 
     [ServerRpc]
-    public void PlayStadiumServerRpc(Card newStadium)
+    public void PlayStadiumServerRpc(Card newStadium, ulong playerID)
     {
-        PlayStadiumClientRpc(newStadium);
+        PlayStadiumClientRpc(newStadium, playerID);
     }
 
     [ClientRpc]
-    public void PlayStadiumClientRpc(Card newStadium)
+    public void PlayStadiumClientRpc(Card newStadium, ulong playerID)
     {
         if (gameManagerReference.StadiumOwner == NetworkManager.Singleton.LocalClientId && gameManagerReference.CurrentStadium != null)
         {
@@ -2208,6 +2208,7 @@ public class PlayerScript : NetworkBehaviour
             newDiscard[localPlayer.Discard.Value.Length] = gameManagerReference.CurrentStadium;
             localPlayer.Discard.Value = newDiscard;
         }
+        gameManagerReference.StadiumOwner = playerID;
         gameManagerReference.CurrentStadium = newStadium;
         RenderStadium();
     }
