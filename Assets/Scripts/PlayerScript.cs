@@ -1474,47 +1474,49 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.LevelDown)
         {
-            print("commented out leveldown in game action function ");
-            //if (cardSection.CardOldLevels.Value[
-            //            gameManagerReference.selectedCards[0]
-            //        ].Length == 0) return;
+            NetworkVariable<Card[][]> oldCardLevels = GetLevel(GameStateManager.selectingMode);
+            NetworkVariable<Card[]> from = ModeToNetworkDeck(GameStateManager.selectingMode);
 
-            //// send last levelup to Special Deck
-            //Card[] newSpecialDeck = new Card[SpecialDeck.Value.Length + 1];
-            //for (int i = 0; i < SpecialDeck.Value.Length; i++)
-            //{
-            //    newSpecialDeck[i] = SpecialDeck.Value[i];
-            //}
-            //newSpecialDeck[newSpecialDeck.Length - 1] = cardSection.Reserve.Value[gameManagerReference.selectedCards[0]];
+            if (oldCardLevels.Value[
+                        gameManagerReference.selectedCards[0]
+                    ].Length == 0) return;
 
-            //// switch selected card with it's last levelup
-            //Card[] newReserve = cardSection.Reserve.Value;
-            //newReserve[gameManagerReference.selectedCards[0]] = cardSection.CardOldLevels.Value[
-            //    gameManagerReference.selectedCards[0]
-            //][cardSection.CardOldLevels.Value[gameManagerReference.selectedCards[0]].Length - 1];
+            // send last levelup to Hand
+            Card[] newHand = new Card[Hand.Value.Length + 1];
+            for (int i = 0; i < Hand.Value.Length; i++)
+            {
+                newHand[i] = Hand.Value[i];
+            }
+            newHand[newHand.Length - 1] = from.Value[gameManagerReference.selectedCards[0]];
 
-            //Card[] newLevelUp = new Card[
-            //    cardSection.CardOldLevels.Value[
-            //        gameManagerReference.selectedCards[0]
-            //    ].Length - 1
-            //];
+            // switch selected card with it's last levelup
+            Card[] newFrom = from.Value;
+            newFrom[gameManagerReference.selectedCards[0]] = oldCardLevels.Value[
+                gameManagerReference.selectedCards[0]
+            ][oldCardLevels.Value[gameManagerReference.selectedCards[0]].Length - 1];
 
-            //for (byte i = 0; i < newLevelUp.Length; i++)
-            //{
-            //    newLevelUp[i] = cardSection.CardOldLevels.Value[gameManagerReference.selectedCards[0]][i];
-            //}
+            Card[] newLevelUp = new Card[
+                oldCardLevels.Value[
+                    gameManagerReference.selectedCards[0]
+                ].Length - 1
+            ];
 
-            //// set values
-            //cardSection.CardOldLevels.Value[gameManagerReference.selectedCards[0]] = newLevelUp;
+            for (byte i = 0; i < newLevelUp.Length; i++)
+            {
+                newLevelUp[i] = oldCardLevels.Value[gameManagerReference.selectedCards[0]][i];
+            }
 
-            //cardSection.Reserve.Value = null;
-            //cardSection.Reserve.Value = newReserve;
+            // set values
+            oldCardLevels.Value[gameManagerReference.selectedCards[0]] = newLevelUp;
 
-            //SpecialDeck.Value = newSpecialDeck;
+            from.Value = null;
+            from.Value = newFrom;
 
-            //gameManagerReference.selectedCards = new List<byte>();
-            //GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
-            //gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
+            Hand.Value = newHand;
+
+            gameManagerReference.selectedCards = new List<byte>();
+            GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+            gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
         }
         else if (action == Action.Tap)
         {
