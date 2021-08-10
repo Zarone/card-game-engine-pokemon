@@ -23,8 +23,8 @@ public class PlayerScript : NetworkBehaviour
         ToHand,
         AttachStart,
         AttachConfirm,
-        Tap,
-        Flip,
+        //Tap,
+        //Flip,
         LevelUpStart,
         LevelDown,
         AddCounter,
@@ -698,7 +698,7 @@ public class PlayerScript : NetworkBehaviour
         return mode switch
         {
             GameStateManager.SelectingMode.Active => cardSection.ActiveCardStates,
-            GameStateManager.SelectingMode.Bench => cardSection.BenchCardStates,
+            //GameStateManager.SelectingMode.Bench => cardSection.BenchCardStates,
             _ => null
         };
     }
@@ -797,9 +797,12 @@ public class PlayerScript : NetworkBehaviour
             }
             if (gameStateY != null)
             {
-                newGameStateY[k + YOffset] = new bool[2];
+                newGameStateY[k + YOffset] = new bool[5];
                 newGameStateY[k + YOffset][0] = gameStateY.Value[k][0];
                 newGameStateY[k + YOffset][1] = gameStateY.Value[k][1];
+                newGameStateY[k + YOffset][2] = gameStateY.Value[k][2];
+                newGameStateY[k + YOffset][3] = gameStateY.Value[k][3];
+                newGameStateY[k + YOffset][4] = gameStateY.Value[k][4];
             }
             if (levelsY != null)
             {
@@ -827,9 +830,12 @@ public class PlayerScript : NetworkBehaviour
                 }
                 if (gameStateX != null)
                 {
-                    newGameStateX[j] = new bool[2];
+                    newGameStateX[j] = new bool[5];
                     newGameStateX[j][0] = gameStateX.Value[i][0];
                     newGameStateX[j][1] = gameStateX.Value[i][1];
+                    newGameStateX[j][2] = gameStateX.Value[i][2];
+                    newGameStateX[j][3] = gameStateX.Value[i][3];
+                    newGameStateX[j][4] = gameStateX.Value[i][4];
                 }
                 if (levelsX != null)
                 {
@@ -872,25 +878,34 @@ public class PlayerScript : NetworkBehaviour
 
                 if (gameStateX != null && gameStateY != null)
                 {
-                    newGameStateY[index] = new bool[2];
+                    newGameStateY[index] = new bool[5];
 
                     if (gameStateX.Value.Length <= i)
                     {
                         newGameStateY[index][0] = false;
                         newGameStateY[index][1] = false;
+                        newGameStateY[index][2] = false;
+                        newGameStateY[index][3] = false;
+                        newGameStateY[index][4] = false;
                     }
                     else
                     {
                         newGameStateY[index][0] = gameStateX.Value[i][0];
                         newGameStateY[index][1] = gameStateX.Value[i][1];
+                        newGameStateY[index][2] = gameStateX.Value[i][2];
+                        newGameStateY[index][3] = gameStateX.Value[i][3];
+                        newGameStateY[index][4] = gameStateX.Value[i][4];
                     }
 
                 }
                 else if (gameStateY != null)
                 {
-                    newGameStateY[index] = new bool[2];
+                    newGameStateY[index] = new bool[5];
                     newGameStateY[index][0] = false;
                     newGameStateY[index][1] = false;
+                    newGameStateY[index][2] = false;
+                    newGameStateY[index][3] = false;
+                    newGameStateY[index][4] = false;
                 }
 
 
@@ -1518,44 +1533,44 @@ public class PlayerScript : NetworkBehaviour
             GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
             gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
         }
-        else if (action == Action.Tap)
-        {
-            if (gameManagerReference.selectedCards.Count < 1) return;
+        //else if (action == Action.Tap)
+        //{
+        //    if (gameManagerReference.selectedCards.Count < 1) return;
 
-            GameObject tapObj = ModeToGameObject(GameStateManager.selectingMode);
-            NetworkVariable<bool[][]> tapStates = GetState(GameStateManager.selectingMode);
-            bool[][] newTapStates = tapStates.Value;
+        //    GameObject tapObj = ModeToGameObject(GameStateManager.selectingMode);
+        //    NetworkVariable<bool[][]> tapStates = GetState(GameStateManager.selectingMode);
+        //    bool[][] newTapStates = tapStates.Value;
 
-            for (byte i = 0; i < tapObj.transform.childCount; i++)
-            {
-                if (gameManagerReference.selectedCards.Contains(i))
-                {
-                    newTapStates[i][0] = !newTapStates[i][0];
-                }
-            }
+        //    for (byte i = 0; i < tapObj.transform.childCount; i++)
+        //    {
+        //        if (gameManagerReference.selectedCards.Contains(i))
+        //        {
+        //            newTapStates[i][0] = !newTapStates[i][0];
+        //        }
+        //    }
 
-            tapStates.Value = null;
-            tapStates.Value = newTapStates;
-            cardSection.RenderSectionSelectingCancel(tapObj);
-        }
-        else if (action == Action.Flip)
-        {
-            GameObject flipObj = ModeToGameObject(GameStateManager.selectingMode);
-            NetworkVariable<bool[][]> flipStates = GetState(GameStateManager.selectingMode);
-            bool[][] newFlipStates = flipStates.Value;
+        //    tapStates.Value = null;
+        //    tapStates.Value = newTapStates;
+        //    cardSection.RenderSectionSelectingCancel(tapObj);
+        //}
+        //else if (action == Action.Flip)
+        //{
+        //    GameObject flipObj = ModeToGameObject(GameStateManager.selectingMode);
+        //    NetworkVariable<bool[][]> flipStates = GetState(GameStateManager.selectingMode);
+        //    bool[][] newFlipStates = flipStates.Value;
 
-            for (byte i = 0; i < flipObj.transform.childCount; i++)
-            {
-                if (gameManagerReference.selectedCards.Contains(i))
-                {
-                    newFlipStates[i][1] = !newFlipStates[i][1];
-                }
-            }
+        //    for (byte i = 0; i < flipObj.transform.childCount; i++)
+        //    {
+        //        if (gameManagerReference.selectedCards.Contains(i))
+        //        {
+        //            newFlipStates[i][1] = !newFlipStates[i][1];
+        //        }
+        //    }
 
-            flipStates.Value = null;
-            flipStates.Value = newFlipStates;
-            cardSection.RenderSectionSelectingCancel(flipObj);
-        }
+        //    flipStates.Value = null;
+        //    flipStates.Value = newFlipStates;
+        //    cardSection.RenderSectionSelectingCancel(flipObj);
+        //}
         else if (action == Action.AddCounter)
         {
             if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Bench)
@@ -1662,6 +1677,57 @@ public class PlayerScript : NetworkBehaviour
         {
             Debug.LogError("no action provided");
         }
+
+    }
+
+    public void ToggleCardState(byte stateIndex)
+    {
+        if (gameManagerReference.selectedCards.Count != 1) return;
+
+        NetworkVariable<bool[][]> states = GetState(GameStateManager.selectingMode);
+        bool[][] newStates = states.Value;
+
+        //for (byte i = 0; i < newStates.Length; i++)
+        //{
+        //    if (gameManagerReference.selectedCards.Contains(i))
+        //    {
+        //        newStates[i][stateIndex] = !newStates[i][stateIndex];
+        //    }
+        //}
+
+        newStates[gameManagerReference.selectedCards[0]][stateIndex] = !newStates[gameManagerReference.selectedCards[0]][stateIndex];
+
+        if (newStates[gameManagerReference.selectedCards[0]][stateIndex] && 
+            (stateIndex == 0 || stateIndex == 2 || stateIndex == 3))
+        {
+            // this code triggers if asleep, confusion, or paralyzes is applied because that eliminates other status conditions
+            switch (stateIndex)
+            {
+                case 0:
+                    newStates[gameManagerReference.selectedCards[0]][2] = false;
+                    newStates[gameManagerReference.selectedCards[0]][3] = false;
+                    break;
+                case 2:
+                    newStates[gameManagerReference.selectedCards[0]][0] = false;
+                    newStates[gameManagerReference.selectedCards[0]][3] = false;
+                    break;
+                case 3:
+                    newStates[gameManagerReference.selectedCards[0]][0] = false;
+                    newStates[gameManagerReference.selectedCards[0]][2] = false;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        gameManagerReference.StatusMenu.SetActive(false);
+        gameManagerReference.mainButtonsPanel.SetActive(true);
+
+        states.Value = null;
+        states.Value = newStates;
+
+        GameObject obj = ModeToGameObject(GameStateManager.selectingMode);
+        cardSection.RenderSectionSelectingCancel(obj);
 
     }
 
@@ -2005,7 +2071,7 @@ public class PlayerScript : NetworkBehaviour
         playerScript.cardSection.BenchAttachments.Value = new Card[0][];
         playerScript.cardSection.ActiveAttachments.Value = new Card[0][];
 
-        playerScript.cardSection.BenchCardStates.Value = new bool[0][];
+        //playerScript.cardSection.BenchCardStates.Value = new bool[0][];
         playerScript.cardSection.ActiveCardStates.Value = new bool[0][];
 
         playerScript.cardSection.BenchCounters.Value = new int[0];

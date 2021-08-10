@@ -156,6 +156,8 @@ public class GameStateManager : MonoBehaviour
         { "UntapAll", new List<SelectingMode>(){ SelectingMode.None } },
         { "AddCounter", new List<SelectingMode>(){ SelectingMode.Active, SelectingMode.Bench }
         },
+        { "ChangeStatus", new List<SelectingMode>(){ SelectingMode.Active}
+        },
         { "Flip", new List<SelectingMode>(){
             SelectingMode.Bench, SelectingMode.Active }
         },
@@ -300,6 +302,38 @@ public class GameStateManager : MonoBehaviour
         mainButtonsPanel.SetActive(true);
     }
 
+    public GameObject StatusMenu;
+    public Transform StatusMenuContent;
+    private Dictionary<byte, string> statusDictionary = new Dictionary<byte, string>()
+    {
+        { 0, "Asleep" },
+        { 1, "Burned" },
+        { 2, "Confused" },
+        { 3, "Paralyzed" },
+        { 4, "Poisoned" },
+    };
+
+    public void RenderStatusMenu()
+    {
+        mainButtonsPanel.SetActive(false);
+        PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+        bool[] states = playerScript.cardSection.ActiveCardStates.Value[0];
+        StatusMenu.SetActive(true);
+        for (byte i = 0; i < StatusMenuContent.childCount; i++)
+        {
+            if (states[i])
+            {
+                StatusMenuContent.GetChild(i).GetComponent<Image>().color = Color.green;
+                StatusMenuContent.GetChild(i).GetComponentInChildren<Text>().text = statusDictionary[i] + ": On";
+            }
+            else
+            {
+                StatusMenuContent.GetChild(i).GetComponent<Image>().color = Color.white;
+                StatusMenuContent.GetChild(i).GetComponentInChildren<Text>().text = statusDictionary[i] + ": Off";
+            }
+        }
+    }
+
     public GameObject TurnText;
     public GameObject TurnColor;
     public GameObject TurnButton;
@@ -418,6 +452,7 @@ public class GameStateManager : MonoBehaviour
         RenderCorrectButtons(SelectingMode.None);
     }
 
+
     public void OnRevealHand()
     {
         foreach (GameObject client in PlayerInfoManager.players)
@@ -473,6 +508,21 @@ public class GameStateManager : MonoBehaviour
 
         RenderCorrectButtons(SelectingMode.None);
     }
+
+    public void OnShuffle()
+    {
+        foreach (GameObject client in PlayerInfoManager.players)
+        {
+            PlayerScript player = client.GetComponent<PlayerScript>();
+            if (player.IsLocalPlayer)
+            {
+                player.Deck.Value = CardManipulation.Shuffle(player.Deck.Value);
+            }
+        }
+        selectingMode = SelectingMode.None;
+        RenderCorrectButtons(SelectingMode.None);
+    }
+
 
     public void OnDiscard()
     {
@@ -538,20 +588,6 @@ public class GameStateManager : MonoBehaviour
             }
         }
 
-        RenderCorrectButtons(SelectingMode.None);
-    }
-
-    public void OnShuffle()
-    {
-        foreach (GameObject client in PlayerInfoManager.players)
-        {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (player.IsLocalPlayer)
-            {
-                player.Deck.Value = CardManipulation.Shuffle(player.Deck.Value);
-            }
-        }
-        selectingMode = SelectingMode.None;
         RenderCorrectButtons(SelectingMode.None);
     }
 
@@ -646,47 +682,6 @@ public class GameStateManager : MonoBehaviour
         RenderCorrectButtons(SelectingMode.None);
     }
 
-    public void OnTap()
-    {
-        foreach (GameObject client in PlayerInfoManager.players)
-        {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (player.IsLocalPlayer)
-            {
-                player.GameAction(PlayerScript.Action.Tap);
-            }
-        }
-        RenderCorrectButtons(SelectingMode.None);
-    }
-
-    public void OnFlip()
-    {
-        foreach (GameObject client in PlayerInfoManager.players)
-        {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (player.IsLocalPlayer)
-            {
-                player.GameAction(PlayerScript.Action.Flip);
-            }
-        }
-        RenderCorrectButtons(SelectingMode.None);
-    }
-
-    public void OnAddCounter()
-    {
-        foreach (GameObject client in PlayerInfoManager.players)
-        {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (player.IsLocalPlayer)
-            {
-                player.GameAction(PlayerScript.Action.AddCounter);
-            }
-        }
-        selectedCards = new List<byte>();
-        selectingMode = SelectingMode.None;
-        RenderCorrectButtons(SelectingMode.None);
-    }
-
     public void OnAttach()
     {
         selectingMode = SelectingMode.Attaching;
@@ -735,6 +730,57 @@ public class GameStateManager : MonoBehaviour
             }
         }
     }
+
+
+    public void OnStatusChange(int status)
+    {
+        PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+        playerScript.ToggleCardState((byte)status);
+    }
+
+    //public void OnTap()
+    //{
+    //    foreach (GameObject client in PlayerInfoManager.players)
+    //    {
+    //        PlayerScript player = client.GetComponent<PlayerScript>();
+    //        if (player.IsLocalPlayer)
+    //        {
+    //            player.GameAction(PlayerScript.Action.Tap);
+    //        }
+    //    }
+    //    RenderCorrectButtons(SelectingMode.None);
+    //}
+
+    //public void OnFlip()
+    //{
+    //    foreach (GameObject client in PlayerInfoManager.players)
+    //    {
+    //        PlayerScript player = client.GetComponent<PlayerScript>();
+    //        if (player.IsLocalPlayer)
+    //        {
+    //            player.GameAction(PlayerScript.Action.Flip);
+    //        }
+    //    }
+    //    RenderCorrectButtons(SelectingMode.None);
+    //}
+
+
+
+    public void OnAddCounter()
+    {
+        foreach (GameObject client in PlayerInfoManager.players)
+        {
+            PlayerScript player = client.GetComponent<PlayerScript>();
+            if (player.IsLocalPlayer)
+            {
+                player.GameAction(PlayerScript.Action.AddCounter);
+            }
+        }
+        selectedCards = new List<byte>();
+        selectingMode = SelectingMode.None;
+        RenderCorrectButtons(SelectingMode.None);
+    }
+    
 
     public void OnDeckZone()
     {

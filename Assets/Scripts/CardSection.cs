@@ -47,15 +47,15 @@ public class CardSection : NetworkBehaviour
         new Card[0][]
     );
 
-    [System.NonSerialized]
-    public NetworkVariable<bool[][]> BenchCardStates = new NetworkVariable<bool[][]>(
-        new NetworkVariableSettings
-        {
-            WritePermission = NetworkVariablePermission.OwnerOnly,
-            ReadPermission = NetworkVariablePermission.Everyone
-        },
-        new bool[0][] // the two bools stored there are 0 (for tapped), and 1 (for flipped)
-    );
+    //[System.NonSerialized]
+    //public NetworkVariable<bool[][]> BenchCardStates = new NetworkVariable<bool[][]>(
+    //    new NetworkVariableSettings
+    //    {
+    //        WritePermission = NetworkVariablePermission.OwnerOnly,
+    //        ReadPermission = NetworkVariablePermission.Everyone
+    //    },
+    //    new bool[0][]
+    //);
 
     [System.NonSerialized]
     public NetworkVariable<bool[][]> ActiveCardStates = new NetworkVariable<bool[][]>(
@@ -116,7 +116,7 @@ public class CardSection : NetworkBehaviour
         void ReRenderBench()
         {
             RenderSection(Bench.Value, BenchObj, GameStateManager.SelectingMode.Bench,
-                BenchAttachments, BenchCardStates, BenchCardOldEvolutions, BenchCounters);
+                BenchAttachments, null, BenchCardOldEvolutions, BenchCounters);
         }
 
         void ReRenderActive()
@@ -151,13 +151,13 @@ public class CardSection : NetworkBehaviour
             ReRenderActive();
         };
 
-        BenchCardStates.OnValueChanged += (bool[][] oldValue, bool[][] newValue) =>
-        {
-            if (newValue != null)
-            {
-                ReRenderBench();
-            }
-        };
+        //BenchCardStates.OnValueChanged += (bool[][] oldValue, bool[][] newValue) =>
+        //{
+        //    if (newValue != null)
+        //    {
+        //        ReRenderBench();
+        //    }
+        //};
 
         ActiveCardStates.OnValueChanged += (bool[][] oldValue, bool[][] newValue) =>
         {
@@ -762,6 +762,7 @@ public class CardSection : NetworkBehaviour
     {
         playerRef.gameManagerReference.selectedCards = new List<byte>();
         GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+        playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
         foreach (Transform child in obj.transform)
         {
             child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
