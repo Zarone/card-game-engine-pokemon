@@ -523,30 +523,38 @@ public class CardSection : NetworkBehaviour
                     }
                 }
 
-                if (cardStates.Value.Length > i)
+                if (cardStates != null && cardStates.Value.Length > i)
                 {
                     if (cardStates.Value[i][0])
+                    {
+                        EditingCard.transform.Rotate(new Vector3(0, 0, 90));
+                    }
+                    else if (cardStates.Value[i][2])
+                    {
+                        EditingCard.transform.Rotate(new Vector3(0, 0, 180));
+                    }
+                    else if (cardStates.Value[i][3])
                     {
                         EditingCard.transform.Rotate(new Vector3(0, 0, -90));
                     }
 
-                    if (cardStates.Value[i][1])
-                    {
-                        string query = CardManipulation.DefaultCard;
-                        Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-                        if (sprites.Length == 1)
-                        {
-                            EditingCard.GetComponent<Image>().sprite = sprites[0];
-                        }
-                        else
-                        {
-                            Debug.LogError($"{query} returned {sprites.Length} results");
-                        }
-                    }
-                    else
-                    {
-                        setSprite();
-                    }
+                    //if (cardStates.Value[i][1])
+                    //{
+                    //    string query = CardManipulation.DefaultCard;
+                    //    Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                    //    if (sprites.Length == 1)
+                    //    {
+                    //        EditingCard.GetComponent<Image>().sprite = sprites[0];
+                    //    }
+                    //    else
+                    //    {
+                    //        Debug.LogError($"{query} returned {sprites.Length} results");
+                    //    }
+                    //}
+                    //else
+                    //{
+                    setSprite();
+                    //}
 
                 }
                 else
@@ -560,12 +568,35 @@ public class CardSection : NetworkBehaviour
                 {
                     attachmentSection.GetComponent<Canvas>().overrideSorting = true;
                     attachmentSection.GetComponent<Canvas>().sortingOrder = 3;
-                    if (cardStates.Value.Length > i && cardStates.Value[i][0])
+                    if (cardStates != null && cardStates.Value.Length > i)
                     {
-                        attachmentSection.transform.Rotate(0, 0, 90);
-                        attachmentSection.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
-                        attachmentSection.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 77.2f);
-                        attachmentSection.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
+                        if (cardStates.Value[i][0])
+                        {
+                            attachmentSection.transform.Rotate(0, 0, -90);
+                            attachmentSection.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
+                            attachmentSection.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0);
+                            attachmentSection.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 77.2f);
+                            attachmentSection.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
+                            attachmentSection.GetComponent<RectTransform>().localPosition = new Vector2(0, -64.1726f);
+                        }
+                        else if (cardStates.Value[i][2])
+                        {
+                            attachmentSection.transform.Rotate(0, 0, -180);
+                            attachmentSection.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
+                            attachmentSection.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
+                            attachmentSection.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 77.2f);
+                            attachmentSection.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
+                            attachmentSection.GetComponent<RectTransform>().localPosition = new Vector2(-70, -30);
+                        }
+                        else if (cardStates.Value[i][3])
+                        {
+                            attachmentSection.transform.Rotate(0, 0, 90);
+                            attachmentSection.GetComponent<RectTransform>().anchorMin = new Vector2(1, 1);
+                            attachmentSection.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
+                            attachmentSection.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 77.2f);
+                            attachmentSection.GetComponent<RectTransform>().pivot = new Vector2(0.5f, 0.5f);
+                            attachmentSection.GetComponent<RectTransform>().localPosition = new Vector2(0, 60);
+                        }
                     }
 
                     RenderAttachments(attachmentSection, attachedCards.Value[i], ownType, renderedAttachments);
