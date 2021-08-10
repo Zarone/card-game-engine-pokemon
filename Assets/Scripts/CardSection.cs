@@ -123,6 +123,7 @@ public class CardSection : NetworkBehaviour
         {
             RenderSection(Active.Value, ActiveObj, GameStateManager.SelectingMode.Active,
                 ActiveAttachments, ActiveCardStates, ActiveCardOldEvolutions, ActiveCounters);
+            playerRef.RenderPoisonBurn();
         }
 
         Bench.OnValueChanged += (Card[] oldValue, Card[] newValue) =>

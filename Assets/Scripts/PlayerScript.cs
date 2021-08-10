@@ -1680,6 +1680,9 @@ public class PlayerScript : NetworkBehaviour
 
     }
 
+    public Image PoisonMarker;
+    public Image BurnMarker;
+
     public void ToggleCardState(byte stateIndex)
     {
         if (gameManagerReference.selectedCards.Count != 1) return;
@@ -1731,6 +1734,34 @@ public class PlayerScript : NetworkBehaviour
 
     }
 
+    public void RenderPoisonBurn()
+    {
+        if (cardSection.ActiveCardStates.Value.Length != 1) 
+        {
+            PoisonMarker.color = new Color(1, 1, 1, .196f);
+            BurnMarker.color = new Color(1, 1, 1, .196f);
+            return;
+        }
+        
+        if (cardSection.ActiveCardStates.Value[0][1])
+        {
+            BurnMarker.color = Color.white;
+        }
+        else
+        {
+            BurnMarker.color = new Color(1,1,1, .196f);
+        }
+
+        if (cardSection.ActiveCardStates.Value[0][4])
+        {
+            PoisonMarker.color = Color.white;
+
+        }
+        else
+        {
+            PoisonMarker.color = new Color(1, 1, 1, .196f);
+        }
+    }
 
 
     public void ManageStartOfTurn()

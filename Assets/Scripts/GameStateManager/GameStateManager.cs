@@ -182,6 +182,11 @@ public class GameStateManager : MonoBehaviour
     public ShuffleDeckDialogue shuffleDeckDialogue;
     public CoinManager coinManager;
 
+    public Image PlayerBurnCounter;
+    public Image PlayerPoisonCounter;
+    public Image OppBurnCounter;
+    public Image OppPoisonCounter;
+
     void Start()
     {
         if (shuffleDeckDialogue == null)
@@ -202,11 +207,15 @@ public class GameStateManager : MonoBehaviour
                 player.PrizeObj = PlayerPrizes;
                 player.PrizeLabel = PlayerPrizeCounter;
                 player.SupporterObj = PlayerSupporter;
+                player.PoisonMarker = PlayerPoisonCounter;
+                player.BurnMarker = PlayerBurnCounter;
             }
             else
             {
                 player.PrizeLabel = OppPrizeCounter;
                 player.SupporterObj = OppSupporter;
+                player.PoisonMarker = OppPoisonCounter;
+                player.BurnMarker = OppBurnCounter;
             }
 
             if (!player.HasStarted) player.RunFirst();
@@ -312,7 +321,6 @@ public class GameStateManager : MonoBehaviour
         { 3, "Paralyzed" },
         { 4, "Poisoned" },
     };
-
     public void RenderStatusMenu()
     {
         mainButtonsPanel.SetActive(false);
