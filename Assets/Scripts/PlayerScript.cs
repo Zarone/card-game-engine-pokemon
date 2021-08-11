@@ -1700,7 +1700,7 @@ public class PlayerScript : NetworkBehaviour
 
         newStates[gameManagerReference.selectedCards[0]][stateIndex] = !newStates[gameManagerReference.selectedCards[0]][stateIndex];
 
-        if (newStates[gameManagerReference.selectedCards[0]][stateIndex] && 
+        if (newStates[gameManagerReference.selectedCards[0]][stateIndex] &&
             (stateIndex == 0 || stateIndex == 2 || stateIndex == 3))
         {
             // this code triggers if asleep, confusion, or paralyzes is applied because that eliminates other status conditions
@@ -1736,20 +1736,20 @@ public class PlayerScript : NetworkBehaviour
 
     public void RenderPoisonBurn()
     {
-        if (cardSection.ActiveCardStates.Value.Length != 1) 
+        if (cardSection.ActiveCardStates.Value.Length != 1)
         {
             PoisonMarker.color = new Color(1, 1, 1, .196f);
             BurnMarker.color = new Color(1, 1, 1, .196f);
             return;
         }
-        
+
         if (cardSection.ActiveCardStates.Value[0][1])
         {
             BurnMarker.color = Color.white;
         }
         else
         {
-            BurnMarker.color = new Color(1,1,1, .196f);
+            BurnMarker.color = new Color(1, 1, 1, .196f);
         }
 
         if (cardSection.ActiveCardStates.Value[0][4])
@@ -1766,10 +1766,28 @@ public class PlayerScript : NetworkBehaviour
 
     public void ManageStartOfTurn()
     {
+        // draw for turn
         if (AutoDraw)
         {
             GameStateManager.howMany = 1;
             GameAction(Action.Draw);
+        }
+
+        // discard supporter
+        if (SupporterCard.Value != null)
+        {
+            Card[] newDiscard = new Card[Discard.Value.Length + 1];
+
+            for (int i = 0; i < newDiscard.Length - 1; i++)
+            {
+                newDiscard[i] = Discard.Value[i];
+            }
+            newDiscard[newDiscard.Length - 1] = SupporterCard.Value;
+            Discard.Value = newDiscard;
+
+            SupporterCard.Value = null;
+            GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
+            gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
         }
 
     }
@@ -2110,6 +2128,12 @@ public class PlayerScript : NetworkBehaviour
 
         playerScript.cardSection.BenchCardOldEvolutions.Value = new Card[0][];
         playerScript.cardSection.ActiveCardOldEvolutions.Value = new Card[0][];
+
+        playerScript.Prizes.Value = new Card[0];
+        playerScript.SupporterCard.Value = null;
+
+        gameManagerReference.CurrentStadium = null;
+        RenderStadium();
 
         playerScript.GameAction(Action.Setup, CardManipulation.Shuffle(PlayerInfoManager.fullDeck));
 

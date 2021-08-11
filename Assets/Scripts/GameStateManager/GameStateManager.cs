@@ -1441,7 +1441,8 @@ public class GameStateManager : MonoBehaviour
 
             });
 
-            string query = "Cards/" + ((int)cards[i].type).ToString() + "/" + cards[i].art + "-01";
+            //string query = "Cards/" + ((int)cards[i].type).ToString() + "/" + cards[i].art + "-01";
+            string query = cards[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
             cardObj.GetComponent<Image>().sprite = sprites[0];
         }
