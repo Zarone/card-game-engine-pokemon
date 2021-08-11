@@ -65,6 +65,7 @@ public class GameStateManager : MonoBehaviour
         SelectingStartingPokemon,
         Supporter,
         Stadium,
+        PrizeOptions,
     }
 
     readonly Dictionary<string, List<SelectingMode>> ButtonNameKeyValuePairs = new Dictionary<string, List<SelectingMode>>()
@@ -77,7 +78,7 @@ public class GameStateManager : MonoBehaviour
             SelectingMode.AttachedBench, SelectingMode.AttachedActive,
             SelectingMode.LostZone, SelectingMode.DeckOptions,
             SelectingMode.OpponentsHand, SelectingMode.Supporter,
-            SelectingMode.Stadium }
+            SelectingMode.Stadium, SelectingMode.PrizeOptions }
         },
 
         { "OwnInfo", new List<SelectingMode>(){ SelectingMode.None } },
@@ -87,29 +88,32 @@ public class GameStateManager : MonoBehaviour
         { "DiscardView", new List<SelectingMode>(){ SelectingMode.None } },
         { "LostZoneView", new List<SelectingMode>(){ SelectingMode.None } },
 
-        { "TakePrize", new List<SelectingMode>() { SelectingMode.None } },
         { "PrizesView", new List<SelectingMode>(){ SelectingMode.None } },
 
         { "Draw", new List<SelectingMode>(){ SelectingMode.DeckOptions } },
         { "Mill", new List<SelectingMode>(){ SelectingMode.DeckOptions } },
         { "Shuffle", new List<SelectingMode>(){ SelectingMode.DeckOptions } },
-        { "DeckView", new List<SelectingMode>(){ SelectingMode.DeckOptions } },
         { "ViewTopXCards", new List<SelectingMode>(){ SelectingMode.DeckOptions } },
+        { "DeckView", new List<SelectingMode>(){ SelectingMode.DeckOptions } },
+        { "DeckIsSelected", new List<SelectingMode>() { SelectingMode.DeckOptions } },
+
+        { "TakePrize", new List<SelectingMode>() { SelectingMode.PrizeOptions } },
+        { "PrizesAreSelected", new List<SelectingMode>() { SelectingMode.PrizeOptions } },
+        { "ViewPrize", new List<SelectingMode>() { SelectingMode.PrizeOptions } },
+        { "RevealPrize", new List<SelectingMode>() { SelectingMode.PrizeOptions } },
 
         { "ToHand", new List<SelectingMode>(){
-            SelectingMode.Deck,
-            SelectingMode.Discard, SelectingMode.LostZone,
-            SelectingMode.DeckSection
-        }
+            SelectingMode.Deck, SelectingMode.Discard,
+            SelectingMode.LostZone, SelectingMode.DeckSection,
+            SelectingMode.Prizes }
         },
         { "Zone_ToHand", new List<SelectingMode>(){
             SelectingMode.Bench, SelectingMode.Active,
-            SelectingMode.AttachedBench, SelectingMode.AttachedActive,
-        }
+            SelectingMode.AttachedBench, SelectingMode.AttachedActive, }
         },
         { "Discard", new List<SelectingMode>(){
-            SelectingMode.Deck,
-            SelectingMode.DeckSection }
+            SelectingMode.Deck, SelectingMode.DeckSection,
+            SelectingMode.Prizes }
         },
         { "Zone_Discard", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Bench, SelectingMode.Active,
@@ -161,7 +165,6 @@ public class GameStateManager : MonoBehaviour
         { "Flip", new List<SelectingMode>(){
             SelectingMode.Bench, SelectingMode.Active }
         },
-        { "DeckIsSelected", new List<SelectingMode>() { SelectingMode.DeckOptions } },
         { "Reveal", new List<SelectingMode>() { SelectingMode.Hand, SelectingMode.Deck,
             SelectingMode.DeckSection, SelectingMode.Attaching}
         },
@@ -446,6 +449,10 @@ public class GameStateManager : MonoBehaviour
         {
             selectingMode = SelectingMode.None;
         }
+        else if (selectingMode == SelectingMode.PrizeOptions)
+        {
+            selectingMode = SelectingMode.None;
+        }
         else if (selectingMode == SelectingMode.Stadium)
         {
             StadiumObj.GetComponent<Image>().color = CardManipulation.Normal;
@@ -469,6 +476,20 @@ public class GameStateManager : MonoBehaviour
             if (player.IsLocalPlayer)
             {
                 player.RevealHandServerRpc(NetworkManager.Singleton.LocalClientId, player.Hand.Value);
+            }
+        }
+
+        RenderCorrectButtons(SelectingMode.None);
+    }
+
+    public void OnRevealPrizes()
+    {
+        foreach (GameObject client in PlayerInfoManager.players)
+        {
+            PlayerScript player = client.GetComponent<PlayerScript>();
+            if (player.IsLocalPlayer)
+            {
+                player.RevealHandServerRpc(NetworkManager.Singleton.LocalClientId, player.Prizes.Value);
             }
         }
 
@@ -788,13 +809,20 @@ public class GameStateManager : MonoBehaviour
         selectingMode = SelectingMode.None;
         RenderCorrectButtons(SelectingMode.None);
     }
-    
+
 
     public void OnDeckZone()
     {
         selectedCards = new List<byte>();
         selectingMode = SelectingMode.DeckOptions;
         RenderCorrectButtons(SelectingMode.DeckOptions);
+    }
+
+    public void OnPrizeZone()
+    {
+        selectedCards = new List<byte>();
+        selectingMode = SelectingMode.PrizeOptions;
+        RenderCorrectButtons(SelectingMode.PrizeOptions);
     }
 
     public void OnRemoteToTopOfDeck()
@@ -1183,6 +1211,85 @@ public class GameStateManager : MonoBehaviour
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
+    }
+
+    public void OnPrizesView()
+    {
+
+        viewingMode = SelectingMode.Prizes;
+        selectingMode = SelectingMode.None;
+        AdjustGalleryViewSize();
+        GalleryView.SetActive(true);
+
+        var children = new List<GameObject>();
+        foreach (Transform child in GalleryContent.transform) children.Add(child.gameObject);
+        children.ForEach(child => Destroy(child));
+
+        PlayerScript clientCode = null;
+
+        foreach (GameObject client in PlayerInfoManager.players)
+        {
+            clientCode = client.GetComponent<PlayerScript>();
+            if (clientCode.IsLocalPlayer)
+            {
+                break;
+            }
+        }
+
+
+        for (int i = 0; i < clientCode.Prizes.Value.Length; i++)
+        {
+            GameObject cardObj = Instantiate(clientCode.CardPrefab, GalleryContent);
+            cardObj.name = i.ToString();
+            //cardObj.GetComponent<CardRightClickHandler>().onRightClick = OnCardRightClick;
+            cardObj.GetComponent<CardRightClickHandler>().onRightClick = (Sprite image) =>
+            {
+                OnCardRightClick(image);
+
+                    //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                };
+
+            cardObj.GetComponent<Button>().onClick.RemoveAllListeners();
+            cardObj.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                if (clientCode.IsLocalPlayer && (selectingMode == SelectingMode.Prizes || selectingMode == SelectingMode.None))
+                {
+                    if (selectingMode != SelectingMode.Prizes)
+                    {
+                        RenderGalleryCardSelected();
+                        selectingMode = SelectingMode.Prizes;
+                        RenderCorrectButtons(SelectingMode.Prizes);
+                    }
+                    if (cardObj.GetComponent<Image>().color == CardManipulation.Unselected)
+                    {
+                        selectedCards.Add(byte.Parse(cardObj.name));
+                        cardObj.GetComponent<Image>().color = CardManipulation.Selected;
+                    }
+                    else if (cardObj.GetComponent<Image>().color == CardManipulation.Selected)
+                    {
+                        selectedCards.Remove(byte.Parse(cardObj.name));
+                        if (selectedCards.Count < 1)
+                        {
+                            selectingMode = SelectingMode.None;
+                            RenderGalleryCardSelectedCancel();
+                            RenderCorrectButtons(SelectingMode.None);
+                        }
+                        else
+                        {
+                            cardObj.GetComponent<Image>().color = CardManipulation.Unselected;
+                        }
+                    }
+                }
+            });
+
+            //string query = "Cards/" + ((int)clientCode.Discard.Value[i].type).ToString() + "/" + clientCode.Discard.Value[i].art + "-01";
+            string query = clientCode.Prizes.Value[i].art;
+            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            cardObj.GetComponent<Image>().sprite = sprites[0];
+        }
+
+        RenderCorrectButtons(SelectingMode.Gallery);
+
     }
 
     public void OnRemoveFromPlayView()

@@ -1196,7 +1196,8 @@ public class PlayerScript : NetworkBehaviour
 
             if (fromMode == GameStateManager.SelectingMode.Deck ||
                 fromMode == GameStateManager.SelectingMode.Discard ||
-                fromMode == GameStateManager.SelectingMode.LostZone)
+                fromMode == GameStateManager.SelectingMode.LostZone || 
+                fromMode == GameStateManager.SelectingMode.Prizes )
             {
                 gameManagerReference.OnGalleryViewExit();
             }
@@ -1303,7 +1304,7 @@ public class PlayerScript : NetworkBehaviour
 
         PlayerScript localScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
 
-        FromXToY(localScript.Deck, localScript.Prizes, cardsMoved, gameManagerReference.playerDeckSprite, localScript.gameManagerReference.PlayerPrizes);
+        FromXToY(localScript.Deck, localScript.Prizes, cardsMoved);
     }
 
 
