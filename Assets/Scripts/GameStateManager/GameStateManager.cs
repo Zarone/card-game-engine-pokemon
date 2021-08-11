@@ -42,6 +42,8 @@ public class GameStateManager : MonoBehaviour
     public ulong StadiumOwner;
     public Card CurrentStadium;
 
+    public bool otherPlayerHasCompletedMulliganStep = false;
+
     public enum SelectingMode
     {
         None,
@@ -66,6 +68,7 @@ public class GameStateManager : MonoBehaviour
         Supporter,
         Stadium,
         PrizeOptions,
+        MulliganView,
     }
 
     readonly Dictionary<string, List<SelectingMode>> ButtonNameKeyValuePairs = new Dictionary<string, List<SelectingMode>>()
@@ -1452,8 +1455,9 @@ public class GameStateManager : MonoBehaviour
     private int MultiviewIndex = -1;
     private int MultiviewFinalIndex = -1;
     // the multi view variables are for viewing mulligans
-    public void OnCustomViewOnly(Card[] cards, bool multiview = false, int multiviewIndex = -1, int multiviewFinalIndex = -1)
+    public void OnCustomViewOnly(Card[] cards, SelectingMode customViewMode = SelectingMode.None, bool multiview = false, int multiviewIndex = -1, int multiviewFinalIndex = -1)
     {
+        viewingMode = customViewMode;
         PlayerScript clientCode = PlayerInfoManager.players[0].GetComponent<PlayerScript>();
 
         //clientCode.RenderHandSelectingCancel();
@@ -1590,17 +1594,22 @@ public class GameStateManager : MonoBehaviour
             shuffleDeckDialogue.ShuffleDialogue.SetActive(true);
 
         }
-
-        if (selectingMode != SelectingMode.SelectingStartingPokemon)
+        
+        if (selectingMode == SelectingMode.SelectingStartingPokemon)
+        {
+            RenderCorrectButtons(SelectingMode.SelectingStartingPokemon);
+        }
+        else
         {
             selectedCards = new List<byte>();
             selectingMode = SelectingMode.None;
             RenderCorrectButtons(SelectingMode.None);
         }
-        else
-        {
-            RenderCorrectButtons(SelectingMode.SelectingStartingPokemon);
-        }
+
+        //if (viewingMode == SelectingMode.MulliganView)
+        //{
+        //    selectedCards = new List<byte>();
+        //}
 
         GalleryView.SetActive(false);
         viewingMode = SelectingMode.None;

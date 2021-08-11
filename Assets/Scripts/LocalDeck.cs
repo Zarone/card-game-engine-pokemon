@@ -1,6 +1,8 @@
 public class LocalDeck
 {
+#pragma warning disable IDE0044 // Add readonly modifier
     private System.Action callback;
+#pragma warning restore IDE0044 // Add readonly modifier
 
     public Card[] value;
     public Card[] Value

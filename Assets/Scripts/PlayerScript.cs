@@ -1308,6 +1308,8 @@ public class PlayerScript : NetworkBehaviour
 
         PlayerScript localScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
 
+        GameStateManager.SelectingMode preserveMode = GameStateManager.selectingMode;
+
         FromXToY(localScript.Deck, localScript.Prizes, cardsMoved, null, null, false, null, null, null, null, () =>
         {
             if (localScript.TurnOrderDeterminedAfterGameSetup)
@@ -1320,6 +1322,8 @@ public class PlayerScript : NetworkBehaviour
                 GameStateManager.howMany = 1;
                 localScript.GameAction(Action.Draw);
             }
+            GameStateManager.selectingMode = preserveMode;
+            gameManagerReference.RenderCorrectButtons(preserveMode);
 
 
         });
@@ -1338,13 +1342,31 @@ public class PlayerScript : NetworkBehaviour
     }
 
     [ServerRpc]
-    public void DoneWithMulliganServerRpc()
+    public void DoneWithMulliganServerRpc(ulong id)
     {
-        DoneWithMulliganClientRpc();
+        DoneWithMulliganClientRpc(id);
     }
 
     [ClientRpc]
-    public void DoneWithMulliganClientRpc()
+    public void DoneWithMulliganClientRpc(ulong id)
+    {
+        if (id != NetworkManager.Singleton.LocalClientId)
+        {
+            gameManagerReference.otherPlayerHasCompletedMulliganStep = true;
+        }
+
+        //NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject
+        //    .GetComponent<PlayerScript>().AfterBasicPokemonSetup();
+    }
+
+    [ServerRpc]
+    public void StartBothPlayersServerRpc()
+    {
+        StartBothPlayersClientRpc();
+    }
+
+    [ClientRpc]
+    public void StartBothPlayersClientRpc()
     {
         NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject
             .GetComponent<PlayerScript>().AfterBasicPokemonSetup();
@@ -1452,12 +1474,26 @@ public class PlayerScript : NetworkBehaviour
 
                 FromXToY(Deck, Hand, cardsToDraw, gameManagerReference.playerDeckSprite, gameManagerReference.playerHand, false, null, null, null, null, () =>
                 {
-                    DoneWithMulliganServerRpc();
+                    if (gameManagerReference.otherPlayerHasCompletedMulliganStep)
+                    {
+                        StartBothPlayersServerRpc();
+                    }
+                    else
+                    {
+                        DoneWithMulliganServerRpc(NetworkManager.Singleton.LocalClientId);
+                    }
                 });
             }
             else
             {
-                DoneWithMulliganServerRpc();
+                if (gameManagerReference.otherPlayerHasCompletedMulliganStep)
+                {
+                    StartBothPlayersServerRpc();
+                }
+                else
+                {
+                    DoneWithMulliganServerRpc(NetworkManager.Singleton.LocalClientId);
+                }
             }
 
 
@@ -1853,7 +1889,7 @@ public class PlayerScript : NetworkBehaviour
     [ClientRpc]
     public void GiveTurnInfoClientRpc(int info, bool autoDraw, bool autoUntap, int format)
     {
-        print("running here");
+        //print("running here");
 
         NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
         client.PlayerObject.GetComponent<PlayerScript>().AutoDraw = autoDraw;
@@ -1983,10 +2019,10 @@ public class PlayerScript : NetworkBehaviour
             NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
             PlayerScript clientScript = client.PlayerObject.GetComponent<PlayerScript>();
 
-            print(clientScript.CoinFlipWinnerDecidesTurnOrder);
-            print(IsServer);
-            print(!heads && result == 1 || heads && result == 0);
-            print(heads && result == 1 || !heads && result == 0);
+            //print(clientScript.CoinFlipWinnerDecidesTurnOrder);
+            //print(IsServer);
+            //print(!heads && result == 1 || heads && result == 0);
+            //print(heads && result == 1 || !heads && result == 0);
 
             if (clientScript.CoinFlipWinnerDecidesTurnOrder)
             {
@@ -2249,6 +2285,7 @@ public class PlayerScript : NetworkBehaviour
 
         playerScript.IsReadyForRematch.Value = false;
 
+        gameManagerReference.otherPlayerHasCompletedMulliganStep = false;
 
         playerScript.isActivePlayer.Value = false;
 
@@ -2378,15 +2415,29 @@ public class PlayerScript : NetworkBehaviour
     [ClientRpc]
     public void ShareMulliganInfoClientRpc(ulong id, Card[] mulligans, int index, int finalIndex)
     {
+        NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
+        PlayerScript playerScript = networkClient.PlayerObject.GetComponent<PlayerScript>();
+
         if (NetworkManager.Singleton.LocalClientId != id)
         {
-            if (finalIndex == -1)
+            // if neither player mulliganed
+            if (finalIndex == -1 && playerScript.mulligans.Length == 0) // -1 means that the opponent mulliganed 0 times
             {
                 AfterBasicPokemonSetup();
             }
-            else
+            // if only your opponent mulliganed
+            else if (finalIndex != -1)
             {
-                gameManagerReference.OnCustomViewOnly(mulligans, index != finalIndex, index, finalIndex);
+                gameManagerReference.OnCustomViewOnly(mulligans, GameStateManager.SelectingMode.MulliganView, index != finalIndex, index, finalIndex);
+            }
+            // if only you mulliganed
+            else if (playerScript.mulligans.Length != 0)
+            {
+                //print("only you mulliganed");
+                gameManagerReference.coinManager.CoinContainer.SetActive(true);
+                gameManagerReference.coinManager.WaitingText.SetActive(true);
+                gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(false);
+                gameManagerReference.coinManager.FirstOrSecondText.SetActive(false);
             }
         }
     }
