@@ -161,6 +161,10 @@ public class PlayerScript : NetworkBehaviour
     private bool AutoDraw = false;
     private bool AutoUntap = false;
 
+    private bool CoinFlipWinnerDecidesTurnOrder;
+    private bool TurnOrderDeterminedAfterGameSetup;
+    private bool FirstPlayerDraws;
+
     public Card[][] mulligans = new Card[0][];
 
     [System.NonSerialized] public GameObject PrizeLabel;
@@ -1196,8 +1200,8 @@ public class PlayerScript : NetworkBehaviour
 
             if (fromMode == GameStateManager.SelectingMode.Deck ||
                 fromMode == GameStateManager.SelectingMode.Discard ||
-                fromMode == GameStateManager.SelectingMode.LostZone || 
-                fromMode == GameStateManager.SelectingMode.Prizes )
+                fromMode == GameStateManager.SelectingMode.LostZone ||
+                fromMode == GameStateManager.SelectingMode.Prizes)
             {
                 gameManagerReference.OnGalleryViewExit();
             }
@@ -1304,7 +1308,22 @@ public class PlayerScript : NetworkBehaviour
 
         PlayerScript localScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
 
-        FromXToY(localScript.Deck, localScript.Prizes, cardsMoved);
+        FromXToY(localScript.Deck, localScript.Prizes, cardsMoved, null, null, false, null, null, null, null, () =>
+        {
+            if (localScript.TurnOrderDeterminedAfterGameSetup)
+            {
+                GetTurnInfo();
+            }
+
+            if (localScript.FirstPlayerDraws && localScript.isActivePlayer.Value)
+            {
+                GameStateManager.howMany = 1;
+                localScript.GameAction(Action.Draw);
+            }
+
+
+        });
+
     }
 
 
@@ -1316,6 +1335,19 @@ public class PlayerScript : NetworkBehaviour
             yield return new WaitForFixedUpdate();
         }
         animCallback();
+    }
+
+    [ServerRpc]
+    public void DoneWithMulliganServerRpc()
+    {
+        DoneWithMulliganClientRpc();
+    }
+
+    [ClientRpc]
+    public void DoneWithMulliganClientRpc()
+    {
+        NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject
+            .GetComponent<PlayerScript>().AfterBasicPokemonSetup();
     }
 
     public void GameAction(Action action, Card[] extraArgs = null)
@@ -1420,12 +1452,12 @@ public class PlayerScript : NetworkBehaviour
 
                 FromXToY(Deck, Hand, cardsToDraw, gameManagerReference.playerDeckSprite, gameManagerReference.playerHand, false, null, null, null, null, () =>
                 {
-                    AfterBasicPokemonSetup();
+                    DoneWithMulliganServerRpc();
                 });
             }
             else
             {
-                AfterBasicPokemonSetup();
+                DoneWithMulliganServerRpc();
             }
 
 
@@ -1819,13 +1851,43 @@ public class PlayerScript : NetworkBehaviour
 
 
     [ClientRpc]
-    public void GiveTurnInfoClientRpc(int info, bool autoDraw, bool autoUntap)
+    public void GiveTurnInfoClientRpc(int info, bool autoDraw, bool autoUntap, int format)
     {
+        print("running here");
+
         NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
         client.PlayerObject.GetComponent<PlayerScript>().AutoDraw = autoDraw;
         client.PlayerObject.GetComponent<PlayerScript>().AutoUntap = autoUntap;
         client.PlayerObject.GetComponent<PlayerScript>().FirstTurnInfo = info;
-        GetTurnInfo();
+
+        switch (format)
+        {
+            case 0: // 2004
+                client.PlayerObject.GetComponent<PlayerScript>().CoinFlipWinnerDecidesTurnOrder = true;
+                client.PlayerObject.GetComponent<PlayerScript>().TurnOrderDeterminedAfterGameSetup = true;
+                client.PlayerObject.GetComponent<PlayerScript>().FirstPlayerDraws = false;
+                break;
+
+            case 1: // 2005
+                client.PlayerObject.GetComponent<PlayerScript>().CoinFlipWinnerDecidesTurnOrder = true;
+                client.PlayerObject.GetComponent<PlayerScript>().TurnOrderDeterminedAfterGameSetup = true;
+                client.PlayerObject.GetComponent<PlayerScript>().FirstPlayerDraws = false;
+                break;
+
+            case 2: // 2006
+                client.PlayerObject.GetComponent<PlayerScript>().CoinFlipWinnerDecidesTurnOrder = false;
+                client.PlayerObject.GetComponent<PlayerScript>().TurnOrderDeterminedAfterGameSetup = true;
+                client.PlayerObject.GetComponent<PlayerScript>().FirstPlayerDraws = false;
+                break;
+
+            default:
+                break;
+        }
+
+        if (!client.PlayerObject.GetComponent<PlayerScript>().TurnOrderDeterminedAfterGameSetup)
+        {
+            GetTurnInfo();
+        }
     }
 
     public void GetTurnInfo()
@@ -1834,7 +1896,7 @@ public class PlayerScript : NetworkBehaviour
         NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
 
         int info = client.PlayerObject.GetComponent<PlayerScript>().FirstTurnInfo;
-        if (!HasStarted || info == -3)
+        if (!HasStarted || info == -3) // error
         {
 
             if (info == -3)
@@ -1846,7 +1908,7 @@ public class PlayerScript : NetworkBehaviour
             return;
         }
 
-        if (info == -2)
+        if (info == -2) // coin flip
         {
             gameManagerReference.coinManager.CoinContainer.SetActive(true);
             if (IsServer)
@@ -1866,6 +1928,7 @@ public class PlayerScript : NetworkBehaviour
             return;
         }
 
+        // explicitely stated
         client.PlayerObject.GetComponent<PlayerScript>().isActivePlayer.Value = info == (int)NetworkManager.Singleton.LocalClientId;
         client.PlayerObject.GetComponent<PlayerScript>().RenderTurnInfo();
     }
@@ -1918,34 +1981,75 @@ public class PlayerScript : NetworkBehaviour
             gameManagerReference.coinManager.HeadsOrTailsButtons.SetActive(false);
 
             NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
+            PlayerScript clientScript = client.PlayerObject.GetComponent<PlayerScript>();
 
-            if (IsServer)
+            print(clientScript.CoinFlipWinnerDecidesTurnOrder);
+            print(IsServer);
+            print(!heads && result == 1 || heads && result == 0);
+            print(heads && result == 1 || !heads && result == 0);
+
+            if (clientScript.CoinFlipWinnerDecidesTurnOrder)
             {
-                if (!heads && result == 1 || heads && result == 0) // the host was correct
+                if (IsServer)
                 {
-                    gameManagerReference.coinManager.FirstOrSecondText.SetActive(true);
-                    gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(true);
+                    if (!heads && result == 1 || heads && result == 0) // the host was correct
+                    {
+                        gameManagerReference.coinManager.FirstOrSecondText.SetActive(true);
+                        gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(true);
+                    }
+                    else
+                    {
+                        gameManagerReference.coinManager.WaitingText.GetComponent<Text>().text = "Waiting for opponent to select first or second.";
+                        gameManagerReference.coinManager.WaitingText.SetActive(true);
+                    }
                 }
                 else
                 {
-                    gameManagerReference.coinManager.WaitingText.GetComponent<Text>().text = "Waiting for opponent to select first or second.";
-                    gameManagerReference.coinManager.WaitingText.SetActive(true);
+                    if (heads && result == 1 || !heads && result == 0) // the host was incorrect
+                    {
+                        gameManagerReference.coinManager.WaitingText.SetActive(false);
+                        gameManagerReference.coinManager.FirstOrSecondText.SetActive(true);
+                        gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(true);
+                    }
+                    else
+                    {
+                        gameManagerReference.coinManager.WaitingText.GetComponent<Text>().text = "Waiting for opponent to select first or second.";
+                        gameManagerReference.coinManager.WaitingText.SetActive(true);
+                    }
                 }
             }
             else
             {
-                if (heads && result == 1 || !heads && result == 0) // the host was incorrect
+                if (IsServer)
                 {
-                    gameManagerReference.coinManager.WaitingText.SetActive(false);
-                    gameManagerReference.coinManager.FirstOrSecondText.SetActive(true);
-                    gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(true);
+                    if (!heads && result == 1 || heads && result == 0) // the host was correct
+                    {
+                        // go first
+                        clientScript.isActivePlayer.Value = true;
+                    }
+                    else
+                    {
+                        // go second
+                        clientScript.isActivePlayer.Value = false;
+                    }
                 }
                 else
                 {
-                    gameManagerReference.coinManager.WaitingText.GetComponent<Text>().text = "Waiting for opponent to select first or second.";
-                    gameManagerReference.coinManager.WaitingText.SetActive(true);
+
+                    if (heads && result == 1 || !heads && result == 0) // the host was incorrect
+                    {
+                        // go first
+                        clientScript.isActivePlayer.Value = true;
+                    }
+                    else
+                    {
+                        // go second
+                        clientScript.isActivePlayer.Value = false;
+                    }
                 }
+                clientScript.RenderTurnInfo();
             }
+
         }));
     }
 
@@ -2151,7 +2255,10 @@ public class PlayerScript : NetworkBehaviour
         playerScript.mulligans = new Card[0][];
 
         // manage coin flip
-        playerScript.GetTurnInfo();
+        if (!playerScript.TurnOrderDeterminedAfterGameSetup)
+        {
+            GetTurnInfo();
+        }
 
         gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.SelectingStartingPokemon);
 

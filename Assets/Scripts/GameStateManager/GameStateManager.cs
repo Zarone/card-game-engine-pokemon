@@ -316,7 +316,7 @@ public class GameStateManager : MonoBehaviour
 
     public GameObject StatusMenu;
     public Transform StatusMenuContent;
-    private Dictionary<byte, string> statusDictionary = new Dictionary<byte, string>()
+    private readonly Dictionary<byte, string> statusDictionary = new Dictionary<byte, string>()
     {
         { 0, "Asleep" },
         { 1, "Burned" },

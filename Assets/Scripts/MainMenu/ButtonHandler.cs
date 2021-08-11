@@ -32,6 +32,7 @@ namespace MainMenu
         [SerializeField] private Dropdown FirstTurnDropdownObject;
         [SerializeField] private Dropdown AutoDrawDropdownObject;
         [SerializeField] private Dropdown AutoUntapDropdownObject;
+        [SerializeField] private Dropdown FormatDropdownObject;
 
         [SerializeField] private GameObject WaitingCanvas;
         [SerializeField] private Text WaitingCanvasText;
@@ -295,7 +296,7 @@ namespace MainMenu
                 }
 
                 networkedClient.PlayerObject.GetComponent<PlayerScript>().GiveTurnInfoClientRpc(
-                    input, AutoDrawDropdownObject.value == 0, AutoUntapDropdownObject.value == 0
+                    input, AutoDrawDropdownObject.value == 0, AutoUntapDropdownObject.value == 0, FormatDropdownObject.value
                 );
             }
             else
