@@ -740,6 +740,24 @@ public class PlayerScript : NetworkBehaviour
 
     public int GetNumberOfAttachedCards(GameStateManager.SelectingMode mode)
     {
+        NetworkVariable<Card[][]> attachedCards = GetLevel(mode);
+        if (attachedCards == null) return 0;
+
+        int total = 0;
+
+        for (byte i = 0; i < attachedCards.Value.Length; i++)
+        {
+            if (gameManagerReference.selectedCards.Contains(i))
+            {
+                total += attachedCards.Value[i].Length;
+            }
+        }
+
+        return total;
+    }
+
+    public int GetNumberOfOldLevels(GameStateManager.SelectingMode mode)
+    {
         NetworkVariable<Card[][]> attachedCards = CheckAttachments(mode);
         if (attachedCards == null) return 0;
 
@@ -774,7 +792,7 @@ public class PlayerScript : NetworkBehaviour
         NetworkVariable<bool[][]> gameStateX = null, NetworkVariable<bool[][]> gameStateY = null,
         NetworkVariable<Card[][]> levelsX = null, NetworkVariable<Card[][]> levelsY = null,
         NetworkVariable<int[]> countersX = null, NetworkVariable<int[]> countersY = null,
-        int numberOfAttachedCardsOnSelectedCards = 0, System.Action additionalCallback = null)
+        int numberOfAttachedCardsOnSelectedCards = 0, int numberOfOldCardsOnSelectedCards = 0, System.Action additionalCallback = null)
     {
 
         if (isInAnimation)
@@ -795,7 +813,7 @@ public class PlayerScript : NetworkBehaviour
         Card[] newX = new Card[(isNetworkX ? NetworkX.Value.Length : localX.Value.Length) - selectedIndexes.Count];
 
         Card[] newY = new Card[(isNetworkY ? NetworkY.Value.Length : localY.Value.Length)
-            + selectedIndexes.Count + numberOfAttachedCardsOnSelectedCards];
+            + selectedIndexes.Count + numberOfAttachedCardsOnSelectedCards + numberOfOldCardsOnSelectedCards];
 
         Card[][] newAttachmentsX = new Card[newX.Length][];
         Card[][] newAttachmentsY = new Card[newY.Length][];
@@ -811,7 +829,7 @@ public class PlayerScript : NetworkBehaviour
 
         Card lastDiscardedCard = null; // this is used only for the animation
 
-        int YOffset = toTop ? selectedIndexes.Count + numberOfAttachedCardsOnSelectedCards : 0;
+        int YOffset = toTop ? selectedIndexes.Count + numberOfAttachedCardsOnSelectedCards + numberOfOldCardsOnSelectedCards : 0;
 
         for (int k = 0; k < (isNetworkY ? NetworkY.Value.Length : localY.Value.Length); k++)
         {
@@ -841,7 +859,7 @@ public class PlayerScript : NetworkBehaviour
 
         int i = 0; // tracks total iterations
         int j = 0; // tracks current position in newHand
-        int attachedCardsOffset = 0;
+        int attachedCardsOffset = 0; // this tracks cards like attachments and old evolutions that also moved
 
         while (i < (isNetworkX ? NetworkX.Value.Length : localX.Value.Length))
         {
@@ -942,6 +960,16 @@ public class PlayerScript : NetworkBehaviour
                 else if (levelsY != null)
                 {
                     newLevelsY[index] = new Card[0];
+                }
+                else if (levelsX != null)
+                {
+                    // move level to new section, ex: acerola on a golisopod puts wimpod in hand
+
+                    foreach (Card attachedCard in levelsX.Value[i])
+                    {
+                        attachedCardsOffset++;
+                        newY[i - j + offset + attachedCardsOffset] = attachedCard;
+                    }
                 }
 
                 if (countersX != null && countersY != null)
@@ -1049,7 +1077,7 @@ public class PlayerScript : NetworkBehaviour
         NetworkVariable<bool[][]> gameStateX = null, NetworkVariable<bool[][]> gameStateY = null, System.Action callback = null)
     {
         FromXToY(false, false, selectedIndexes, xObj, yObj, shuffleOutput, false, null, null, LocalX, LocalY, attachmentsX, attachmentsY,
-            gameStateX, gameStateY, null, null, null, null, 0, callback);
+            gameStateX, gameStateY, null, null, null, null, 0, 0, callback);
     }
 
     public void FromXToY(NetworkVariable<Card[][]> X, GameObject xObj, GameObject yObj, bool isLocalY,
@@ -1215,7 +1243,7 @@ public class PlayerScript : NetworkBehaviour
                 ModeToNetworkDeck(toMode), ModeToLocalDeck(fromMode), ModeToLocalDeck(toMode),
                 CheckAttachments(fromMode), CheckAttachments(toMode), GetState(fromMode), GetState(toMode), GetLevel(fromMode),
                 GetLevel(toMode), GetCounter(fromMode), GetCounter(toMode),
-                CheckAttachments(toMode) == null ? GetNumberOfAttachedCards(fromMode) : 0, callback
+                CheckAttachments(toMode) == null ? GetNumberOfAttachedCards(fromMode) : 0, GetNumberOfOldLevels(fromMode), callback
             );
 
 
