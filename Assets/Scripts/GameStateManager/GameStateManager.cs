@@ -57,6 +57,8 @@ public class GameStateManager : MonoBehaviour
         LostZone,
         Bench,
         Active,
+        OppBench,
+        OppActive,
         Attaching,
         AttachedBench,
         AttachedActive,
@@ -171,7 +173,8 @@ public class GameStateManager : MonoBehaviour
         { "Reveal", new List<SelectingMode>() { SelectingMode.Hand, SelectingMode.Deck,
             SelectingMode.DeckSection, SelectingMode.Attaching}
         },
-        { "ViewCardAndAttachments", new List<SelectingMode>(){ SelectingMode.Bench, SelectingMode.Active } },
+        { "ViewCardAndAttachments", new List<SelectingMode>(){ SelectingMode.Bench, SelectingMode.Active,
+            SelectingMode.OppBench, SelectingMode.OppActive } },
         { "ManualCoinFlip", new List<SelectingMode>() { SelectingMode.None } },
         { "ManualDieRoll", new List<SelectingMode>() { SelectingMode.None } },
         { "Mulligan", new List<SelectingMode>(){ SelectingMode.SelectingStartingPokemon } },
@@ -1414,8 +1417,32 @@ public class GameStateManager : MonoBehaviour
     {
         if (selectedCards.Count != 1) return;
 
-        NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
-        PlayerScript playerScript = networkClient.PlayerObject.GetComponent<PlayerScript>();
+
+        GameObject player = null;
+
+        if (selectingMode == SelectingMode.OppActive || selectingMode == SelectingMode.OppBench)
+        {
+            foreach (GameObject thisPlayer in PlayerInfoManager.players)
+            {
+                if (!thisPlayer.GetComponent<PlayerScript>().IsLocalPlayer)
+                {
+                    player = thisPlayer;
+                }
+            }
+        }
+        else
+        {
+            foreach (GameObject thisPlayer in PlayerInfoManager.players)
+            {
+                if (thisPlayer.GetComponent<PlayerScript>().IsLocalPlayer)
+                {
+                    player = thisPlayer;
+                }
+            }
+        }
+
+        //NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
+        PlayerScript playerScript = player.GetComponent<PlayerScript>();
 
         List<Card> cards = new List<Card>
         {
@@ -1431,6 +1458,7 @@ public class GameStateManager : MonoBehaviour
                 cards.Add(card);
             }
         }
+
         foreach (Card card in playerScript.CheckAttachments(selectingMode).Value[selectedCards[0]])
         {
             cards.Add(card);

@@ -298,6 +298,34 @@ public class CardSection : NetworkBehaviour
                             }
                         }
                     }
+                    else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.None || GameStateManager.selectingMode == PlayerScript.ToOpponentVersion(ownType))
+                    {
+
+                        if (GameStateManager.selectingMode != PlayerScript.ToOpponentVersion(ownType))
+                        {
+                            RenderSectionSelecting(obj, PlayerScript.ToOpponentVersion(ownType));
+                            playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.selectingMode);
+                        }
+
+                        if (EditingCard.GetComponent<Image>().color == CardManipulation.Unselected)
+                        {
+                            playerRef.gameManagerReference.selectedCards.Add(byte.Parse(EditingCard.name));
+                            EditingCard.GetComponent<Image>().color = CardManipulation.Selected;
+                        }
+                        else if (EditingCard.GetComponent<Image>().color == CardManipulation.Selected)
+                        {
+                            playerRef.gameManagerReference.selectedCards.Remove(byte.Parse(EditingCard.name));
+                            if (playerRef.gameManagerReference.selectedCards.Count < 1)
+                            {
+                                RenderSectionSelectingCancel(obj);
+                                playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
+                            }
+                            else
+                            {
+                                EditingCard.GetComponent<Image>().color = CardManipulation.Unselected;
+                            }
+                        }
+                    }
                     else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Attaching)
                     {
                         LocalDeck from;

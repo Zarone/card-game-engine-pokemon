@@ -632,6 +632,8 @@ public class PlayerScript : NetworkBehaviour
         {
             GameStateManager.SelectingMode.Active => cardSection.Active,
             GameStateManager.SelectingMode.Bench => cardSection.Bench,
+            GameStateManager.SelectingMode.OppActive => cardSection.Active,
+            GameStateManager.SelectingMode.OppBench => cardSection.Bench,
             GameStateManager.SelectingMode.Discard => Discard,
             GameStateManager.SelectingMode.LostZone => LostZone,
             _ => null,
@@ -687,6 +689,8 @@ public class PlayerScript : NetworkBehaviour
         {
             GameStateManager.SelectingMode.Active => cardSection.ActiveAttachments,
             GameStateManager.SelectingMode.Bench => cardSection.BenchAttachments,
+            GameStateManager.SelectingMode.OppActive => cardSection.ActiveAttachments,
+            GameStateManager.SelectingMode.OppBench => cardSection.BenchAttachments,
             _ => null,
         };
     }
@@ -706,6 +710,7 @@ public class PlayerScript : NetworkBehaviour
         return mode switch
         {
             GameStateManager.SelectingMode.Active => cardSection.ActiveCardStates,
+            GameStateManager.SelectingMode.OppActive => cardSection.ActiveCardStates,
             //GameStateManager.SelectingMode.Bench => cardSection.BenchCardStates,
             _ => null
         };
@@ -717,6 +722,8 @@ public class PlayerScript : NetworkBehaviour
         {
             GameStateManager.SelectingMode.Bench => cardSection.BenchCardOldEvolutions,
             GameStateManager.SelectingMode.Active => cardSection.ActiveCardOldEvolutions,
+            GameStateManager.SelectingMode.OppBench => cardSection.BenchCardOldEvolutions,
+            GameStateManager.SelectingMode.OppActive => cardSection.ActiveCardOldEvolutions,
             _ => null
         };
     }
@@ -747,6 +754,16 @@ public class PlayerScript : NetworkBehaviour
         }
 
         return total;
+    }
+
+    public static GameStateManager.SelectingMode ToOpponentVersion(GameStateManager.SelectingMode mode)
+    {
+        return mode switch
+        {
+            GameStateManager.SelectingMode.Bench => GameStateManager.SelectingMode.OppBench,
+            GameStateManager.SelectingMode.Active => GameStateManager.SelectingMode.OppActive,
+            _ => GameStateManager.SelectingMode.None
+        };
     }
 
     public void FromXToY(bool isNetworkX, bool isNetworkY, List<byte> selectedIndexes,
@@ -1317,6 +1334,7 @@ public class PlayerScript : NetworkBehaviour
 
         FromXToY(localScript.Deck, localScript.Prizes, cardsMoved, null, null, false, null, null, null, null, () =>
         {
+
             if (localScript.TurnOrderDeterminedAfterGameSetup)
             {
                 GetTurnInfo();
@@ -1329,7 +1347,6 @@ public class PlayerScript : NetworkBehaviour
             }
             GameStateManager.selectingMode = preserveMode;
             gameManagerReference.RenderCorrectButtons(preserveMode);
-
 
         });
 
