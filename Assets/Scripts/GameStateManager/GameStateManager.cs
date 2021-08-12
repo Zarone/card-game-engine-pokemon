@@ -83,7 +83,8 @@ public class GameStateManager : MonoBehaviour
             SelectingMode.AttachedBench, SelectingMode.AttachedActive,
             SelectingMode.LostZone, SelectingMode.DeckOptions,
             SelectingMode.OpponentsHand, SelectingMode.Supporter,
-            SelectingMode.Stadium, SelectingMode.PrizeOptions }
+            SelectingMode.Stadium, SelectingMode.PrizeOptions,
+            SelectingMode.Evolve }
         },
 
         { "OwnInfo", new List<SelectingMode>(){ SelectingMode.None } },
@@ -468,6 +469,14 @@ public class GameStateManager : MonoBehaviour
         {
             PlayerSupporter.GetComponent<Image>().color = CardManipulation.Normal;
             selectingMode = SelectingMode.None;
+        }
+        else if (selectingMode == SelectingMode.Evolve)
+        {
+            selectingMode = SelectingMode.None;
+            PlayerScript player = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            player.RenderHandSelectingCancel();
+            player.cardSection.RenderSectionSelectingCancel(player.cardSection.ActiveObj);
+            player.cardSection.RenderSectionSelectingCancel(player.cardSection.BenchObj);
         }
 
         RenderCorrectButtons(SelectingMode.None);
