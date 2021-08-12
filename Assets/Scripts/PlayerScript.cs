@@ -2534,24 +2534,39 @@ public class PlayerScript : NetworkBehaviour
 
 
     [ServerRpc]
-    public void PlayStadiumServerRpc(Card newStadium, ulong playerID)
+    public void PlayStadiumServerRpc(Card newStadium, ulong playerID, bool toHand = false)
     {
-        PlayStadiumClientRpc(newStadium, playerID);
+        PlayStadiumClientRpc(newStadium, playerID, toHand);
     }
 
     [ClientRpc]
-    public void PlayStadiumClientRpc(Card newStadium, ulong playerID)
+    public void PlayStadiumClientRpc(Card newStadium, ulong playerID, bool toHand = false)
     {
         if (gameManagerReference.StadiumOwner == NetworkManager.Singleton.LocalClientId && gameManagerReference.CurrentStadium != null)
         {
             PlayerScript localPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
-            Card[] newDiscard = new Card[localPlayer.Discard.Value.Length + 1];
-            for (int i = 0; i < localPlayer.Discard.Value.Length; i++)
+
+            if (toHand)
             {
-                newDiscard[i] = localPlayer.Discard.Value[i];
+                Card[] newHand = new Card[localPlayer.Hand.Value.Length + 1];
+                for (int i = 0; i < localPlayer.Hand.Value.Length; i++)
+                {
+                    newHand[i] = localPlayer.Hand.Value[i];
+                }
+                newHand[localPlayer.Hand.Value.Length] = gameManagerReference.CurrentStadium;
+                localPlayer.Hand.Value = newHand;
             }
-            newDiscard[localPlayer.Discard.Value.Length] = gameManagerReference.CurrentStadium;
-            localPlayer.Discard.Value = newDiscard;
+            else
+            {
+                Card[] newDiscard = new Card[localPlayer.Discard.Value.Length + 1];
+                for (int i = 0; i < localPlayer.Discard.Value.Length; i++)
+                {
+                    newDiscard[i] = localPlayer.Discard.Value[i];
+                }
+                newDiscard[localPlayer.Discard.Value.Length] = gameManagerReference.CurrentStadium;
+                localPlayer.Discard.Value = newDiscard;
+            }
+
         }
         gameManagerReference.StadiumOwner = playerID;
         gameManagerReference.CurrentStadium = newStadium;

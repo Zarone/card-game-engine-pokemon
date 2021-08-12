@@ -115,7 +115,8 @@ public class GameStateManager : MonoBehaviour
         },
         { "Zone_ToHand", new List<SelectingMode>(){
             SelectingMode.Bench, SelectingMode.Active,
-            SelectingMode.AttachedBench, SelectingMode.AttachedActive, }
+            SelectingMode.AttachedBench, SelectingMode.AttachedActive,
+            SelectingMode.Stadium, SelectingMode.Supporter }
         },
         { "Discard", new List<SelectingMode>(){
             SelectingMode.Deck, SelectingMode.DeckSection,
@@ -584,7 +585,6 @@ public class GameStateManager : MonoBehaviour
 
             playerScript.SupporterCard.Value = null;
             selectingMode = SelectingMode.None;
-            RenderCorrectButtons(SelectingMode.None);
 
         }
         else if (selectingMode == SelectingMode.Stadium)
@@ -594,7 +594,6 @@ public class GameStateManager : MonoBehaviour
             localPlayer.PlayStadiumServerRpc(null, NetworkManager.Singleton.LocalClientId);
 
             selectingMode = SelectingMode.None;
-            RenderCorrectButtons(SelectingMode.None);
 
             //PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
             //Card[] newDiscard = new Card[playerScript.Discard.Value.Length + 1];
@@ -617,8 +616,8 @@ public class GameStateManager : MonoBehaviour
                 }
             }
 
-            RenderCorrectButtons(SelectingMode.None);
         }
+        RenderCorrectButtons(SelectingMode.None);
     }
 
     public void OnRemoveFromPlay()
@@ -715,15 +714,41 @@ public class GameStateManager : MonoBehaviour
 
     public void OnToHand()
     {
-        foreach (GameObject client in PlayerInfoManager.players)
+        if (selectingMode == SelectingMode.Supporter)
         {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (player.IsLocalPlayer)
+            PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            Card[] newHand = new Card[playerScript.Hand.Value.Length + 1];
+
+            for (int i = 0; i < newHand.Length - 1; i++)
             {
-                player.GameAction(PlayerScript.Action.ToHand);
+                newHand[i] = playerScript.Hand.Value[i];
+            }
+            newHand[newHand.Length - 1] = playerScript.SupporterCard.Value;
+            playerScript.Hand.Value = newHand;
+
+            playerScript.SupporterCard.Value = null;
+            selectingMode = SelectingMode.None;
+
+        }
+        else if (selectingMode == SelectingMode.Stadium)
+        {
+            PlayerScript localPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            localPlayer.PlayStadiumServerRpc(null, NetworkManager.Singleton.LocalClientId, true);
+
+            selectingMode = SelectingMode.None;
+        }
+        else
+        {
+            foreach (GameObject client in PlayerInfoManager.players)
+            {
+                PlayerScript player = client.GetComponent<PlayerScript>();
+                if (player.IsLocalPlayer)
+                {
+                    player.GameAction(PlayerScript.Action.ToHand);
+                }
             }
         }
-        RenderCorrectButtons(SelectingMode.None);
+            RenderCorrectButtons(SelectingMode.None);
     }
 
     public void OnAttach()
