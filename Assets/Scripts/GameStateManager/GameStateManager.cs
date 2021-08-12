@@ -139,7 +139,7 @@ public class GameStateManager : MonoBehaviour
         { "ToBottomOfDeck", new List<SelectingMode>(){ SelectingMode.Hand, SelectingMode.DeckSection,
             SelectingMode.Attaching } },
         { "ToTopOfDeck", new List<SelectingMode>(){ SelectingMode.Hand, SelectingMode.DeckSection,
-            SelectingMode.Attaching } },
+            SelectingMode.Attaching, SelectingMode.Active, SelectingMode.Bench } },
 
         { "Evolve", new List<SelectingMode>() { SelectingMode.Hand } },
         { "Devolve", new List<SelectingMode>() { SelectingMode.Bench, SelectingMode.Active } },
