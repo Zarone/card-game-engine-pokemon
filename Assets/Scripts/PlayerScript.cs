@@ -384,7 +384,6 @@ public class PlayerScript : NetworkBehaviour
                                 GameAction(Action.Active);
                                 GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
 
-                                //PlayerScript opponent;
                                 foreach (GameObject player in PlayerInfoManager.players)
                                 {
                                     PlayerScript tempPlayerScript = player.GetComponent<PlayerScript>();
@@ -1300,6 +1299,7 @@ public class PlayerScript : NetworkBehaviour
 
     private void AfterBasicPokemonSetup()
     {
+        print("setup");
         List<byte> cardsMoved = new List<byte>();
         for (byte i = 0; i < 6; i++)
         {
@@ -1352,6 +1352,7 @@ public class PlayerScript : NetworkBehaviour
     {
         if (id != NetworkManager.Singleton.LocalClientId)
         {
+            print("done with mulligan");
             gameManagerReference.otherPlayerHasCompletedMulliganStep = true;
         }
 
@@ -1368,6 +1369,7 @@ public class PlayerScript : NetworkBehaviour
     [ClientRpc]
     public void StartBothPlayersClientRpc()
     {
+        print("start player setup");
         NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject
             .GetComponent<PlayerScript>().AfterBasicPokemonSetup();
     }
@@ -2035,7 +2037,6 @@ public class PlayerScript : NetworkBehaviour
                     }
                     else
                     {
-                        gameManagerReference.coinManager.WaitingText.GetComponent<Text>().text = "Waiting for opponent to select first or second.";
                         gameManagerReference.coinManager.WaitingText.SetActive(true);
                     }
                 }
@@ -2049,7 +2050,6 @@ public class PlayerScript : NetworkBehaviour
                     }
                     else
                     {
-                        gameManagerReference.coinManager.WaitingText.GetComponent<Text>().text = "Waiting for opponent to select first or second.";
                         gameManagerReference.coinManager.WaitingText.SetActive(true);
                     }
                 }
@@ -2415,27 +2415,37 @@ public class PlayerScript : NetworkBehaviour
     [ClientRpc]
     public void ShareMulliganInfoClientRpc(ulong id, Card[] mulligans, int index, int finalIndex)
     {
-        NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
-        PlayerScript playerScript = networkClient.PlayerObject.GetComponent<PlayerScript>();
 
         if (NetworkManager.Singleton.LocalClientId != id)
         {
+
+            NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
+            PlayerScript playerScript = networkClient.PlayerObject.GetComponent<PlayerScript>();
+
+            //-1 print(finalIndex);
+            //1 print(playerScript.mulligans.Length);
+
             // if neither player mulliganed
             if (finalIndex == -1 && playerScript.mulligans.Length == 0) // -1 means that the opponent mulliganed 0 times
             {
                 AfterBasicPokemonSetup();
             }
-            // if only your opponent mulliganed
+            // if your opponent mulliganed
             else if (finalIndex != -1)
             {
+                // if only your opponent mulliganed
+                if (playerScript.mulligans.Length == 0)
+                {
+                    gameManagerReference.otherPlayerHasCompletedMulliganStep = true;
+                }
                 gameManagerReference.OnCustomViewOnly(mulligans, GameStateManager.SelectingMode.MulliganView, index != finalIndex, index, finalIndex);
             }
             // if only you mulliganed
             else if (playerScript.mulligans.Length != 0)
             {
-                //print("only you mulliganed");
                 gameManagerReference.coinManager.CoinContainer.SetActive(true);
                 gameManagerReference.coinManager.WaitingText.SetActive(true);
+                gameManagerReference.coinManager.WaitingText.GetComponent<Text>().text = "Waiting for opponent...";
                 gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(false);
                 gameManagerReference.coinManager.FirstOrSecondText.SetActive(false);
             }
