@@ -147,7 +147,6 @@ public class CollectionScript : MonoBehaviour
                             clone.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(
                                 () =>
                                 {
-                                    //print(targetPath);
                                     Deck.AddToDeck(targetPath, cardType);
                                 }
                             );

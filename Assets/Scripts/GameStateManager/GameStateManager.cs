@@ -997,6 +997,7 @@ public class GameStateManager : MonoBehaviour
 
 
     public GameObject GalleryView;
+    public Text GalleryTitle;
     [SerializeField] private Transform GalleryContent;
 
     public void OnDeckView()
@@ -1004,6 +1005,7 @@ public class GameStateManager : MonoBehaviour
         viewingMode = SelectingMode.Deck;
         selectingMode = SelectingMode.None;
         AdjustGalleryViewSize();
+        GalleryTitle.text = "Viewing Deck";
         GalleryView.SetActive(true);
 
         var children = new List<GameObject>();
@@ -1083,6 +1085,7 @@ public class GameStateManager : MonoBehaviour
         selectingMode = SelectingMode.None;
         AdjustGalleryViewSize();
         GalleryView.SetActive(true);
+        GalleryTitle.text = "Viewing Top of Deck";
 
         var children = new List<GameObject>();
         foreach (Transform child in GalleryContent.transform) children.Add(child.gameObject);
@@ -1157,6 +1160,7 @@ public class GameStateManager : MonoBehaviour
         viewingMode = SelectingMode.Discard;
         AdjustGalleryViewSize();
         GalleryView.SetActive(true);
+        GalleryTitle.text = "Viewing Your Discard";
 
         var children = new List<GameObject>();
         foreach (Transform child in GalleryContent.transform) children.Add(child.gameObject);
@@ -1235,6 +1239,7 @@ public class GameStateManager : MonoBehaviour
         selectingMode = SelectingMode.None;
         AdjustGalleryViewSize();
         GalleryView.SetActive(true);
+        GalleryTitle.text = "Viewing Your Prizes";
 
         var children = new List<GameObject>();
         foreach (Transform child in GalleryContent.transform) children.Add(child.gameObject);
@@ -1261,8 +1266,8 @@ public class GameStateManager : MonoBehaviour
             {
                 OnCardRightClick(image);
 
-                    //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
-                };
+                //CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
+            };
 
             cardObj.GetComponent<Button>().onClick.RemoveAllListeners();
             cardObj.GetComponent<Button>().onClick.AddListener(() =>
@@ -1312,6 +1317,7 @@ public class GameStateManager : MonoBehaviour
         viewingMode = SelectingMode.LostZone;
         AdjustGalleryViewSize();
         GalleryView.SetActive(true);
+        GalleryTitle.text = "Viewing Your Lost Zone";
 
         var children = new List<GameObject>();
         foreach (Transform child in GalleryContent.transform) children.Add(child.gameObject);
@@ -1383,18 +1389,18 @@ public class GameStateManager : MonoBehaviour
         RenderCorrectButtons(SelectingMode.Gallery);
     }
 
-    public void OnOppSpecialDeckView()
-    {
-        foreach (GameObject client in PlayerInfoManager.players)
-        {
-            PlayerScript player = client.GetComponent<PlayerScript>();
-            if (!player.IsLocalPlayer)
-            {
-                OnCustomViewOnly(player.SpecialDeck.Value);
-                break;
-            }
-        }
-    }
+    //public void OnOppSpecialDeckView()
+    //{
+    //    foreach (GameObject client in PlayerInfoManager.players)
+    //    {
+    //        PlayerScript player = client.GetComponent<PlayerScript>();
+    //        if (!player.IsLocalPlayer)
+    //        {
+    //            OnCustomViewOnly(player.SpecialDeck.Value);
+    //            break;
+    //        }
+    //    }
+    //}
 
     public void OnOppDiscardView()
     {
@@ -1403,6 +1409,7 @@ public class GameStateManager : MonoBehaviour
             PlayerScript player = client.GetComponent<PlayerScript>();
             if (!player.IsLocalPlayer)
             {
+                GalleryTitle.text = "Viewing Opponent's Discard";
                 OnCustomViewOnly(player.Discard.Value);
                 break;
             }
@@ -1416,6 +1423,7 @@ public class GameStateManager : MonoBehaviour
             PlayerScript player = client.GetComponent<PlayerScript>();
             if (!player.IsLocalPlayer)
             {
+                GalleryTitle.text = "Viewing Opponent's Lost Zone";
                 OnCustomViewOnly(player.LostZone.Value);
                 break;
             }
@@ -1424,6 +1432,8 @@ public class GameStateManager : MonoBehaviour
 
     public void OnViewCardAndAttachments()
     {
+        GalleryTitle.text = "Viewing Card";
+
         if (selectedCards.Count != 1) return;
 
 
@@ -1598,9 +1608,11 @@ public class GameStateManager : MonoBehaviour
         RenderCorrectButtons(SelectingMode.Gallery);
     }
 
+
+
     public void AdjustGalleryViewSize()
     {
-        GalleryView.transform.GetChild(0).GetChild(0).GetChild(0).GetComponent<GridLayoutGroup>().cellSize =
+        GalleryView.transform.GetChild(1).GetChild(0).GetChild(0).GetComponent<GridLayoutGroup>().cellSize =
             new Vector2(Screen.width / 8, Screen.width / 6);
     }
 
@@ -1631,7 +1643,7 @@ public class GameStateManager : MonoBehaviour
             shuffleDeckDialogue.ShuffleDialogue.SetActive(true);
 
         }
-        
+
         if (selectingMode == SelectingMode.SelectingStartingPokemon)
         {
             RenderCorrectButtons(SelectingMode.SelectingStartingPokemon);

@@ -740,7 +740,7 @@ public class PlayerScript : NetworkBehaviour
 
     public int GetNumberOfAttachedCards(GameStateManager.SelectingMode mode)
     {
-        NetworkVariable<Card[][]> attachedCards = GetLevel(mode);
+        NetworkVariable<Card[][]> attachedCards = CheckAttachments(mode);
         if (attachedCards == null) return 0;
 
         int total = 0;
@@ -758,7 +758,7 @@ public class PlayerScript : NetworkBehaviour
 
     public int GetNumberOfOldLevels(GameStateManager.SelectingMode mode)
     {
-        NetworkVariable<Card[][]> attachedCards = CheckAttachments(mode);
+        NetworkVariable<Card[][]> attachedCards = GetLevel(mode);
         if (attachedCards == null) return 0;
 
         int total = 0;
@@ -1243,7 +1243,7 @@ public class PlayerScript : NetworkBehaviour
                 ModeToNetworkDeck(toMode), ModeToLocalDeck(fromMode), ModeToLocalDeck(toMode),
                 CheckAttachments(fromMode), CheckAttachments(toMode), GetState(fromMode), GetState(toMode), GetLevel(fromMode),
                 GetLevel(toMode), GetCounter(fromMode), GetCounter(toMode),
-                CheckAttachments(toMode) == null ? GetNumberOfAttachedCards(fromMode) : 0, GetNumberOfOldLevels(fromMode), callback
+                CheckAttachments(toMode) == null ? GetNumberOfAttachedCards(fromMode) : 0, GetLevel(toMode) == null ? GetNumberOfOldLevels(fromMode) : 0, callback
             );
 
 
@@ -2176,6 +2176,7 @@ public class PlayerScript : NetworkBehaviour
     {
         if (senderPlayerID != NetworkManager.Singleton.LocalClientId)
         {
+            gameManagerReference.GalleryTitle.text = "Viewing Cards Your Opponent Selected";
             gameManagerReference.OnCustomViewOnly(hand);
         }
     }
@@ -2192,6 +2193,7 @@ public class PlayerScript : NetworkBehaviour
         if (senderPlayerID != NetworkManager.Singleton.LocalClientId)
         {
             //gameManagerReference.OnCustomViewWithEditAccess(hand, GameStateManager.SelectingMode.Deck);
+            gameManagerReference.GalleryTitle.text = "Viewing Shared Cards With Edit Access";
             gameManagerReference.OnCustomViewWithEditAccess(hand);
         }
     }
@@ -2488,6 +2490,7 @@ public class PlayerScript : NetworkBehaviour
                 {
                     gameManagerReference.otherPlayerHasCompletedMulliganStep = true;
                 }
+                gameManagerReference.GalleryTitle.text = "Viewing Mulligans";
                 gameManagerReference.OnCustomViewOnly(mulligans, GameStateManager.SelectingMode.MulliganView, index != finalIndex, index, finalIndex);
             }
             // if only you mulliganed
