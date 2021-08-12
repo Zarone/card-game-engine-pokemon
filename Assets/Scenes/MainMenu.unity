@@ -2404,7 +2404,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &391767057
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6754,7 +6754,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 2004
+  m_Text: 2004-2006
 --- !u!222 &1361813378
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -8295,11 +8295,11 @@ MonoBehaviour:
   m_Value: 0
   m_Options:
     m_Options:
-    - m_Text: 2004
+    - m_Text: 2004-2006
       m_Image: {fileID: 0}
-    - m_Text: 2005
+    - m_Text: 2007-2013
       m_Image: {fileID: 0}
-    - m_Text: 2006
+    - m_Text: 2014-on
       m_Image: {fileID: 0}
   m_OnValueChanged:
     m_PersistentCalls:

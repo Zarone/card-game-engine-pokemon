@@ -1352,7 +1352,6 @@ public class PlayerScript : NetworkBehaviour
     {
         if (id != NetworkManager.Singleton.LocalClientId)
         {
-            print("done with mulligan");
             gameManagerReference.otherPlayerHasCompletedMulliganStep = true;
         }
 
@@ -1369,7 +1368,6 @@ public class PlayerScript : NetworkBehaviour
     [ClientRpc]
     public void StartBothPlayersClientRpc()
     {
-        print("start player setup");
         NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject
             .GetComponent<PlayerScript>().AfterBasicPokemonSetup();
     }
@@ -1894,28 +1892,29 @@ public class PlayerScript : NetworkBehaviour
         //print("running here");
 
         NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
-        client.PlayerObject.GetComponent<PlayerScript>().AutoDraw = autoDraw;
-        client.PlayerObject.GetComponent<PlayerScript>().AutoUntap = autoUntap;
-        client.PlayerObject.GetComponent<PlayerScript>().FirstTurnInfo = info;
+        PlayerScript player = client.PlayerObject.GetComponent<PlayerScript>();
+        player.AutoDraw = autoDraw;
+        player.AutoUntap = autoUntap;
+        player.FirstTurnInfo = info;
 
         switch (format)
         {
-            case 0: // 2004
-                client.PlayerObject.GetComponent<PlayerScript>().CoinFlipWinnerDecidesTurnOrder = true;
-                client.PlayerObject.GetComponent<PlayerScript>().TurnOrderDeterminedAfterGameSetup = true;
-                client.PlayerObject.GetComponent<PlayerScript>().FirstPlayerDraws = false;
+            case 0: // 2004-2006
+                player.CoinFlipWinnerDecidesTurnOrder = true;
+                player.TurnOrderDeterminedAfterGameSetup = true;
+                player.FirstPlayerDraws = false;
                 break;
 
-            case 1: // 2005
-                client.PlayerObject.GetComponent<PlayerScript>().CoinFlipWinnerDecidesTurnOrder = true;
-                client.PlayerObject.GetComponent<PlayerScript>().TurnOrderDeterminedAfterGameSetup = true;
-                client.PlayerObject.GetComponent<PlayerScript>().FirstPlayerDraws = false;
+            case 1: // 2007-2013
+                player.CoinFlipWinnerDecidesTurnOrder = false;
+                player.TurnOrderDeterminedAfterGameSetup = true;
+                player.FirstPlayerDraws = true;
                 break;
 
-            case 2: // 2006
-                client.PlayerObject.GetComponent<PlayerScript>().CoinFlipWinnerDecidesTurnOrder = false;
-                client.PlayerObject.GetComponent<PlayerScript>().TurnOrderDeterminedAfterGameSetup = true;
-                client.PlayerObject.GetComponent<PlayerScript>().FirstPlayerDraws = false;
+            case 2: // 2014-on
+                player.CoinFlipWinnerDecidesTurnOrder = true;
+                player.TurnOrderDeterminedAfterGameSetup = false;
+                player.FirstPlayerDraws = true;
                 break;
 
             default:
