@@ -18,6 +18,8 @@ public class CoinManager : MonoBehaviour
     public GameObject DieContainer;
     public GameObject Dice;
 
+    public GameObject BlockView;
+
     public void OnCoinMenuHeadsOrTails(bool heads)
     {
         HeadsOrTailsButtons.SetActive(false);

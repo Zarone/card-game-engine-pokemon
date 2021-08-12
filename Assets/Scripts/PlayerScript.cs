@@ -258,6 +258,11 @@ public class PlayerScript : NetworkBehaviour
             GameAction(Action.Setup, CardManipulation.Shuffle(PlayerInfoManager.fullDeck));
         }
         HasStarted = true;
+
+        if (TurnOrderDeterminedAfterGameSetup)
+        {
+            gameManagerReference.coinManager.BlockView.SetActive(false);
+        }
     }
 
     void FormatHandSpacing(int extra = 0, bool isLocal = false)
@@ -1299,7 +1304,7 @@ public class PlayerScript : NetworkBehaviour
 
     private void AfterBasicPokemonSetup()
     {
-        print("setup");
+        gameManagerReference.coinManager.CoinContainer.SetActive(false);
         List<byte> cardsMoved = new List<byte>();
         for (byte i = 0; i < 6; i++)
         {
@@ -1889,8 +1894,6 @@ public class PlayerScript : NetworkBehaviour
     [ClientRpc]
     public void GiveTurnInfoClientRpc(int info, bool autoDraw, bool autoUntap, int format)
     {
-        //print("running here");
-
         NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
         PlayerScript player = client.PlayerObject.GetComponent<PlayerScript>();
         player.AutoDraw = autoDraw;
@@ -1899,10 +1902,10 @@ public class PlayerScript : NetworkBehaviour
 
         switch (format)
         {
-            case 0: // 2004-2006
+            case 0: // 2014-on
                 player.CoinFlipWinnerDecidesTurnOrder = true;
-                player.TurnOrderDeterminedAfterGameSetup = true;
-                player.FirstPlayerDraws = false;
+                player.TurnOrderDeterminedAfterGameSetup = false;
+                player.FirstPlayerDraws = true;
                 break;
 
             case 1: // 2007-2013
@@ -1911,10 +1914,10 @@ public class PlayerScript : NetworkBehaviour
                 player.FirstPlayerDraws = true;
                 break;
 
-            case 2: // 2014-on
+            case 2: // 2004-2006
                 player.CoinFlipWinnerDecidesTurnOrder = true;
-                player.TurnOrderDeterminedAfterGameSetup = false;
-                player.FirstPlayerDraws = true;
+                player.TurnOrderDeterminedAfterGameSetup = true;
+                player.FirstPlayerDraws = false;
                 break;
 
             default:
@@ -1925,14 +1928,16 @@ public class PlayerScript : NetworkBehaviour
         {
             GetTurnInfo();
         }
+
     }
 
     public void GetTurnInfo()
     {
 
         NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
+        PlayerScript clientScript = client.PlayerObject.GetComponent<PlayerScript>();
 
-        int info = client.PlayerObject.GetComponent<PlayerScript>().FirstTurnInfo;
+        int info = clientScript.FirstTurnInfo;
         if (!HasStarted || info == -3) // error
         {
 
@@ -1966,6 +1971,8 @@ public class PlayerScript : NetworkBehaviour
         }
 
         // explicitely stated
+
+        gameManagerReference.coinManager.BlockView.SetActive(false);
         client.PlayerObject.GetComponent<PlayerScript>().isActivePlayer.Value = info == (int)NetworkManager.Singleton.LocalClientId;
         client.PlayerObject.GetComponent<PlayerScript>().RenderTurnInfo();
     }
@@ -2020,11 +2027,6 @@ public class PlayerScript : NetworkBehaviour
             NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var client);
             PlayerScript clientScript = client.PlayerObject.GetComponent<PlayerScript>();
 
-            //print(clientScript.CoinFlipWinnerDecidesTurnOrder);
-            //print(IsServer);
-            //print(!heads && result == 1 || heads && result == 0);
-            //print(heads && result == 1 || !heads && result == 0);
-
             if (clientScript.CoinFlipWinnerDecidesTurnOrder)
             {
                 if (IsServer)
@@ -2055,6 +2057,7 @@ public class PlayerScript : NetworkBehaviour
             }
             else
             {
+                gameManagerReference.coinManager.CoinContainer.SetActive(false);
                 if (IsServer)
                 {
                     if (!heads && result == 1 || heads && result == 0) // the host was correct
@@ -2083,6 +2086,13 @@ public class PlayerScript : NetworkBehaviour
                     }
                 }
                 clientScript.RenderTurnInfo();
+
+                if (AutoDraw && clientScript.TurnOrderDeterminedAfterGameSetup && clientScript.FirstPlayerDraws)
+                {
+                    GameStateManager.howMany = 1;
+                    clientScript.GameAction(Action.Draw);
+                }
+                gameManagerReference.coinManager.BlockView.SetActive(false);
             }
 
         }));
@@ -2105,8 +2115,8 @@ public class PlayerScript : NetworkBehaviour
 
         clientScript.isActivePlayer.Value = id == NetworkManager.Singleton.LocalClientId ?
             first : !first;
+        gameManagerReference.coinManager.BlockView.SetActive(false);
         clientScript.RenderTurnInfo();
-        //clientScript.gameManagerReference.OnSpecialDeckView();
     }
 
 
@@ -2414,15 +2424,11 @@ public class PlayerScript : NetworkBehaviour
     [ClientRpc]
     public void ShareMulliganInfoClientRpc(ulong id, Card[] mulligans, int index, int finalIndex)
     {
-
         if (NetworkManager.Singleton.LocalClientId != id)
         {
 
             NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
             PlayerScript playerScript = networkClient.PlayerObject.GetComponent<PlayerScript>();
-
-            //-1 print(finalIndex);
-            //1 print(playerScript.mulligans.Length);
 
             // if neither player mulliganed
             if (finalIndex == -1 && playerScript.mulligans.Length == 0) // -1 means that the opponent mulliganed 0 times
