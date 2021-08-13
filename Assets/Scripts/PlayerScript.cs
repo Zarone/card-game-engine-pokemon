@@ -563,6 +563,9 @@ public class PlayerScript : NetworkBehaviour
             {
                 gameManagerReference.StadiumObj.GetComponent<Image>().color = Color.white;
                 gameManagerReference.StadiumObj.GetComponent<Image>().sprite = sprites[0];
+                gameManagerReference.StadiumObj.GetComponent<RectTransform>().localRotation = Quaternion.Euler(0, 0,
+                    gameManagerReference.StadiumFacingSelf ? 180 : 0);
+
             }
             else
             {
@@ -2570,6 +2573,24 @@ public class PlayerScript : NetworkBehaviour
         }
         gameManagerReference.StadiumOwner = playerID;
         gameManagerReference.CurrentStadium = newStadium;
+
+        gameManagerReference.StadiumFacingSelf = playerID != NetworkManager.Singleton.LocalClientId;
+
         RenderStadium();
     }
+
+
+    [ServerRpc]
+    public void FlipStadiumServerRpc()
+    {
+        FlipStadiumClientRpc();
+    }
+
+    [ClientRpc]
+    public void FlipStadiumClientRpc()
+    {
+        gameManagerReference.StadiumFacingSelf = !gameManagerReference.StadiumFacingSelf;
+        RenderStadium();
+    }
+
 }

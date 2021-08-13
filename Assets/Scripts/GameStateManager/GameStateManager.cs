@@ -40,6 +40,7 @@ public class GameStateManager : MonoBehaviour
 
     public GameObject StadiumObj;
     public ulong StadiumOwner;
+    public bool StadiumFacingSelf;
     public Card CurrentStadium;
 
     public bool otherPlayerHasCompletedMulliganStep = false;
@@ -152,10 +153,10 @@ public class GameStateManager : MonoBehaviour
         { "MoveToBench", new List<SelectingMode>(){
             SelectingMode.Deck }
         },
-        { "MoveToActive", new List<SelectingMode>(){ } },
         { "Zone_MoveToBench", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Active }
         },
+        { "MoveToActive", new List<SelectingMode>(){ } },
         { "Zone_MoveToActive", new List<SelectingMode>(){
             SelectingMode.Hand, SelectingMode.Bench }
         },
@@ -169,9 +170,9 @@ public class GameStateManager : MonoBehaviour
         },
         { "ChangeStatus", new List<SelectingMode>(){ SelectingMode.Active}
         },
-        { "Flip", new List<SelectingMode>(){
-            SelectingMode.Bench, SelectingMode.Active }
-        },
+        //{ "Flip", new List<SelectingMode>(){
+        //    SelectingMode.Bench, SelectingMode.Active }
+        //},
         { "Reveal", new List<SelectingMode>() { SelectingMode.Hand, SelectingMode.Deck,
             SelectingMode.DeckSection, SelectingMode.Attaching}
         },
@@ -182,6 +183,7 @@ public class GameStateManager : MonoBehaviour
         { "Mulligan", new List<SelectingMode>(){ SelectingMode.SelectingStartingPokemon } },
         { "ViewNextMulligan", new List<SelectingMode>(){ SelectingMode.GalleryMultiview } },
         { "Remote_ToTopOfDeck", new List<SelectingMode>() { SelectingMode.CustomSection } },
+        { "FlipStadium", new List<SelectingMode>() { SelectingMode.Stadium } },
     };
 
     [System.NonSerialized] public List<byte> selectedCards = new List<byte>();
@@ -1018,6 +1020,12 @@ public class GameStateManager : MonoBehaviour
             StadiumObj.GetComponent<Image>().color = CardManipulation.Selected;
             RenderCorrectButtons(SelectingMode.Stadium);
         }
+    }
+
+    public void OnFlipStadium()
+    {
+        NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>().FlipStadiumServerRpc();
+        OnSelectCancel();
     }
 
 
