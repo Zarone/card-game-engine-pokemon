@@ -38,7 +38,8 @@ public class PlayerScript : NetworkBehaviour
         TakePrize,
         Mulligan,
         DrawMulligan,
-        PlaySupporter
+        PlaySupporter,
+        MoveToPrizes
     }
 
     [System.NonSerialized]
@@ -1794,6 +1795,10 @@ public class PlayerScript : NetworkBehaviour
             gameManagerReference.selectedCards = new List<byte>();
             gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
 
+        }
+        else if (action == Action.MoveToPrizes)
+        {
+            FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Prizes);
         }
         else
         {

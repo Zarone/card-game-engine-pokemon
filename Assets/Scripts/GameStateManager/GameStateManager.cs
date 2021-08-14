@@ -184,6 +184,7 @@ public class GameStateManager : MonoBehaviour
         { "ViewNextMulligan", new List<SelectingMode>(){ SelectingMode.GalleryMultiview } },
         { "Remote_ToTopOfDeck", new List<SelectingMode>() { SelectingMode.CustomSection } },
         { "FlipStadium", new List<SelectingMode>() { SelectingMode.Stadium } },
+        { "Zone_ToPrizes", new List<SelectingMode>() { SelectingMode.Hand, SelectingMode.Attaching } },
     };
 
     [System.NonSerialized] public List<byte> selectedCards = new List<byte>();
@@ -808,6 +809,10 @@ public class GameStateManager : MonoBehaviour
         }
     }
 
+    public void OnMoveToPrizes()
+    {
+        NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>().GameAction(PlayerScript.Action.MoveToPrizes);
+    }
 
     public void OnStatusChange(int status)
     {
