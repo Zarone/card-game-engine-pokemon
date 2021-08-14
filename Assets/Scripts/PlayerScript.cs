@@ -1955,22 +1955,34 @@ public class PlayerScript : NetworkBehaviour
 
         switch (format)
         {
-            case 0: // 2014-on
+            case 0: // 2013-On
                 player.CoinFlipWinnerDecidesTurnOrder = true;
                 player.TurnOrderDeterminedAfterGameSetup = false;
                 player.FirstPlayerDraws = true;
                 break;
 
-            case 1: // 2007-2013
+            case 1: // 2011-2012
+                player.CoinFlipWinnerDecidesTurnOrder = false;
+                player.TurnOrderDeterminedAfterGameSetup = false;
+                player.FirstPlayerDraws = true;
+                break;
+
+            case 2: // 2007-2010
                 player.CoinFlipWinnerDecidesTurnOrder = false;
                 player.TurnOrderDeterminedAfterGameSetup = true;
                 player.FirstPlayerDraws = true;
                 break;
 
-            case 2: // 2004-2006
-                player.CoinFlipWinnerDecidesTurnOrder = true;
+            case 3: // 2004-2006
+                player.CoinFlipWinnerDecidesTurnOrder = false;
                 player.TurnOrderDeterminedAfterGameSetup = true;
                 player.FirstPlayerDraws = false;
+                break;
+
+            case 4: // Start-2003
+                player.CoinFlipWinnerDecidesTurnOrder = false;
+                player.TurnOrderDeterminedAfterGameSetup = true;
+                player.FirstPlayerDraws = true;
                 break;
 
             default:
@@ -2339,6 +2351,11 @@ public class PlayerScript : NetworkBehaviour
 
         gameManagerReference.CurrentStadium = null;
         RenderStadium();
+
+        if (!playerScript.TurnOrderDeterminedAfterGameSetup)
+        {
+            gameManagerReference.coinManager.BlockView.SetActive(true);
+        }
 
         playerScript.GameAction(Action.Setup, CardManipulation.Shuffle(PlayerInfoManager.fullDeck));
 
