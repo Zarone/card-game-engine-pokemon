@@ -337,20 +337,20 @@ public class GameStateManager : MonoBehaviour
     public void RenderStatusMenu()
     {
         mainButtonsPanel.SetActive(false);
+        StatusMenu.SetActive(true);
         PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
         bool[] states = playerScript.cardSection.ActiveCardStates.Value[0];
-        StatusMenu.SetActive(true);
-        for (byte i = 0; i < StatusMenuContent.childCount; i++)
+        for (byte i = 0; i < StatusMenuContent.childCount-1; i++)
         {
             if (states[i])
             {
-                StatusMenuContent.GetChild(i).GetComponent<Image>().color = Color.green;
-                StatusMenuContent.GetChild(i).GetComponentInChildren<Text>().text = statusDictionary[i] + ": On";
+                StatusMenuContent.GetChild(i + 1).GetComponent<Image>().color = Color.green;
+                StatusMenuContent.GetChild(i + 1).GetComponentInChildren<Text>().text = statusDictionary[i] + ": On";
             }
             else
             {
-                StatusMenuContent.GetChild(i).GetComponent<Image>().color = Color.white;
-                StatusMenuContent.GetChild(i).GetComponentInChildren<Text>().text = statusDictionary[i] + ": Off";
+                StatusMenuContent.GetChild(i + 1).GetComponent<Image>().color = Color.white;
+                StatusMenuContent.GetChild(i + 1).GetComponentInChildren<Text>().text = statusDictionary[i] + ": Off";
             }
         }
     }
@@ -369,6 +369,12 @@ public class GameStateManager : MonoBehaviour
 
     public void OnSelectCancel()
     {
+        if (StatusMenu.activeSelf)
+        {
+            mainButtonsPanel.SetActive(true);
+            StatusMenu.SetActive(false);
+        }
+
         if (selectingMode == SelectingMode.Hand)
         {
             foreach (GameObject client in PlayerInfoManager.players)
@@ -750,7 +756,7 @@ public class GameStateManager : MonoBehaviour
                 }
             }
         }
-            RenderCorrectButtons(SelectingMode.None);
+        RenderCorrectButtons(SelectingMode.None);
     }
 
     public void OnAttach()

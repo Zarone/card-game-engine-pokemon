@@ -113,12 +113,7 @@ public class CollectionScript : MonoBehaviour
 
                 //bool passFilter = false;
 
-
-
-
-
-
-
+                //print(targetPath);
 
                 if (!currentPath.EndsWith(".png"))
                 {
