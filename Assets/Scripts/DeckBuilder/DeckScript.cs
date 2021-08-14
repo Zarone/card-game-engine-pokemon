@@ -12,7 +12,10 @@ using CardInformation;
 public class DeckScript : MonoBehaviour
 {
     public Dictionary<CardType, Dictionary<string, int>> CurrentDeck = new Dictionary<CardType, Dictionary<string, int>>() {
+        { CardType.StarterPokemon, new Dictionary<string, int>() },
+        { CardType.EvolutionPokemon, new Dictionary<string, int>() },
         { CardType.Pokemon, new Dictionary<string, int>() },
+        { CardType.Tool, new Dictionary<string, int>() },
         { CardType.Trainer, new Dictionary<string, int>() },
         { CardType.Energy, new Dictionary<string, int>() },
     };
