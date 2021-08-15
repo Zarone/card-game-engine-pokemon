@@ -1722,6 +1722,7 @@ public class GameStateManager : MonoBehaviour
             else
             {
                 howMany = cardsDrawn;
+                howManyLimit = cardsDrawn;
                 actionQueue = PlayerScript.Action.DrawMulligan;
                 howManyCountObj.GetComponent<Text>().text = howMany.ToString();
                 howManyObj.SetActive(true);
@@ -1824,6 +1825,7 @@ public class GameStateManager : MonoBehaviour
     public static PlayerScript.Action actionQueue;
     public static int howMany = 0;
     public GameObject howManyObj;
+    public int howManyLimit = 3;
     public Text howManyCountObj;
 
     public void OnHowManyConfirm()
@@ -1914,6 +1916,7 @@ public class GameStateManager : MonoBehaviour
 
     public void OnHowManyPlus()
     {
+        if (howMany + 1 > howManyLimit) return;
         howMany++;
         howManyCountObj.GetComponent<Text>().text = howMany.ToString();
     }
