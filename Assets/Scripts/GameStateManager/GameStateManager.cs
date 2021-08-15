@@ -196,6 +196,9 @@ public class GameStateManager : MonoBehaviour
     public ShuffleDeckDialogue shuffleDeckDialogue;
     public CoinManager coinManager;
 
+    public string fullGameLog;
+    public GameLog gameLog;
+
     public Image PlayerBurnCounter;
     public Image PlayerPoisonCounter;
     public Image OppBurnCounter;
@@ -207,6 +210,9 @@ public class GameStateManager : MonoBehaviour
         {
             Debug.LogError("shuffle deck dialogue is null");
         };
+
+        gameLog.GameLogText.fontSize = Screen.width / 50;
+
         NetworkManager.Singleton.OnClientDisconnectCallback += (ulong id) =>
         {
             StartCoroutine(DeleteRoom());

@@ -1805,6 +1805,31 @@ public class PlayerScript : NetworkBehaviour
             Debug.LogError("no action provided");
         }
 
+        AppendGameLogServerRpc(ActionToString(action));
+    }
+
+    private string ActionToString(Action action)
+    {
+        return action switch
+        {
+            Action.Setup => "player setup",
+            Action.Mulligan => "player mulliganed",
+            Action.Draw => "player drew",
+            Action.Discard => "player discarded",
+            _ => "unnamed game action"
+        };
+    }
+
+    [ServerRpc]
+    public void AppendGameLogServerRpc(string log)
+    {
+        AppendGameLogClientRpc(log);
+    } 
+
+    [ClientRpc]
+    public void AppendGameLogClientRpc(string log)
+    {
+        gameManagerReference.gameLog.GameLogText.text += log + $"\n";
     }
 
     public Image PoisonMarker;
