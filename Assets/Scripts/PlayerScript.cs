@@ -1428,6 +1428,7 @@ public class PlayerScript : NetworkBehaviour
 
     public void GameAction(Action action, Card[] extraArgs = null)
     {
+        string extraInfo = null;
 
         if (action == Action.Setup)
         {
@@ -1656,44 +1657,6 @@ public class PlayerScript : NetworkBehaviour
             GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
             gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
         }
-        //else if (action == Action.Tap)
-        //{
-        //    if (gameManagerReference.selectedCards.Count < 1) return;
-
-        //    GameObject tapObj = ModeToGameObject(GameStateManager.selectingMode);
-        //    NetworkVariable<bool[][]> tapStates = GetState(GameStateManager.selectingMode);
-        //    bool[][] newTapStates = tapStates.Value;
-
-        //    for (byte i = 0; i < tapObj.transform.childCount; i++)
-        //    {
-        //        if (gameManagerReference.selectedCards.Contains(i))
-        //        {
-        //            newTapStates[i][0] = !newTapStates[i][0];
-        //        }
-        //    }
-
-        //    tapStates.Value = null;
-        //    tapStates.Value = newTapStates;
-        //    cardSection.RenderSectionSelectingCancel(tapObj);
-        //}
-        //else if (action == Action.Flip)
-        //{
-        //    GameObject flipObj = ModeToGameObject(GameStateManager.selectingMode);
-        //    NetworkVariable<bool[][]> flipStates = GetState(GameStateManager.selectingMode);
-        //    bool[][] newFlipStates = flipStates.Value;
-
-        //    for (byte i = 0; i < flipObj.transform.childCount; i++)
-        //    {
-        //        if (gameManagerReference.selectedCards.Contains(i))
-        //        {
-        //            newFlipStates[i][1] = !newFlipStates[i][1];
-        //        }
-        //    }
-
-        //    flipStates.Value = null;
-        //    flipStates.Value = newFlipStates;
-        //    cardSection.RenderSectionSelectingCancel(flipObj);
-        //}
         else if (action == Action.AddCounter)
         {
             if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Bench)
@@ -1805,17 +1768,30 @@ public class PlayerScript : NetworkBehaviour
             Debug.LogError("no action provided");
         }
 
-        AppendGameLogServerRpc(ActionToString(action));
+        AppendGameLogServerRpc(ActionToString(action, extraInfo));
     }
 
-    private string ActionToString(Action action)
+    private string ActionToString(Action action, string extraInfo = null)
     {
         return PlayerInfoManager.Username + ": " + action switch
         {
-            Action.Setup => "player setup",
-            Action.Mulligan => "player mulliganed",
-            Action.Draw => "player drew",
-            Action.Discard => "player discarded",
+            Action.Setup => "Setup",
+            Action.Mulligan => "Mulliganed",
+            Action.Draw => $"Drew {extraInfo} cards",
+            Action.Discard => $"Discarded {extraInfo} cards",
+            Action.LostZone => $"Moved {extraInfo} cards to lost zone", 
+            Action.ShuffleIntoDeck => $"Shuffled {extraInfo} cards in deck",
+            Action.Bench => $"Moved {extraInfo} to bench",
+            Action.Active => $"Moved {extraInfo} to active",
+            Action.ToHand => $"Moved {extraInfo} to hand",
+            Action.LevelDown => $"Devolved {extraInfo}",
+            Action.AddCounter => $"Added counter to {extraInfo}",
+            Action.Mill => $"Discard the top {extraInfo} cards of deck",
+            Action.TakePrize => $"Took {extraInfo} prize cards",
+            Action.ToBottomOfDeck => $"Moved {extraInfo} cards to bottom of deck",
+            Action.ToTopOfDeck => $"Moved {extraInfo} cards to top of deck",
+            Action.PlaySupporter => $"Played supporter {extraInfo}",
+            Action.MoveToPrizes => $"Moved {extraInfo} cards to prizes",
             _ => "unnamed game action"
         };
     }
