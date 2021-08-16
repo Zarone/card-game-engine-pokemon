@@ -23,6 +23,7 @@ namespace MainMenu
         [SerializeField] private InputField HostRoomNameField;
         [SerializeField] private InputField PasswordField;
         [SerializeField] private InputField HostPasswordField;
+        [SerializeField] private InputField UsernameField;
 
         [SerializeField] private GameObject options;
         private readonly string WaitingText = "Select a deck...";
@@ -160,6 +161,8 @@ namespace MainMenu
             PlayerInfoManager.FirstTurnQueue = FirstTurnDropdownObject.value;
             PlayerInfoManager.RoomName = HostRoomNameField.GetComponent<InputField>().text;
             PlayerInfoManager.CurrentHostPassword = HostPasswordField.GetComponent<InputField>().text;
+            PlayerInfoManager.Username = UsernameField.text;
+
             StartCanvas.SetActive(false);
             WaitingCanvasText.text = "Connecting to server...";
             WaitingCanvas.SetActive(true);
@@ -245,8 +248,10 @@ namespace MainMenu
                 }
 
                 PlayerInfoManager.RoomName = InputField.GetComponent<InputField>().text;
+                PlayerInfoManager.Username = UsernameField.text;
 
                 string password = PasswordField.text;
+
                 NetworkManager.Singleton.NetworkConfig.ConnectionData = System.Text.Encoding.ASCII.GetBytes(password);
                 NetworkManager.Singleton.StartClient();
 

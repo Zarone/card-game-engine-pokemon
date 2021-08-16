@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using MLAPI.NetworkVariable;
 using UnityEngine.Networking;
 using System.Collections;
+using System;
 
 public class GameStateManager : MonoBehaviour
 {
@@ -210,8 +211,6 @@ public class GameStateManager : MonoBehaviour
         {
             Debug.LogError("shuffle deck dialogue is null");
         };
-
-        gameLog.GameLogText.fontSize = Screen.width / 50;
 
         NetworkManager.Singleton.OnClientDisconnectCallback += (ulong id) =>
         {

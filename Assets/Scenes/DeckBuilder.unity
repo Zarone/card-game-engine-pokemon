@@ -1322,7 +1322,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 457.30008}
+  m_AnchoredPosition: {x: 0, y: 411.40002}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &429888352
@@ -4155,8 +4155,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 117627243}
   m_HandleRect: {fileID: 117627242}
   m_Direction: 2
-  m_Value: 1
-  m_Size: 1
+  m_Value: 0
+  m_Size: 0.99414414
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -6366,7 +6366,7 @@ MonoBehaviour:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 40
     m_FontStyle: 0
-    m_BestFit: 0
+    m_BestFit: 1
     m_MinSize: 4
     m_MaxSize: 40
     m_Alignment: 0
@@ -6613,7 +6613,6 @@ MonoBehaviour:
   alertObj: {fileID: 204141745}
   options: {fileID: 1240321661}
   deckCount: {fileID: 1233388688}
-  specialDeckCount: {fileID: 0}
   collectionScript: {fileID: 1133234416}
 --- !u!1 &1699011604
 GameObject:
@@ -6676,7 +6675,7 @@ MonoBehaviour:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
     m_FontSize: 40
     m_FontStyle: 2
-    m_BestFit: 0
+    m_BestFit: 1
     m_MinSize: 0
     m_MaxSize: 90
     m_Alignment: 0

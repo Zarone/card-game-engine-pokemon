@@ -12,6 +12,7 @@ public class PlayerInfoManager
     public static string RoomName;
     public static bool HasAddedApprovalCallback = false;
     public static string CurrentHostPassword;
+    public static string Username;
 
     public static int FirstTurnQueue = -1;
 

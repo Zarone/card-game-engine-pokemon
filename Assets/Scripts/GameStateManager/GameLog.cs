@@ -20,4 +20,9 @@ public class GameLog : MonoBehaviour
         GameLogContainer.SetActive(false);
         GameLogExpandButton.SetActive(true);
     }
+
+    public void CopyLogToClipboard()
+    {
+        GUIUtility.systemCopyBuffer = GameLogText.text;
+    }
 }

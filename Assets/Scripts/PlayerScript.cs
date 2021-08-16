@@ -1810,7 +1810,7 @@ public class PlayerScript : NetworkBehaviour
 
     private string ActionToString(Action action)
     {
-        return action switch
+        return PlayerInfoManager.Username + ": " + action switch
         {
             Action.Setup => "player setup",
             Action.Mulligan => "player mulliganed",
