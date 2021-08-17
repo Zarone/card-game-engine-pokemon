@@ -346,7 +346,7 @@ public class GameStateManager : MonoBehaviour
         StatusMenu.SetActive(true);
         PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
         bool[] states = playerScript.cardSection.ActiveCardStates.Value[0];
-        for (byte i = 0; i < StatusMenuContent.childCount-1; i++)
+        for (byte i = 0; i < StatusMenuContent.childCount - 1; i++)
         {
             if (states[i])
             {
@@ -1728,6 +1728,7 @@ public class GameStateManager : MonoBehaviour
             {
                 howMany = cardsDrawn;
                 howManyLimit = cardsDrawn;
+                print(howManyLimit);
                 actionQueue = PlayerScript.Action.DrawMulligan;
                 howManyCountObj.GetComponent<Text>().text = howMany.ToString();
                 howManyObj.SetActive(true);
@@ -1830,11 +1831,12 @@ public class GameStateManager : MonoBehaviour
     public static PlayerScript.Action actionQueue;
     public static int howMany = 0;
     public GameObject howManyObj;
-    public int howManyLimit = 3;
+    [System.NonSerialized] public int howManyLimit = 60;
     public Text howManyCountObj;
 
     public void OnHowManyConfirm()
     {
+        howManyLimit = 60;
         howManyObj.SetActive(false);
 
         if (howMany < 1)
@@ -1917,10 +1919,12 @@ public class GameStateManager : MonoBehaviour
 
 
         howManyObj.SetActive(false);
+        howManyLimit = 60;
     }
 
     public void OnHowManyPlus()
     {
+        print(howManyLimit);
         if (howMany + 1 > howManyLimit) return;
         howMany++;
         howManyCountObj.GetComponent<Text>().text = howMany.ToString();
@@ -1928,6 +1932,7 @@ public class GameStateManager : MonoBehaviour
 
     public void OnHowManyMinus()
     {
+        if (howMany - 1 < 0) return;
         howMany--;
         howManyCountObj.GetComponent<Text>().text = howMany.ToString();
     }

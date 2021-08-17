@@ -47,16 +47,6 @@ public class CardSection : NetworkBehaviour
         new Card[0][]
     );
 
-    //[System.NonSerialized]
-    //public NetworkVariable<bool[][]> BenchCardStates = new NetworkVariable<bool[][]>(
-    //    new NetworkVariableSettings
-    //    {
-    //        WritePermission = NetworkVariablePermission.OwnerOnly,
-    //        ReadPermission = NetworkVariablePermission.Everyone
-    //    },
-    //    new bool[0][]
-    //);
-
     [System.NonSerialized]
     public NetworkVariable<bool[][]> ActiveCardStates = new NetworkVariable<bool[][]>(
         new NetworkVariableSettings
@@ -392,6 +382,14 @@ public class CardSection : NetworkBehaviour
 
                         void newCallback()
                         {
+                            playerRef.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Attached " +
+                                CollectionScript.FileToName(
+                                    from.Value[playerRef.gameManagerReference.selectedCards[0]].art
+                                ) +
+                                (playerRef.gameManagerReference.selectedCards.Count > 1
+                                    ? $" and {playerRef.gameManagerReference.selectedCards.Count - 1} others"
+                                    : "") +
+                                 $" to {CollectionScript.FileToName(cardlist[int.Parse(EditingCard.name)].art)}");
                             from.Value = newX;
 
                             Card[][] tempAttachedCards = attachedCards.Value;
@@ -471,6 +469,13 @@ public class CardSection : NetworkBehaviour
 
                         void newCallback()
                         {
+
+                            playerRef.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Evolved from " +
+                                CollectionScript.FileToName(cardlist[int.Parse(EditingCard.name)].art) +
+                                " to " +
+                                CollectionScript.FileToName(
+                                    playerRef.Hand.Value[playerRef.gameManagerReference.selectedCards[0]].art)
+                                );
 
                             Card[][] tempLevelInfo = levelInfo.Value;
                             tempLevelInfo[int.Parse(EditingCard.name)] = newLevelInfo;

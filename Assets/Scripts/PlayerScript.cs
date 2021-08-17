@@ -23,8 +23,6 @@ public class PlayerScript : NetworkBehaviour
         ToHand,
         AttachStart,
         AttachConfirm,
-        //Tap,
-        //Flip,
         LevelUpStart,
         LevelDown,
         AddCounter,
@@ -742,6 +740,25 @@ public class PlayerScript : NetworkBehaviour
         };
     }
 
+    private string GetName(GameStateManager.SelectingMode mode)
+    {
+        return mode switch
+        {
+            GameStateManager.SelectingMode.Active => "active",
+            GameStateManager.SelectingMode.Bench => "bench",
+            GameStateManager.SelectingMode.Deck => "deck",
+            GameStateManager.SelectingMode.Discard => "discard",
+            GameStateManager.SelectingMode.Hand => "hand",
+            GameStateManager.SelectingMode.LostZone => "lost zone",
+            GameStateManager.SelectingMode.Prizes => "prizes",
+            GameStateManager.SelectingMode.Stadium => "stadium zone",
+            GameStateManager.SelectingMode.Supporter => "supporter zone",
+            GameStateManager.SelectingMode.AttachedActive => "active attachment",
+            GameStateManager.SelectingMode.AttachedBench => "bench attachment",
+            _ => "unnamed location"
+        };
+    }
+
     public int GetNumberOfAttachedCards(GameStateManager.SelectingMode mode)
     {
         NetworkVariable<Card[][]> attachedCards = CheckAttachments(mode);
@@ -1428,7 +1445,7 @@ public class PlayerScript : NetworkBehaviour
 
     public void GameAction(Action action, Card[] extraArgs = null)
     {
-        string extraInfo = null;
+        string[] extraInfo = new string[0];
 
         if (action == Action.Setup)
         {
@@ -1506,7 +1523,7 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.Draw)
         {
-            extraInfo = GameStateManager.howMany.ToString();
+            extraInfo = new string[1] { GameStateManager.howMany.ToString() };
             List<byte> cardsToDraw = new List<byte>();
 
             for (byte i = 0; i < GameStateManager.howMany; i++)
@@ -1520,6 +1537,7 @@ public class PlayerScript : NetworkBehaviour
         else if (action == Action.DrawMulligan)
         {
             List<byte> cardsToDraw = new List<byte>();
+            extraInfo = new string[1] { GameStateManager.howMany.ToString() };
 
             if (GameStateManager.howMany > 0)
             {
@@ -1557,7 +1575,7 @@ public class PlayerScript : NetworkBehaviour
         else if (action == Action.Discard)
         {
             //extraInfo = gameManagerReference.selectedCards.Count.ToString();
-            extraInfo = CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
+            extraInfo = new string[1]{ CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
                 ? ModeToLocalDeck(GameStateManager.selectingMode)
                     .Value[gameManagerReference.selectedCards[0]].art
                 : ModeToNetworkDeck(GameStateManager.selectingMode)
@@ -1565,13 +1583,13 @@ public class PlayerScript : NetworkBehaviour
             ) + (gameManagerReference.selectedCards.Count > 1
                 ? $" and {gameManagerReference.selectedCards.Count - 1} others"
                 : ""
-            );
+            ) };
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Discard);
         }
         else if (action == Action.LostZone)
         {
             //extraInfo = gameManagerReference.selectedCards.Count.ToString();
-            extraInfo = CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
+            extraInfo = new string[1] { CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
                 ? ModeToLocalDeck(GameStateManager.selectingMode)
                     .Value[gameManagerReference.selectedCards[0]].art
                 : ModeToNetworkDeck(GameStateManager.selectingMode)
@@ -1579,17 +1597,17 @@ public class PlayerScript : NetworkBehaviour
             ) + (gameManagerReference.selectedCards.Count > 1
                 ? $" and {gameManagerReference.selectedCards.Count - 1} others"
                 : ""
-            );
+            ) };
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.LostZone);
         }
         else if (action == Action.ShuffleIntoDeck)
         {
-            extraInfo = gameManagerReference.selectedCards.Count.ToString();
+            extraInfo = new string[1] { gameManagerReference.selectedCards.Count.ToString() };
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Deck, true);
         }
         else if (action == Action.Bench)
         {
-            extraInfo = CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
+            extraInfo = new string[1] { CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
                 ? ModeToLocalDeck(GameStateManager.selectingMode)
                     .Value[gameManagerReference.selectedCards[0]].art
                 : ModeToNetworkDeck(GameStateManager.selectingMode)
@@ -1597,12 +1615,12 @@ public class PlayerScript : NetworkBehaviour
             ) + (gameManagerReference.selectedCards.Count > 1
                 ? $" and {gameManagerReference.selectedCards.Count - 1} others"
                 : ""
-            );
+            ) };
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Bench);
         }
         else if (action == Action.Active)
         {
-            extraInfo = CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
+            extraInfo = new string[1] { CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
                 ? ModeToLocalDeck(GameStateManager.selectingMode)
                     .Value[gameManagerReference.selectedCards[0]].art
                 : ModeToNetworkDeck(GameStateManager.selectingMode)
@@ -1610,12 +1628,13 @@ public class PlayerScript : NetworkBehaviour
             ) + (gameManagerReference.selectedCards.Count > 1
                 ? $" and {gameManagerReference.selectedCards.Count - 1} others"
                 : ""
-            );
+            ) };
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Active);
         }
         else if (action == Action.ToHand)
         {
-            extraInfo = gameManagerReference.selectedCards.Count.ToString();
+            extraInfo = new string[2] { gameManagerReference.selectedCards.Count.ToString(),
+                GetName(GameStateManager.selectingMode) };
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Hand);
         }
         else if (action == Action.AttachStart)
@@ -1693,9 +1712,9 @@ public class PlayerScript : NetworkBehaviour
 
             Hand.Value = newHand;
 
-            extraInfo = CollectionScript.FileToName(from.Value[gameManagerReference.selectedCards[0]].art) +
+            extraInfo = new string[1] { CollectionScript.FileToName(from.Value[gameManagerReference.selectedCards[0]].art) +
                 (gameManagerReference.selectedCards.Count > 1
-                    ? $" and {gameManagerReference.selectedCards.Count - 1} more" : "");
+                    ? $" and {gameManagerReference.selectedCards.Count - 1} more" : "") };
             gameManagerReference.selectedCards = new List<byte>();
             GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
             gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
@@ -1706,11 +1725,11 @@ public class PlayerScript : NetworkBehaviour
 
             if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Bench)
             {
-                extraInfo = CollectionScript.FileToName(
+                extraInfo = new string[1] { CollectionScript.FileToName(
                     cardSection.Bench.Value[gameManagerReference.selectedCards[0]].art) +
                     (gameManagerReference.selectedCards.Count > 1
                         ? $" and {gameManagerReference.selectedCards.Count - 1} more" : ""
-                );
+                ) };
                 int[] newBenchCounters = cardSection.BenchCounters.Value;
                 cardSection.BenchCounters.Value = null;
 
@@ -1722,11 +1741,11 @@ public class PlayerScript : NetworkBehaviour
             }
             else if (GameStateManager.selectingMode == GameStateManager.SelectingMode.Active)
             {
-                extraInfo = CollectionScript.FileToName(
+                extraInfo = new string[1] { CollectionScript.FileToName(
                     cardSection.Active.Value[gameManagerReference.selectedCards[0]].art) +
                     (gameManagerReference.selectedCards.Count > 1
                         ? $" and {gameManagerReference.selectedCards.Count - 1} more" : ""
-                );
+                ) };
                 int[] newActiveCounters = cardSection.ActiveCounters.Value;
                 cardSection.ActiveCounters.Value = null;
 
@@ -1741,7 +1760,7 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.Mill)
         {
-            extraInfo = GameStateManager.howMany.ToString();
+            extraInfo = new string[1] { GameStateManager.howMany.ToString() };
             for (int i = 0; i < GameStateManager.howMany; i++)
             {
                 gameManagerReference.selectedCards.Add((byte)i);
@@ -1751,7 +1770,7 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.TakePrize)
         {
-            extraInfo = GameStateManager.howMany.ToString();
+            extraInfo = new string[1] { GameStateManager.howMany.ToString() };
             for (int i = 0; i < GameStateManager.howMany; i++)
             {
                 gameManagerReference.selectedCards.Add((byte)i);
@@ -1761,7 +1780,7 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.ToBottomOfDeck)
         {
-            extraInfo = gameManagerReference.selectedCards.Count.ToString();
+            extraInfo = new string[1] { gameManagerReference.selectedCards.Count.ToString() };
             if (GameStateManager.viewingMode == GameStateManager.SelectingMode.DeckSection)
             {
                 ToBottomOfDeckFromSection();
@@ -1773,7 +1792,7 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.ToTopOfDeck)
         {
-            extraInfo = gameManagerReference.selectedCards.Count.ToString();
+            extraInfo = new string[1] { gameManagerReference.selectedCards.Count.ToString() };
             if (GameStateManager.viewingMode == GameStateManager.SelectingMode.DeckSection)
             {
                 ToTopOfDeckFromSection();
@@ -1807,7 +1826,7 @@ public class PlayerScript : NetworkBehaviour
             {
                 Hand.Value = newHand;
                 SupporterCard.Value = newSupporter;
-                extraInfo = CollectionScript.FileToName(newSupporter.art);
+                extraInfo = new string[1] { CollectionScript.FileToName(newSupporter.art) };
             }
             else
             {
@@ -1821,7 +1840,7 @@ public class PlayerScript : NetworkBehaviour
         }
         else if (action == Action.MoveToPrizes)
         {
-            extraInfo = gameManagerReference.selectedCards.Count.ToString();
+            extraInfo = new string[1] { gameManagerReference.selectedCards.Count.ToString() };
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Prizes);
         }
         else
@@ -1832,27 +1851,30 @@ public class PlayerScript : NetworkBehaviour
         AppendGameLogServerRpc(ActionToString(action, extraInfo));
     }
 
-    private string ActionToString(Action action, string extraInfo = null)
+    private string ActionToString(Action action, string[] extraInfo = null)
     {
         return PlayerInfoManager.Username + ": " + action switch
         {
             Action.Setup => "Setup",
             Action.Mulligan => "Mulliganed",
-            Action.Draw => $"Drew {extraInfo} cards",
-            Action.Discard => $"Discarded {extraInfo} cards",
-            Action.LostZone => $"Moved {extraInfo} cards to lost zone",
-            Action.ShuffleIntoDeck => $"Shuffled {extraInfo} cards in deck",
-            Action.Bench => $"Moved {extraInfo} to bench",
-            Action.Active => $"Moved {extraInfo} to active",
-            Action.ToHand => $"Moved {extraInfo} cards to hand",
-            Action.LevelDown => $"Devolved {extraInfo}",
-            Action.AddCounter => $"Added counter to {extraInfo}",
-            Action.Mill => $"Discard the top {extraInfo} cards of deck",
-            Action.TakePrize => $"Took {extraInfo} prize cards",
-            Action.ToBottomOfDeck => $"Moved {extraInfo} cards to bottom of deck",
-            Action.ToTopOfDeck => $"Moved {extraInfo} cards to top of deck",
-            Action.PlaySupporter => $"Played supporter {extraInfo}",
-            Action.MoveToPrizes => $"Moved {extraInfo} cards to prizes",
+            Action.Draw => $"Drew {extraInfo[0]} cards",
+            Action.DrawMulligan => $"Drew {extraInfo[0]} cards from mulligan",
+            Action.Discard => $"Discarded {extraInfo[0]} card",
+            Action.LostZone => $"Moved {extraInfo[0]} cards to lost zone",
+            Action.ShuffleIntoDeck => $"Shuffled {extraInfo[0]} cards in deck",
+            Action.Bench => $"Moved {extraInfo[0]} to bench",
+            Action.Active => $"Moved {extraInfo[0]} to active",
+            Action.ToHand => $"Moved {extraInfo[0]} cards to hand from {extraInfo[1]}",
+            Action.AttachStart => "Began attachment",
+            Action.LevelUpStart => "Began level up",
+            Action.LevelDown => $"Devolved to {extraInfo[0]}",
+            Action.AddCounter => $"Added counter to {extraInfo[0]}",
+            Action.Mill => $"Discard the top {extraInfo[0]} cards of deck",
+            Action.TakePrize => $"Took {extraInfo[0]} prize cards",
+            Action.ToBottomOfDeck => $"Moved {extraInfo[0]} cards to bottom of deck",
+            Action.ToTopOfDeck => $"Moved {extraInfo[0]} cards to top of deck",
+            Action.PlaySupporter => $"Played supporter {extraInfo[0]}",
+            Action.MoveToPrizes => $"Moved {extraInfo[0]} cards to prizes",
             _ => "unnamed game action"
         };
     }
