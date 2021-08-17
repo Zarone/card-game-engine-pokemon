@@ -179,14 +179,14 @@ public class CollectionScript : MonoBehaviour
         return cardsAdded;
     }
 
-    public string FileToName(string fileAfterDirectoryPath)
+    public static string FileToName(string fileAfterDirectoryPath)
     {
         string[] cardInfo = fileAfterDirectoryPath.Split('/');
         string era = cardInfo[1];
         string set = cardInfo[2];
         string cardNumber = cardInfo[4];
 
-        StreamReader reader = new StreamReader(directoryPath + era + "/" + set + ".json");
+        StreamReader reader = new StreamReader(Application.dataPath + @"/Resources/Cards/" + era + "/" + set + ".json");
         Dictionary<string, string> setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
 
         reader.Close();
