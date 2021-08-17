@@ -133,7 +133,7 @@ public class CollectionScript : MonoBehaviour
                         if (CardPrefab != null && ContentDiv != null)
                         {
                             GameObject clone = Instantiate(CardPrefab, ContentDiv);
-                            clone.GetComponentInChildren<Image>().sprite = card;
+                            clone.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = card;
                             cardsAdded++;
 
                             CardType cardType = (CardType)i;
