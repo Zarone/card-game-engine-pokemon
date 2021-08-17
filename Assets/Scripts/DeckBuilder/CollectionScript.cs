@@ -219,7 +219,7 @@ public class CollectionScript : MonoBehaviour
 
         try
         {
-            int limit = 50;
+            int limit = 200;
             int cardsAdded = 0;
 
             //Get the path of all files inside the directory and save them on a List  
