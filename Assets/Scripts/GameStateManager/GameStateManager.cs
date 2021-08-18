@@ -1008,6 +1008,8 @@ public class GameStateManager : MonoBehaviour
 
     public void OnClickSupporter()
     {
+        if (PlayerSupporter.transform.GetChild(0).GetComponent<Image>().color.a < 0.1) return;
+
         if (PlayerSupporter.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
         {
             PlayerSupporter.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
@@ -1024,6 +1026,8 @@ public class GameStateManager : MonoBehaviour
 
     public void OnClickStadium()
     {
+        if (StadiumObj.transform.GetChild(0).GetComponent<Image>().color.a < 0.1) return;
+
         if (StadiumObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
         {
             StadiumObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
