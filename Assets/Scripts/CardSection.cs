@@ -734,10 +734,9 @@ public class CardSection : NetworkBehaviour
                 {
                     if (GameStateManager.selectingMode != ownType)
                     {
-
                         foreach (Transform Card in attachmentSection.transform.parent.parent)
                         {
-                            foreach (Transform AttachedCard in Card.GetChild(0))
+                            foreach (Transform AttachedCard in Card.GetChild(1))
                             {
                                 AttachedCard.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                             }

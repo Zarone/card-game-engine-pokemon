@@ -1196,12 +1196,12 @@ public class PlayerScript : NetworkBehaviour
             GameStateManager.selectingMode = GameStateManager.SelectingMode.None;
             gameManagerReference.selectedCards = new List<byte>();
 
-            foreach (Transform child in yObj.transform)
-            {
-                if (child.gameObject.transform.GetChild(0).GetComponent<Image>() != null) break;
+            //foreach (Transform child in yObj.transform)
+            //{
+            //    if (child.GetChild(0).GetComponent<Image>() != null) break;
 
-                child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
-            }
+            //    child.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
+            //}
 
             X.Value = newX;
 
@@ -1565,29 +1565,75 @@ public class PlayerScript : NetworkBehaviour
         else if (action == Action.Discard)
         {
             //extraInfo = gameManagerReference.selectedCards.Count.ToString();
-            extraInfo = new string[1]{ CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
-                ? ModeToLocalDeck(GameStateManager.selectingMode)
-                    .Value[gameManagerReference.selectedCards[0]].art
-                : ModeToNetworkDeck(GameStateManager.selectingMode)
-                    .Value[gameManagerReference.selectedCards[0]].art
-            ) + (gameManagerReference.selectedCards.Count > 1
-                ? $" and {gameManagerReference.selectedCards.Count - 1} others"
-                : ""
+            if (IsAttachment(GameStateManager.selectingMode))
+            {
+                Card FirstCardMoved = null;
+
+                byte k = 0;
+                for (int i = 0; i < ModeToNetworkDeck2D(GameStateManager.selectingMode).Value.Length; i++)
+                {
+                    foreach (Card card in ModeToNetworkDeck2D(GameStateManager.selectingMode).Value[i])
+                    {
+                        if (k == gameManagerReference.selectedCards[0])
+                        {
+                            FirstCardMoved = card;
+                            i = ModeToNetworkDeck2D(GameStateManager.selectingMode).Value.Length;
+                            break;
+                        }
+                        k++;
+                    }
+                }
+                extraInfo = new string[1] { CollectionScript.FileToName(FirstCardMoved.art) };
+            }
+            else
+            {
+                extraInfo = new string[1]{ CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
+                    ? ModeToLocalDeck(GameStateManager.selectingMode)
+                        .Value[gameManagerReference.selectedCards[0]].art
+                    : ModeToNetworkDeck(GameStateManager.selectingMode)
+                        .Value[gameManagerReference.selectedCards[0]].art
+                ) + (gameManagerReference.selectedCards.Count > 1
+                    ? $" and {gameManagerReference.selectedCards.Count - 1} others"
+                    : ""
             ) };
+            }
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.Discard);
         }
         else if (action == Action.LostZone)
         {
             //extraInfo = gameManagerReference.selectedCards.Count.ToString();
-            extraInfo = new string[1] { CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
-                ? ModeToLocalDeck(GameStateManager.selectingMode)
-                    .Value[gameManagerReference.selectedCards[0]].art
-                : ModeToNetworkDeck(GameStateManager.selectingMode)
-                    .Value[gameManagerReference.selectedCards[0]].art
-            ) + (gameManagerReference.selectedCards.Count > 1
-                ? $" and {gameManagerReference.selectedCards.Count - 1} others"
-                : ""
-            ) };
+            if (IsAttachment(GameStateManager.selectingMode))
+            {
+                Card FirstCardMoved = null;
+
+                byte k = 0;
+                for (int i = 0; i < ModeToNetworkDeck2D(GameStateManager.selectingMode).Value.Length; i++)
+                {
+                    foreach (Card card in ModeToNetworkDeck2D(GameStateManager.selectingMode).Value[i])
+                    {
+                        if (k == gameManagerReference.selectedCards[0])
+                        {
+                            FirstCardMoved = card;
+                            i = ModeToNetworkDeck2D(GameStateManager.selectingMode).Value.Length;
+                            break;
+                        }
+                        k++;
+                    }
+                }
+                extraInfo = new string[1] { CollectionScript.FileToName(FirstCardMoved.art) };
+            }
+            else
+            {
+                extraInfo = new string[1] { CollectionScript.FileToName(IsLocal(GameStateManager.selectingMode)
+                    ? ModeToLocalDeck(GameStateManager.selectingMode)
+                        .Value[gameManagerReference.selectedCards[0]].art
+                    : ModeToNetworkDeck(GameStateManager.selectingMode)
+                        .Value[gameManagerReference.selectedCards[0]].art
+                ) + (gameManagerReference.selectedCards.Count > 1
+                    ? $" and {gameManagerReference.selectedCards.Count - 1} others"
+                    : ""
+                ) };
+            }
             FromToWithModes(GameStateManager.selectingMode, GameStateManager.SelectingMode.LostZone);
         }
         else if (action == Action.ShuffleIntoDeck)
@@ -1878,6 +1924,7 @@ public class PlayerScript : NetworkBehaviour
     [ClientRpc]
     public void AppendGameLogClientRpc(string log)
     {
+        if (gameManagerReference.gameLog == null) return;
         gameManagerReference.gameLog.GameLogText.text += log + $"\n";
     }
 
