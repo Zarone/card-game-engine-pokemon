@@ -269,12 +269,12 @@ public class CardSection : NetworkBehaviour
                             RenderSectionSelecting(obj, ownType);
                             playerRef.gameManagerReference.RenderCorrectButtons(ownType);
                         }
-                        if (EditingCard.GetComponent<Image>().color == CardManipulation.Unselected)
+                        if (EditingCard.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
                         {
                             playerRef.gameManagerReference.selectedCards.Add(byte.Parse(EditingCard.name));
-                            EditingCard.GetComponent<Image>().color = CardManipulation.Selected;
+                            EditingCard.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
                         }
-                        else if (EditingCard.GetComponent<Image>().color == CardManipulation.Selected)
+                        else if (EditingCard.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
                         {
                             playerRef.gameManagerReference.selectedCards.Remove(byte.Parse(EditingCard.name));
                             if (playerRef.gameManagerReference.selectedCards.Count < 1)
@@ -284,7 +284,7 @@ public class CardSection : NetworkBehaviour
                             }
                             else
                             {
-                                EditingCard.GetComponent<Image>().color = CardManipulation.Unselected;
+                                EditingCard.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                             }
                         }
                     }
@@ -297,12 +297,12 @@ public class CardSection : NetworkBehaviour
                             playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.selectingMode);
                         }
 
-                        if (EditingCard.GetComponent<Image>().color == CardManipulation.Unselected)
+                        if (EditingCard.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
                         {
                             playerRef.gameManagerReference.selectedCards.Add(byte.Parse(EditingCard.name));
-                            EditingCard.GetComponent<Image>().color = CardManipulation.Selected;
+                            EditingCard.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
                         }
-                        else if (EditingCard.GetComponent<Image>().color == CardManipulation.Selected)
+                        else if (EditingCard.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
                         {
                             playerRef.gameManagerReference.selectedCards.Remove(byte.Parse(EditingCard.name));
                             if (playerRef.gameManagerReference.selectedCards.Count < 1)
@@ -312,7 +312,7 @@ public class CardSection : NetworkBehaviour
                             }
                             else
                             {
-                                EditingCard.GetComponent<Image>().color = CardManipulation.Unselected;
+                                EditingCard.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                             }
                         }
                     }
@@ -411,12 +411,12 @@ public class CardSection : NetworkBehaviour
                             {
                                 foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.ActiveObj.transform)
                                 {
-                                    child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                                    child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
                                 }
 
                                 foreach (Transform child in playerClient.GetComponent<PlayerScript>().cardSection.BenchObj.transform)
                                 {
-                                    child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                                    child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
                                 }
                             }
 
@@ -504,12 +504,12 @@ public class CardSection : NetworkBehaviour
 
                             foreach (Transform child in BenchObj.transform)
                             {
-                                child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                                child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
                             }
 
                             foreach (Transform child in ActiveObj.transform)
                             {
-                                child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                                child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
                             }
 
                             playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
@@ -549,7 +549,7 @@ public class CardSection : NetworkBehaviour
                     Sprite[] sprites = Resources.LoadAll<Sprite>(query);
                     if (sprites.Length == 1)
                     {
-                        EditingCard.GetComponent<Image>().sprite = sprites[0];
+                        EditingCard.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
                     }
                     else
                     {
@@ -572,23 +572,8 @@ public class CardSection : NetworkBehaviour
                         EditingCard.transform.Rotate(new Vector3(0, 0, -90));
                     }
 
-                    //if (cardStates.Value[i][1])
-                    //{
-                    //    string query = CardManipulation.DefaultCard;
-                    //    Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-                    //    if (sprites.Length == 1)
-                    //    {
-                    //        EditingCard.GetComponent<Image>().sprite = sprites[0];
-                    //    }
-                    //    else
-                    //    {
-                    //        Debug.LogError($"{query} returned {sprites.Length} results");
-                    //    }
-                    //}
-                    //else
-                    //{
+                    
                     setSprite();
-                    //}
 
                 }
                 else
@@ -710,7 +695,7 @@ public class CardSection : NetworkBehaviour
             Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
             if (spritesAttach.Length == 1)
             {
-                thisLevel.GetComponent<Image>().sprite = spritesAttach[0];
+                thisLevel.transform.GetChild(0).GetComponent<Image>().sprite = spritesAttach[0];
             }
             else
             {
@@ -754,7 +739,7 @@ public class CardSection : NetworkBehaviour
                         {
                             foreach (Transform AttachedCard in Card.GetChild(0))
                             {
-                                AttachedCard.GetComponent<Image>().color = CardManipulation.Unselected;
+                                AttachedCard.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                             }
                         }
 
@@ -762,12 +747,12 @@ public class CardSection : NetworkBehaviour
 
                         playerRef.gameManagerReference.RenderCorrectButtons(ownType);
                     }
-                    if (attachment.GetComponent<Image>().color == CardManipulation.Unselected)
+                    if (attachment.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
                     {
                         playerRef.gameManagerReference.selectedCards.Add(byte.Parse(attachment.name));
-                        attachment.GetComponent<Image>().color = CardManipulation.Selected;
+                        attachment.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
                     }
-                    else if (attachment.GetComponent<Image>().color == CardManipulation.Selected)
+                    else if (attachment.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
                     {
                         playerRef.gameManagerReference.selectedCards.Remove(byte.Parse(attachment.name));
                         if (playerRef.gameManagerReference.selectedCards.Count < 1)
@@ -776,7 +761,7 @@ public class CardSection : NetworkBehaviour
                         }
                         else
                         {
-                            attachment.GetComponent<Image>().color = CardManipulation.Unselected;
+                            attachment.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                         }
                     }
                 }
@@ -787,7 +772,7 @@ public class CardSection : NetworkBehaviour
             Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
             if (spritesAttach.Length == 1)
             {
-                attachment.GetComponent<Image>().sprite = spritesAttach[0];
+                attachment.transform.GetChild(0).GetComponent<Image>().sprite = spritesAttach[0];
                 attachment.GetComponent<RectTransform>().sizeDelta = new Vector2(48.6f, 67.8857143f);
             }
             else
@@ -806,7 +791,7 @@ public class CardSection : NetworkBehaviour
         {
             foreach (Transform AttachedCard in Card.GetChild(0))
             {
-                AttachedCard.GetComponent<Image>().color = CardManipulation.Normal;
+                AttachedCard.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
             }
         }
 
@@ -819,7 +804,7 @@ public class CardSection : NetworkBehaviour
         GameStateManager.selectingMode = ownType;
         foreach (Transform child in obj.transform)
         {
-            child.gameObject.GetComponent<Image>().color = CardManipulation.Unselected;
+            child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
         }
     }
 
@@ -830,7 +815,7 @@ public class CardSection : NetworkBehaviour
         playerRef.gameManagerReference.RenderCorrectButtons(GameStateManager.SelectingMode.None);
         foreach (Transform child in obj.transform)
         {
-            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+            child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
         }
     }
 }

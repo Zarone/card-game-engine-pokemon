@@ -13,7 +13,7 @@ public class CardRightClickHandler : MonoBehaviour, IPointerClickHandler
     {
         if (eventData.button == PointerEventData.InputButton.Right && onRightClick != null)
         {
-            onRightClick(gameObject.GetComponent<Image>().sprite);
+            onRightClick(gameObject.transform.GetChild(0).GetComponent<Image>().sprite);
         }
     }
 }

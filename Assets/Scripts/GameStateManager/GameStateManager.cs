@@ -284,11 +284,11 @@ public class GameStateManager : MonoBehaviour
     {
         if (isLocal)
         {
-            playerDeckSprite.GetComponent<Image>().color = new Color(1, 1, 1, numberOfCards > 0 ? numberOfCards / 50f + 0.3f : 0);
+            playerDeckSprite.transform.GetChild(0).GetComponent<Image>().color = new Color(1, 1, 1, numberOfCards > 0 ? numberOfCards / 50f + 0.3f : 0);
         }
         else
         {
-            oppDeckSprite.GetComponent<Image>().color = new Color(1, 1, 1, numberOfCards > 0 ? numberOfCards / 50f + 0.3f : 0);
+            oppDeckSprite.transform.GetChild(0).GetComponent<Image>().color = new Color(1, 1, 1, numberOfCards > 0 ? numberOfCards / 50f + 0.3f : 0);
         }
     }
 
@@ -319,7 +319,7 @@ public class GameStateManager : MonoBehaviour
     public GameObject CardCloseupCard;
     public void OnCardRightClick(Sprite image)
     {
-        CardCloseupCard.GetComponent<Image>().sprite = image;
+        CardCloseupCard.transform.GetChild(0).GetComponent<Image>().sprite = image;
         CardCloseupPanel.SetActive(true);
         mainButtonsPanel.SetActive(false);
     }
@@ -430,18 +430,18 @@ public class GameStateManager : MonoBehaviour
                 {
                     foreach (Transform child in player.PlayerHand.transform)
                     {
-                        child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                        child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
                     }
 
                 }
                 foreach (Transform child in player.cardSection.ActiveObj.transform)
                 {
-                    child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                    child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
                 }
 
                 foreach (Transform child in player.cardSection.BenchObj.transform)
                 {
-                    child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                    child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
                 }
             }
         }
@@ -477,12 +477,12 @@ public class GameStateManager : MonoBehaviour
         }
         else if (selectingMode == SelectingMode.Stadium)
         {
-            StadiumObj.GetComponent<Image>().color = CardManipulation.Normal;
+            StadiumObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
             selectingMode = SelectingMode.None;
         }
         else if (selectingMode == SelectingMode.Supporter)
         {
-            PlayerSupporter.GetComponent<Image>().color = CardManipulation.Normal;
+            PlayerSupporter.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
             selectingMode = SelectingMode.None;
         }
         else if (selectingMode == SelectingMode.Evolve)
@@ -551,11 +551,11 @@ public class GameStateManager : MonoBehaviour
                         CardSection playerCardSection = _client.GetComponent<PlayerScript>().cardSection;
                         foreach (Transform child in playerCardSection.BenchObj.transform)
                         {
-                            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                            child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
                         }
                         foreach (Transform child in playerCardSection.ActiveObj.transform)
                         {
-                            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+                            child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
                         }
                     }
                 }
@@ -1008,32 +1008,32 @@ public class GameStateManager : MonoBehaviour
 
     public void OnClickSupporter()
     {
-        if (PlayerSupporter.GetComponent<Image>().color == CardManipulation.Selected)
+        if (PlayerSupporter.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
         {
-            PlayerSupporter.GetComponent<Image>().color = CardManipulation.Normal;
+            PlayerSupporter.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
             selectingMode = SelectingMode.None;
             RenderCorrectButtons(SelectingMode.None);
         }
         else
         {
             selectingMode = SelectingMode.Supporter;
-            PlayerSupporter.GetComponent<Image>().color = CardManipulation.Selected;
+            PlayerSupporter.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
             RenderCorrectButtons(SelectingMode.Supporter);
         }
     }
 
     public void OnClickStadium()
     {
-        if (StadiumObj.GetComponent<Image>().color == CardManipulation.Selected)
+        if (StadiumObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
         {
-            StadiumObj.GetComponent<Image>().color = CardManipulation.Normal;
+            StadiumObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
             selectingMode = SelectingMode.None;
             RenderCorrectButtons(SelectingMode.None);
         }
         else
         {
             selectingMode = SelectingMode.Stadium;
-            StadiumObj.GetComponent<Image>().color = CardManipulation.Selected;
+            StadiumObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
             RenderCorrectButtons(SelectingMode.Stadium);
         }
     }
@@ -1097,12 +1097,12 @@ public class GameStateManager : MonoBehaviour
                         selectingMode = SelectingMode.Deck;
                         RenderCorrectButtons(SelectingMode.Deck);
                     }
-                    if (cardObj.GetComponent<Image>().color == CardManipulation.Unselected)
+                    if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
                     {
                         selectedCards.Add(byte.Parse(cardObj.name));
-                        cardObj.GetComponent<Image>().color = CardManipulation.Selected;
+                        cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
                     }
-                    else if (cardObj.GetComponent<Image>().color == CardManipulation.Selected)
+                    else if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
                     {
                         selectedCards.Remove(byte.Parse(cardObj.name));
                         if (selectedCards.Count < 1)
@@ -1113,7 +1113,7 @@ public class GameStateManager : MonoBehaviour
                         }
                         else
                         {
-                            cardObj.GetComponent<Image>().color = CardManipulation.Unselected;
+                            cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                         }
                     }
                 }
@@ -1122,7 +1122,7 @@ public class GameStateManager : MonoBehaviour
             //string query = "Cards/" + ((int)clientCode.Deck.Value[i].type).ToString() + "/" + clientCode.Deck.Value[i].art + "-01";
             string query = clientCode.Deck.Value[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            cardObj.GetComponent<Image>().sprite = sprites[0];
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
@@ -1173,12 +1173,12 @@ public class GameStateManager : MonoBehaviour
                         selectingMode = SelectingMode.DeckSection;
                         RenderCorrectButtons(SelectingMode.DeckSection);
                     }
-                    if (cardObj.GetComponent<Image>().color == CardManipulation.Unselected)
+                    if (cardObj.transform.GetChild(0).GetComponent<Image> ().color == CardManipulation.Unselected)
                     {
                         selectedCards.Add(byte.Parse(cardObj.name));
-                        cardObj.GetComponent<Image>().color = CardManipulation.Selected;
+                        cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
                     }
-                    else if (cardObj.GetComponent<Image>().color == CardManipulation.Selected)
+                    else if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
                     {
                         selectedCards.Remove(byte.Parse(cardObj.name));
                         if (selectedCards.Count < 1)
@@ -1189,7 +1189,7 @@ public class GameStateManager : MonoBehaviour
                         }
                         else
                         {
-                            cardObj.GetComponent<Image>().color = CardManipulation.Unselected;
+                            cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                         }
                     }
                 }
@@ -1250,12 +1250,12 @@ public class GameStateManager : MonoBehaviour
                         selectingMode = SelectingMode.Discard;
                         RenderCorrectButtons(SelectingMode.Discard);
                     }
-                    if (cardObj.GetComponent<Image>().color == CardManipulation.Unselected)
+                    if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
                     {
                         selectedCards.Add(byte.Parse(cardObj.name));
-                        cardObj.GetComponent<Image>().color = CardManipulation.Selected;
+                        cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
                     }
-                    else if (cardObj.GetComponent<Image>().color == CardManipulation.Selected)
+                    else if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
                     {
                         selectedCards.Remove(byte.Parse(cardObj.name));
                         if (selectedCards.Count < 1)
@@ -1266,7 +1266,7 @@ public class GameStateManager : MonoBehaviour
                         }
                         else
                         {
-                            cardObj.GetComponent<Image>().color = CardManipulation.Unselected;
+                            cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                         }
                     }
                 }
@@ -1275,7 +1275,7 @@ public class GameStateManager : MonoBehaviour
             //string query = "Cards/" + ((int)clientCode.Discard.Value[i].type).ToString() + "/" + clientCode.Discard.Value[i].art + "-01";
             string query = clientCode.Discard.Value[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            cardObj.GetComponent<Image>().sprite = sprites[0];
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
@@ -1329,12 +1329,12 @@ public class GameStateManager : MonoBehaviour
                         selectingMode = SelectingMode.Prizes;
                         RenderCorrectButtons(SelectingMode.Prizes);
                     }
-                    if (cardObj.GetComponent<Image>().color == CardManipulation.Unselected)
+                    if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
                     {
                         selectedCards.Add(byte.Parse(cardObj.name));
-                        cardObj.GetComponent<Image>().color = CardManipulation.Selected;
+                        cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
                     }
-                    else if (cardObj.GetComponent<Image>().color == CardManipulation.Selected)
+                    else if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
                     {
                         selectedCards.Remove(byte.Parse(cardObj.name));
                         if (selectedCards.Count < 1)
@@ -1345,7 +1345,7 @@ public class GameStateManager : MonoBehaviour
                         }
                         else
                         {
-                            cardObj.GetComponent<Image>().color = CardManipulation.Unselected;
+                            cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                         }
                     }
                 }
@@ -1354,7 +1354,7 @@ public class GameStateManager : MonoBehaviour
             //string query = "Cards/" + ((int)clientCode.Discard.Value[i].type).ToString() + "/" + clientCode.Discard.Value[i].art + "-01";
             string query = clientCode.Prizes.Value[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            cardObj.GetComponent<Image>().sprite = sprites[0];
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
@@ -1407,12 +1407,12 @@ public class GameStateManager : MonoBehaviour
                         selectingMode = SelectingMode.LostZone;
                         RenderCorrectButtons(SelectingMode.LostZone);
                     }
-                    if (cardObj.GetComponent<Image>().color == CardManipulation.Unselected)
+                    if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
                     {
                         selectedCards.Add(byte.Parse(cardObj.name));
-                        cardObj.GetComponent<Image>().color = CardManipulation.Selected;
+                        cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
                     }
-                    else if (cardObj.GetComponent<Image>().color == CardManipulation.Selected)
+                    else if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
                     {
                         selectedCards.Remove(byte.Parse(cardObj.name));
                         if (selectedCards.Count < 1)
@@ -1423,7 +1423,7 @@ public class GameStateManager : MonoBehaviour
                         }
                         else
                         {
-                            cardObj.GetComponent<Image>().color = CardManipulation.Unselected;
+                            cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                         }
                     }
                 }
@@ -1432,24 +1432,11 @@ public class GameStateManager : MonoBehaviour
             //string query = "Cards/" + ((int)clientCode.LostZone.Value[i].type).ToString() + "/" + clientCode.LostZone.Value[i].art + "-01";
             string query = clientCode.LostZone.Value[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            cardObj.GetComponent<Image>().sprite = sprites[0];
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
     }
-
-    //public void OnOppSpecialDeckView()
-    //{
-    //    foreach (GameObject client in PlayerInfoManager.players)
-    //    {
-    //        PlayerScript player = client.GetComponent<PlayerScript>();
-    //        if (!player.IsLocalPlayer)
-    //        {
-    //            OnCustomViewOnly(player.SpecialDeck.Value);
-    //            break;
-    //        }
-    //    }
-    //}
 
     public void OnOppDiscardView()
     {
@@ -1538,11 +1525,11 @@ public class GameStateManager : MonoBehaviour
 
         foreach (Transform child in playerScript.cardSection.BenchObj.transform)
         {
-            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+            child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
         }
         foreach (Transform child in playerScript.cardSection.ActiveObj.transform)
         {
-            child.gameObject.GetComponent<Image>().color = CardManipulation.Normal;
+            child.gameObject.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
         }
 
         OnCustomViewOnly(cards.ToArray());
@@ -1577,7 +1564,7 @@ public class GameStateManager : MonoBehaviour
 
             string query = cards[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            cardObj.GetComponent<Image>().sprite = sprites[0];
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
         }
 
         MultiviewIndex = multiviewIndex;
@@ -1624,15 +1611,15 @@ public class GameStateManager : MonoBehaviour
                 if (selectingMode == SelectingMode.CustomSection)
                 {
 
-                    if (cardObj.GetComponent<Image>().color == CardManipulation.Unselected)
+                    if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
                     {
                         selectedCards.Add(byte.Parse(cardObj.name));
-                        cardObj.GetComponent<Image>().color = CardManipulation.Selected;
+                        cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
                     }
-                    else if (cardObj.GetComponent<Image>().color == CardManipulation.Selected)
+                    else if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
                     {
                         selectedCards.Remove(byte.Parse(cardObj.name));
-                        cardObj.GetComponent<Image>().color = CardManipulation.Unselected;
+                        cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
 
                         if (selectedCards.Count < 1)
                         {
@@ -1651,7 +1638,7 @@ public class GameStateManager : MonoBehaviour
             //string query = "Cards/" + ((int)cards[i].type).ToString() + "/" + cards[i].art + "-01";
             string query = cards[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            cardObj.GetComponent<Image>().sprite = sprites[0];
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
@@ -1677,7 +1664,7 @@ public class GameStateManager : MonoBehaviour
 
         foreach (GameObject child in children)
         {
-            child.GetComponent<Image>().color = CardManipulation.Normal;
+            child.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
         }
     }
 
@@ -1728,7 +1715,6 @@ public class GameStateManager : MonoBehaviour
             {
                 howMany = cardsDrawn;
                 howManyLimit = cardsDrawn;
-                print(howManyLimit);
                 actionQueue = PlayerScript.Action.DrawMulligan;
                 howManyCountObj.GetComponent<Text>().text = howMany.ToString();
                 howManyObj.SetActive(true);
@@ -1754,7 +1740,7 @@ public class GameStateManager : MonoBehaviour
 
         for (int i = 0; i < children.Count; i++)
         {
-            children[i].GetComponent<Image>().color = CardManipulation.Unselected;
+            children[i].transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
         }
     }
 
@@ -1765,7 +1751,7 @@ public class GameStateManager : MonoBehaviour
 
         for (int i = 0; i < children.Count; i++)
         {
-            children[i].GetComponent<Image>().color = CardManipulation.Normal;
+            children[i].transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Normal;
         }
     }
 
@@ -1924,7 +1910,6 @@ public class GameStateManager : MonoBehaviour
 
     public void OnHowManyPlus()
     {
-        print(howManyLimit);
         if (howMany + 1 > howManyLimit) return;
         howMany++;
         howManyCountObj.GetComponent<Text>().text = howMany.ToString();
