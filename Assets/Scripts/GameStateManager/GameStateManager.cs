@@ -171,9 +171,6 @@ public class GameStateManager : MonoBehaviour
         },
         { "ChangeStatus", new List<SelectingMode>(){ SelectingMode.Active}
         },
-        //{ "Flip", new List<SelectingMode>(){
-        //    SelectingMode.Bench, SelectingMode.Active }
-        //},
         { "Reveal", new List<SelectingMode>() { SelectingMode.Hand, SelectingMode.Deck,
             SelectingMode.DeckSection, SelectingMode.Attaching}
         },
@@ -576,6 +573,7 @@ public class GameStateManager : MonoBehaviour
             if (player.IsLocalPlayer)
             {
                 player.Deck.Value = CardManipulation.Shuffle(player.Deck.Value);
+                player.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Shuffled deck ");
             }
         }
         selectingMode = SelectingMode.None;
@@ -599,25 +597,15 @@ public class GameStateManager : MonoBehaviour
 
             playerScript.SupporterCard.Value = null;
             selectingMode = SelectingMode.None;
-
+            playerScript.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Discarded supporter card");
         }
         else if (selectingMode == SelectingMode.Stadium)
         {
-
             PlayerScript localPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            localPlayer.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Discarded stadium card");
             localPlayer.PlayStadiumServerRpc(null, NetworkManager.Singleton.LocalClientId);
 
             selectingMode = SelectingMode.None;
-
-            //PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
-            //Card[] newDiscard = new Card[playerScript.Discard.Value.Length + 1];
-
-            //for (int i = 0; i < newDiscard.Length - 1; i++)
-            //{
-            //    newDiscard[i] = playerScript.Discard.Value[i];
-            //}
-            //newDiscard[newDiscard.Length - 1] = CurrentStadium;
-            //playerScript.Discard.Value = newDiscard;
         }
         else
         {
@@ -742,11 +730,12 @@ public class GameStateManager : MonoBehaviour
 
             playerScript.SupporterCard.Value = null;
             selectingMode = SelectingMode.None;
-
+            playerScript.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Moved supporter card to hand");
         }
         else if (selectingMode == SelectingMode.Stadium)
         {
             PlayerScript localPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            localPlayer.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Moved stadium card to hand");
             localPlayer.PlayStadiumServerRpc(null, NetworkManager.Singleton.LocalClientId, true);
 
             selectingMode = SelectingMode.None;
@@ -824,32 +813,6 @@ public class GameStateManager : MonoBehaviour
         PlayerScript playerScript = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
         playerScript.ToggleCardState((byte)status);
     }
-
-    //public void OnTap()
-    //{
-    //    foreach (GameObject client in PlayerInfoManager.players)
-    //    {
-    //        PlayerScript player = client.GetComponent<PlayerScript>();
-    //        if (player.IsLocalPlayer)
-    //        {
-    //            player.GameAction(PlayerScript.Action.Tap);
-    //        }
-    //    }
-    //    RenderCorrectButtons(SelectingMode.None);
-    //}
-
-    //public void OnFlip()
-    //{
-    //    foreach (GameObject client in PlayerInfoManager.players)
-    //    {
-    //        PlayerScript player = client.GetComponent<PlayerScript>();
-    //        if (player.IsLocalPlayer)
-    //        {
-    //            player.GameAction(PlayerScript.Action.Flip);
-    //        }
-    //    }
-    //    RenderCorrectButtons(SelectingMode.None);
-    //}
 
 
 
@@ -985,6 +948,8 @@ public class GameStateManager : MonoBehaviour
         if (selectedCards.Count == 1)
         {
             PlayerScript localPlayer = NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId].PlayerObject.GetComponent<PlayerScript>();
+            localPlayer.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Played stadium "
+                + CollectionScript.FileToName(localPlayer.Hand.Value[selectedCards[0]].art));
             localPlayer.PlayStadiumServerRpc(localPlayer.Hand.Value[selectedCards[0]], NetworkManager.Singleton.LocalClientId);
 
             Card[] newHand = new Card[localPlayer.Hand.Value.Length - 1];
@@ -1076,6 +1041,7 @@ public class GameStateManager : MonoBehaviour
             }
         }
 
+        clientCode.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Viewing deck");
 
         for (int i = 0; i < clientCode.Deck.Value.Length; i++)
         {
@@ -1155,6 +1121,8 @@ public class GameStateManager : MonoBehaviour
             }
         }
 
+        clientCode.AppendGameLogServerRpc(PlayerInfoManager.Username + ": Viewing top of deck");
+
         for (int i = 0; i < howMany && i < clientCode.deckSize.Value; i++)
         {
             GameObject cardObj = Instantiate(clientCode.CardPrefab, GalleryContent);
@@ -1177,7 +1145,7 @@ public class GameStateManager : MonoBehaviour
                         selectingMode = SelectingMode.DeckSection;
                         RenderCorrectButtons(SelectingMode.DeckSection);
                     }
-                    if (cardObj.transform.GetChild(0).GetComponent<Image> ().color == CardManipulation.Unselected)
+                    if (cardObj.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
                     {
                         selectedCards.Add(byte.Parse(cardObj.name));
                         cardObj.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
@@ -1202,7 +1170,7 @@ public class GameStateManager : MonoBehaviour
             //string query = "Cards/" + ((int)clientCode.Deck.Value[i].type).ToString() + "/" + clientCode.Deck.Value[i].art + "-01";
             string query = clientCode.Deck.Value[i].art;
             Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            cardObj.GetComponent<Image>().sprite = sprites[0];
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);

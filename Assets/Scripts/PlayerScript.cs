@@ -1924,8 +1924,8 @@ public class PlayerScript : NetworkBehaviour
     [ClientRpc]
     public void AppendGameLogClientRpc(string log)
     {
-        if (gameManagerReference.gameLog == null) return;
-        gameManagerReference.gameLog.GameLogText.text += log + $"\n";
+        if (gameManagerReference.gameLog != null && gameManagerReference.gameLog.GameLogText != null)
+            gameManagerReference.gameLog.GameLogText.text += log + $"\n";
     }
 
     public Image PoisonMarker;
@@ -2014,6 +2014,9 @@ public class PlayerScript : NetworkBehaviour
 
     public void ManageStartOfTurn()
     {
+        // tell gamelog that your turn started
+        AppendGameLogServerRpc(PlayerInfoManager.Username + ": Started turn");
+
         // draw for turn
         if (AutoDraw)
         {
@@ -2192,6 +2195,15 @@ public class PlayerScript : NetworkBehaviour
         }
 
         yield return new WaitForSeconds(1.5f);
+        if (IsOwner)
+        {
+            AppendGameLogServerRpc(PlayerInfoManager.Username + ": Flipped coin with result of " +
+                (result == 0 ? "heads" : "tails"));
+        }
+        //NetworkManager.Singleton.ConnectedClients[NetworkManager.Singleton.LocalClientId]
+        //    .PlayerObject.GetComponent<PlayerScript>()
+        //    .AppendGameLogServerRpc(PlayerInfoManager.Username + ": Flipped coin with result of " +
+        //    (result == 0 ? "heads" : "tails"));
         callback?.Invoke();
 
     }
@@ -2559,15 +2571,56 @@ public class PlayerScript : NetworkBehaviour
         }));
     }
 
+    public static void LeftShiftArray<T>(T[] arr, int shift)
+    {
+        // 1, 2, 3, 4
+        // 6
+
+        shift = shift % arr.Length;
+        // shift = 2
+
+        T[] buffer = new T[shift];
+        // new T[2]
+
+        System.Array.Copy(arr, buffer, shift);
+        // buffer = { 1, 2 }
+
+        System.Array.Copy(arr, shift, arr, 0, arr.Length - shift);
+        // arr = { 3, 4, 3, 4 }
+
+        System.Array.Copy(buffer, 0, arr, arr.Length - shift, shift);
+        // arr = { 3, 4, 1, 2 }
+    }
+
+    public static void RightShiftArray<T>(T[] arr, int shift)
+    {
+        // 1, 2, 3, 4, 5
+        // 1
+
+        shift = shift % arr.Length;
+
+        T[] buffer = new T[shift];
+        // new T[1]
+
+        System.Array.Copy(arr, arr.Length - shift, buffer, 0, shift);
+        // buffer = { 1 }
+
+        System.Array.Copy(arr, 0, arr, shift, arr.Length - shift);
+        // arr = { 1, 1, 2, 3, 4 }
+
+        System.Array.Copy(buffer, 0, arr, 0, shift);
+        // arr = { 5, 1, 2, 3, 4 }
+
+    }
 
     IEnumerator RollDie(int seed)
     {
         gameManagerReference.coinManager.DieContainer.SetActive(true);
 
-        int speed = 15;
+        int speed = 20;
 
-        int uniqueTrajectories = 10;
-        int framePerTrajectory = 200 / uniqueTrajectories;
+        int uniqueTrajectories = 30;
+        int framePerTrajectory = 30 / uniqueTrajectories;
 
         Random.InitState(seed);
         for (int i = 0; i < uniqueTrajectories; i++)
@@ -2593,6 +2646,88 @@ public class PlayerScript : NetworkBehaviour
         yield return new WaitForSeconds(1.5f);
         gameManagerReference.coinManager.DieContainer.SetActive(false);
 
+        if (IsOwner)
+        {
+            int result = 7;
+
+            int[] sides = { 4, 3 };
+            int[] verticalSides = { 6, 2, 1, 5 };
+            int localX = (int)Mathf.Round(newX < 0 ? 180 - newX : newX) % 360;
+            RightShiftArray<int>(verticalSides, localX / 90);
+
+            int localY = (int)Mathf.Round(newY < 0 ? 180 - newY : newY) % 360;
+
+            void horizontalRotate()
+            {
+                int[] newVerticalSides = new int[4];
+                newVerticalSides[0] = sides[1];
+                newVerticalSides[1] = verticalSides[1];
+                newVerticalSides[2] = sides[0];
+                newVerticalSides[3] = verticalSides[3];
+
+                int[] newSides = new int[2];
+                newSides[0] = verticalSides[0];
+                newSides[1] = verticalSides[2];
+
+                verticalSides = newVerticalSides;
+                sides = newSides;
+            }
+
+            for (int i = 0; i < localY / 90; i++)
+            {
+                horizontalRotate();
+            }
+
+            int localZ = ((int)Mathf.Round(newZ < 0 ? 180 - newZ : newZ)) % 360;
+            if (localX % 180 == 0 && localY % 180 == 0)
+            {
+                result = verticalSides[0];
+            }
+            else if (localX == 90)
+            {
+                int rotations = 4 - ((localZ / 90) % 4);
+                print(rotations);
+                for (int i = 0; i < rotations; i++)
+                {
+                    horizontalRotate();
+                    //print($"{verticalSides[0]} {sides[0]} {verticalSides[2]} {sides[1]} ");
+                }
+                result = verticalSides[0];
+
+            }
+            else if (localX == 270)
+            {
+                int rotations = localZ / 90;
+                for (int i = 0; i < rotations; i++)
+                {
+                    horizontalRotate();
+                }
+                result = verticalSides[0];
+            }
+            // localX should now be 180 or 0
+            else if ((localX == 180 && localY == 270) || (localX == 0 && localY == 90))
+            {
+                int rotations = localZ / 90;
+                RightShiftArray(verticalSides, rotations);
+                result = verticalSides[0];
+            }
+
+            else if ((localX == 180 && localY == 90) || (localX == 0 && localY == 270))
+            {
+                int rotations = localZ / 90;
+                LeftShiftArray(verticalSides, rotations);
+                result = verticalSides[0];
+            }
+            else
+            {
+                Debug.Log(localX);
+                Debug.Log(localY);
+                Debug.Log(localZ);
+            }
+
+            AppendGameLogServerRpc(PlayerInfoManager.Username + ": Flipped coin with result of " +
+            result.ToString());
+        }
     }
 
     [ServerRpc]
