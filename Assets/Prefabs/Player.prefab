@@ -64,6 +64,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CardPrefab: {fileID: 3233977959227818052, guid: 1f2771aff8a839846914af5f1ba7c433, type: 3}
   CardSpritePrefab: {fileID: 3754576179376684060, guid: f0aad4753b4135b44a5c26e53e19da56, type: 3}
+  AttachmentOverflowPrefab: {fileID: 5030882939871228763, guid: 94c7ea9fe5c53404e9d5a9b3d4de7a21, type: 3}
+  PoisonMarker: {fileID: 0}
+  BurnMarker: {fileID: 0}
 --- !u!114 &559872273370333524
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -76,6 +79,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e6a338840e59714386bee082fbeb3aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ReserveObj: {fileID: 0}
-  BattlefieldObj: {fileID: 0}
-  ExtraZoneObj: {fileID: 0}
+  BenchCounters:
+    m_InternalValue: 
+  ActiveCounters:
+    m_InternalValue: 
+  BenchObj: {fileID: 0}
+  ActiveObj: {fileID: 0}

@@ -146,6 +146,9 @@ public class PlayerScript : NetworkBehaviour
     public GameObject CardPrefab;
 
     public GameObject CardSpritePrefab;
+
+    public GameObject AttachmentOverflowPrefab;
+
     [System.NonSerialized] public GameStateManager gameManagerReference = null;
     [System.NonSerialized] public GameObject PlayerHand;
 

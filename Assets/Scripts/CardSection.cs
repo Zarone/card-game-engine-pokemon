@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MLAPI;
@@ -705,78 +704,94 @@ public class CardSection : NetworkBehaviour
     }
 
     public void RenderAttachments(GameObject attachmentSection, Card[] attachedCards,
-        GameStateManager.SelectingMode ParentType, int startingIndex)
+        GameStateManager.SelectingMode ParentType, int startingIndex, bool renderOverride = false)
     {
-        var ownType = ParentType switch
+        if (attachedCards.Length > 3 && !renderOverride)
         {
-            GameStateManager.SelectingMode.Active => GameStateManager.SelectingMode.AttachedActive,
-            GameStateManager.SelectingMode.Bench => GameStateManager.SelectingMode.AttachedBench,
-            _ => (GameStateManager.SelectingMode)(-1),
-        };
-
-        for (int j = 0; j < attachedCards.Length; j++)
-        {
-            GameObject attachment = Instantiate(playerRef.CardPrefab, attachmentSection.transform);
-
-            attachment.name = (startingIndex + j).ToString();
-            //attachment.GetComponent<CardRightClickHandler>().onRightClick = playerRef.gameManagerReference.OnCardRightClick;
-            attachment.GetComponent<CardRightClickHandler>().onRightClick = (Sprite image) =>
-             {
-                 playerRef.gameManagerReference.OnCardRightClick(image);
-
-                 playerRef.gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
-             };
+            GameObject attachment = Instantiate(playerRef.AttachmentOverflowPrefab, attachmentSection.transform);
 
             attachment.GetComponent<Button>().onClick.AddListener(() =>
             {
-                if (IsLocalPlayer && (GameStateManager.selectingMode == GameStateManager.SelectingMode.None ||
-            GameStateManager.selectingMode == ownType))
+                var children = new List<GameObject>();
+                foreach (Transform child in attachmentSection.transform) children.Add(child.gameObject);
+                children.ForEach(child => Destroy(child));
+
+                RenderAttachments(attachmentSection, attachedCards, ParentType, startingIndex, true);
+            });
+        }
+        else
+        {
+            var ownType = ParentType switch
+            {
+                GameStateManager.SelectingMode.Active => GameStateManager.SelectingMode.AttachedActive,
+                GameStateManager.SelectingMode.Bench => GameStateManager.SelectingMode.AttachedBench,
+                _ => (GameStateManager.SelectingMode)(-1),
+            };
+
+            for (int j = 0; j < attachedCards.Length; j++)
+            {
+                GameObject attachment = Instantiate(playerRef.CardPrefab, attachmentSection.transform);
+
+                attachment.name = (startingIndex + j).ToString();
+                //attachment.GetComponent<CardRightClickHandler>().onRightClick = playerRef.gameManagerReference.OnCardRightClick;
+                attachment.GetComponent<CardRightClickHandler>().onRightClick = (Sprite image) =>
+                 {
+                     playerRef.gameManagerReference.OnCardRightClick(image);
+
+                     playerRef.gameManagerReference.CardCloseupCard.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                 };
+
+                attachment.GetComponent<Button>().onClick.AddListener(() =>
                 {
-                    if (GameStateManager.selectingMode != ownType)
+                    if (IsLocalPlayer && (GameStateManager.selectingMode == GameStateManager.SelectingMode.None ||
+                GameStateManager.selectingMode == ownType))
                     {
-                        foreach (Transform Card in attachmentSection.transform.parent.parent)
+                        if (GameStateManager.selectingMode != ownType)
                         {
-                            foreach (Transform AttachedCard in Card.GetChild(1))
+                            foreach (Transform Card in attachmentSection.transform.parent.parent)
                             {
-                                AttachedCard.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
+                                foreach (Transform AttachedCard in Card.GetChild(1))
+                                {
+                                    AttachedCard.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
+                                }
+                            }
+
+                            GameStateManager.selectingMode = ownType;
+
+                            playerRef.gameManagerReference.RenderCorrectButtons(ownType);
+                        }
+                        if (attachment.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
+                        {
+                            playerRef.gameManagerReference.selectedCards.Add(byte.Parse(attachment.name));
+                            attachment.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
+                        }
+                        else if (attachment.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
+                        {
+                            playerRef.gameManagerReference.selectedCards.Remove(byte.Parse(attachment.name));
+                            if (playerRef.gameManagerReference.selectedCards.Count < 1)
+                            {
+                                RenderAttachmentSelectionSelectingCancel(attachmentSection.transform.parent.parent);
+                            }
+                            else
+                            {
+                                attachment.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
                             }
                         }
+                    }
+                });
 
-                        GameStateManager.selectingMode = ownType;
-
-                        playerRef.gameManagerReference.RenderCorrectButtons(ownType);
-                    }
-                    if (attachment.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Unselected)
-                    {
-                        playerRef.gameManagerReference.selectedCards.Add(byte.Parse(attachment.name));
-                        attachment.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Selected;
-                    }
-                    else if (attachment.transform.GetChild(0).GetComponent<Image>().color == CardManipulation.Selected)
-                    {
-                        playerRef.gameManagerReference.selectedCards.Remove(byte.Parse(attachment.name));
-                        if (playerRef.gameManagerReference.selectedCards.Count < 1)
-                        {
-                            RenderAttachmentSelectionSelectingCancel(attachmentSection.transform.parent.parent);
-                        }
-                        else
-                        {
-                            attachment.transform.GetChild(0).GetComponent<Image>().color = CardManipulation.Unselected;
-                        }
-                    }
+                //string queryAttach = "Cards/" + ((int)attachedCards[j].type).ToString() + "/" + attachedCards[j].art + "-01";
+                string queryAttach = attachedCards[j].art;
+                Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
+                if (spritesAttach.Length == 1)
+                {
+                    attachment.transform.GetChild(0).GetComponent<Image>().sprite = spritesAttach[0];
+                    attachment.GetComponent<RectTransform>().sizeDelta = new Vector2(48.6f, 67.8857143f);
                 }
-            });
-
-            //string queryAttach = "Cards/" + ((int)attachedCards[j].type).ToString() + "/" + attachedCards[j].art + "-01";
-            string queryAttach = attachedCards[j].art;
-            Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
-            if (spritesAttach.Length == 1)
-            {
-                attachment.transform.GetChild(0).GetComponent<Image>().sprite = spritesAttach[0];
-                attachment.GetComponent<RectTransform>().sizeDelta = new Vector2(48.6f, 67.8857143f);
-            }
-            else
-            {
-                Debug.LogError($"{queryAttach} returned {spritesAttach.Length} results");
+                else
+                {
+                    Debug.LogError($"{queryAttach} returned {spritesAttach.Length} results");
+                }
             }
         }
     }
