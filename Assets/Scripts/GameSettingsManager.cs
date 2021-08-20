@@ -29,11 +29,13 @@ public class GameSettingsManager : MonoBehaviour
         NetworkManager.Singleton.ConnectedClients.TryGetValue(id, out var networkClient);
         networkClient.PlayerObject.GetComponent<PlayerScript>().AnnounceWinnerServerRpc(false, id);
 
+        PlayerInfoManager.LostLastGame = PlayerInfoManager.TurnPriority.Lost;
         DefeatScreen.SetActive(true);
     }
 
     public void OnReturnHome()
     {
+        PlayerInfoManager.LostLastGame = PlayerInfoManager.TurnPriority.Undecided;
         StartCoroutine(PlayerScript.StopNetwork(() =>
         {
             SceneManager.LoadScene("MainMenu");

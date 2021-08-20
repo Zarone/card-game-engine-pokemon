@@ -2142,31 +2142,64 @@ public class PlayerScript : NetworkBehaviour
             return;
         }
 
-        if (info == -2) // coin flip
+        if (PlayerInfoManager.LostLastGame == PlayerInfoManager.TurnPriority.Undecided)
         {
-            gameManagerReference.coinManager.CoinContainer.SetActive(true);
-            if (IsServer)
+
+            if (info == -2) // coin flip
             {
-                gameManagerReference.coinManager.HeadsOrTailsText.SetActive(true);
-                gameManagerReference.coinManager.HeadsOrTailsButtons.SetActive(true);
-                gameManagerReference.coinManager.FirstOrSecondText.SetActive(false);
-                gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(false);
-                gameManagerReference.coinManager.WaitingText.SetActive(false);
+                gameManagerReference.coinManager.CoinContainer.SetActive(true);
+                if (IsServer)
+                {
+                    gameManagerReference.coinManager.HeadsOrTailsText.SetActive(true);
+                    gameManagerReference.coinManager.HeadsOrTailsButtons.SetActive(true);
+                    gameManagerReference.coinManager.FirstOrSecondText.SetActive(false);
+                    gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(false);
+                    gameManagerReference.coinManager.WaitingText.SetActive(false);
+                }
+                else
+                {
+                    gameManagerReference.coinManager.FirstOrSecondText.SetActive(false);
+                    gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(false);
+                    gameManagerReference.coinManager.WaitingText.SetActive(true);
+                }
+                return;
+            }
+
+            // explicitely stated
+
+            gameManagerReference.coinManager.BlockView.SetActive(false);
+            client.PlayerObject.GetComponent<PlayerScript>().isActivePlayer.Value = info == (int)NetworkManager.Singleton.LocalClientId;
+            client.PlayerObject.GetComponent<PlayerScript>().RenderTurnInfo();
+        }
+        else
+        {
+            if (client.PlayerObject.GetComponent<PlayerScript>().CoinFlipWinnerDecidesTurnOrder)
+            {
+                // if lost game info is set to "lost" then pull up the first or second menu
+                if (PlayerInfoManager.LostLastGame == PlayerInfoManager.TurnPriority.Lost)
+                {
+                    gameManagerReference.coinManager.CoinContainer.SetActive(true);
+                    gameManagerReference.coinManager.FirstOrSecondText.SetActive(true);
+                    gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(true);
+                    gameManagerReference.coinManager.WaitingText.SetActive(false);
+
+                }
+                else
+                {
+                    gameManagerReference.coinManager.WaitingText.SetActive(true);
+                }
             }
             else
             {
-                gameManagerReference.coinManager.FirstOrSecondText.SetActive(false);
-                gameManagerReference.coinManager.FirstOrSecondButtons.SetActive(false);
-                gameManagerReference.coinManager.WaitingText.SetActive(true);
+                // if lost game info is set to "lost" then go first
+                if (PlayerInfoManager.LostLastGame == PlayerInfoManager.TurnPriority.Lost)
+                {
+                    client.PlayerObject.GetComponent<PlayerScript>()
+                        .SelectedFirstOrSecondServerRpc(true, NetworkManager.Singleton.LocalClientId);
+                }
             }
-            return;
         }
 
-        // explicitely stated
-
-        gameManagerReference.coinManager.BlockView.SetActive(false);
-        client.PlayerObject.GetComponent<PlayerScript>().isActivePlayer.Value = info == (int)NetworkManager.Singleton.LocalClientId;
-        client.PlayerObject.GetComponent<PlayerScript>().RenderTurnInfo();
     }
 
     IEnumerator RotateCoin(int result, System.Action callback = null)
@@ -2438,10 +2471,12 @@ public class PlayerScript : NetworkBehaviour
             //StartCoroutine(StopNetwork());
             if ((id == NetworkManager.Singleton.LocalClientId && didWin) || (id != NetworkManager.Singleton.LocalClientId && !didWin))
             {
+                PlayerInfoManager.LostLastGame = PlayerInfoManager.TurnPriority.Won;
                 gameManagerReference.gameSettingsManager.VictoryScreen.SetActive(true);
             }
             else
             {
+                PlayerInfoManager.LostLastGame = PlayerInfoManager.TurnPriority.Lost;
                 gameManagerReference.gameSettingsManager.DefeatScreen.SetActive(true);
             }
         }
@@ -2450,6 +2485,8 @@ public class PlayerScript : NetworkBehaviour
     IEnumerator StartRematch()
     {
         gameManagerReference.gameSettingsManager.RematchPanelPlayer2.GetComponent<Image>().color = Color.green;
+        gameManagerReference.TurnColor.GetComponent<Image>().color = new Color(1, 0, 0, 0.2f);
+        gameManagerReference.TurnText.GetComponent<Text>().text = "no turn order provided";
 
         NetworkManager.Singleton.ConnectedClients.TryGetValue(NetworkManager.Singleton.LocalClientId, out var networkClient);
         PlayerScript playerScript = networkClient.PlayerObject.GetComponent<PlayerScript>();

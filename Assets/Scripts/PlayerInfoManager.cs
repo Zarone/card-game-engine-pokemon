@@ -14,6 +14,15 @@ public class PlayerInfoManager
     public static string CurrentHostPassword;
     public static string Username;
 
+    public enum TurnPriority
+    {
+        Undecided,
+        Won,
+        Lost,
+    }
+
+    public static TurnPriority LostLastGame = TurnPriority.Undecided;
+
     public static int FirstTurnQueue = -1;
 
     //public enum CardType
