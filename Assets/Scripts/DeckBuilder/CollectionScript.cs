@@ -16,6 +16,9 @@ public class CollectionScript : MonoBehaviour
     //A List of strings that holds the file names with their respective extensions  
     //private List<string> fileNames;
 
+    Dictionary<string, Sprite[]> LoadedAssets = new Dictionary<string, Sprite[]>();
+
+
     [SerializeField] private DeckScript Deck;
 
     private Transform ContentDiv;
@@ -29,7 +32,7 @@ public class CollectionScript : MonoBehaviour
 
     void Start()
     {
-        directoryPath = Application.dataPath + @"/Resources/Cards/";
+        directoryPath = Application.persistentDataPath + @"/Resources/Cards/";
 
         ContentDiv = gameObject.transform.GetChild(0).GetChild(0).GetChild(0);
 
@@ -77,6 +80,7 @@ public class CollectionScript : MonoBehaviour
         for (int i = 0; i < setList.Count; i++)
         {
             string currentPath = Path.GetFileName(setList[i]);
+            //print(currentPath);
 
             Dictionary<string, string> setInfo = null;
             if (passSetInfo)
@@ -101,31 +105,44 @@ public class CollectionScript : MonoBehaviour
         // for each type
         for (int i = 0; i < typeList.Count; i++)
         {
-            List<string> fileNames = new List<string>(Directory.GetFiles(typeList[i] + "/"));
+            //print(typeList[i]);
+            //List<string> fileNames = new List<string>(Directory.GetFiles(typeList[i] + "/"));
+            Sprite[] fileNames;
+            if (LoadedAssets.ContainsKey(typeList[i] + "/cards.unity3d"))
+            {
+                fileNames = LoadedAssets[typeList[i] + "/cards.unity3d"];
+            }
+            else
+            {
+                fileNames = AssetBundle.LoadFromFile(typeList[i] + "/cards.unity3d").LoadAllAssets<Sprite>();
+                LoadedAssets[typeList[i] + "/cards.unity3d"] = fileNames;
+            }
 
             // for each card
-            for (int j = 0; j < fileNames.Count && cardsAdded < limit; j++)
+            for (int j = 0; j < fileNames.Length && cardsAdded < limit; j++)
             {
-                string currentPath = Path.GetFileName(fileNames[j]);
+                //string currentPath = Path.GetFileName(fileNames[j]);
 
-                string targetPath = fileNames[j].Split(new string[] { "Resources/" }, StringSplitOptions.None)[1];
-                targetPath = targetPath.Remove(targetPath.IndexOf("."), 4);
+                //print(typeList[i] + "/" + fileNames[j].name);
+                string targetPath = typeList[i].Split(new string[] { "Resources/" }, StringSplitOptions.None)[1] + "/" + fileNames[j].name;//fileNames[j].name.Split(new string[] { "Resources/" }, StringSplitOptions.None)[1];
+                                                                                                                                           //targetPath = targetPath.Remove(targetPath.IndexOf("."), 4);
 
                 //bool passFilter = false;
 
                 //print(targetPath);
 
-                if (!currentPath.EndsWith(".png"))
-                {
-                    continue;
-                }
+                //if (!currentPath.EndsWith(".png"))
+                //{
+                //continue;
+                //}
 
                 if (filter[0] == '"' && filter[filter.Length - 1] == '"' ?
                         setInfo[Path.GetFileName(targetPath)].ToLower() == filter.Substring(1, filter.Length - 2) :
                         filter == default || setInfo[Path.GetFileName(targetPath)].ToLower().Contains(filter))
 
                 {
-                    Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
+                    Sprite[] cardSprites = { fileNames[j] };
+                    //Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
                     if (cardSprites.Length == 1)
                     {
                         Sprite card = cardSprites[0];
@@ -186,7 +203,7 @@ public class CollectionScript : MonoBehaviour
         string set = cardInfo[2];
         string cardNumber = cardInfo[4];
 
-        StreamReader reader = new StreamReader(Application.dataPath + @"/Resources/Cards/" + era + "/" + set + ".json");
+        StreamReader reader = new StreamReader(Application.persistentDataPath + @"/Resources/Cards/" + era + "/" + set + ".json");
         Dictionary<string, string> setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
 
         reader.Close();

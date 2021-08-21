@@ -430,7 +430,11 @@ public class CardSection : NetworkBehaviour
                             playerRef.animTempSprite.transform.rotation = Quaternion.identity;
                             //string query = "Cards/" + ((int)lastDiscardedCard.type).ToString() + "/" + lastDiscardedCard.art + "-01";
                             string query = lastDiscardedCard.art;
-                            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                            if (!CardLoadManager.LoadedCards.ContainsKey(query))
+                            {
+                                CardLoadManager.LoadNewCard(query);
+                            }
+                            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
                             playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
                             playerRef.animTempSprite.transform.localScale = new Vector3(10, 10);
                             playerRef.animTempTarget = EditingCard.transform.GetChild(0).gameObject.transform;
@@ -526,7 +530,12 @@ public class CardSection : NetworkBehaviour
                             //    (int)(playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].type)
                             //).ToString() + "/" + playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].art + "-01";
                             string query = playerRef.Hand.Value[playerRef.gameManagerReference.selectedCards[0]].art;
-                            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                            if (!CardLoadManager.LoadedCards.ContainsKey(query))
+                            {
+                                CardLoadManager.LoadNewCard(query);
+                            }
+                            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
                             playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
                             playerRef.animTempSprite.transform.localScale = new Vector3(10, 10);
                             playerRef.animTempTarget = EditingCard.transform.GetChild(1).gameObject.transform;
@@ -545,7 +554,12 @@ public class CardSection : NetworkBehaviour
                 {
                     //string query = "Cards/" + ((int)cardlist[i].type).ToString() + "/" + cardlist[i].art + "-01";
                     string query = cardlist[i].art;
-                    Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                    //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                    if (!CardLoadManager.LoadedCards.ContainsKey(query))
+                    {
+                        CardLoadManager.LoadNewCard(query);
+                    }
+                    Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
                     if (sprites.Length == 1)
                     {
                         EditingCard.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
@@ -571,7 +585,7 @@ public class CardSection : NetworkBehaviour
                         EditingCard.transform.Rotate(new Vector3(0, 0, -90));
                     }
 
-                    
+
                     setSprite();
 
                 }
@@ -691,7 +705,12 @@ public class CardSection : NetworkBehaviour
 
             //string queryAttach = "Cards/" + ((int)levelInfo[j].type).ToString() + "/" + levelInfo[j].art + "-01";
             string queryAttach = levelInfo[j].art;
-            Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
+            //Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
+            if (!CardLoadManager.LoadedCards.ContainsKey(queryAttach))
+            {
+                CardLoadManager.LoadNewCard(queryAttach);
+            }
+            Sprite[] spritesAttach = { CardLoadManager.LoadedCards[queryAttach] };
             if (spritesAttach.Length == 1)
             {
                 thisLevel.transform.GetChild(0).GetComponent<Image>().sprite = spritesAttach[0];
@@ -782,7 +801,12 @@ public class CardSection : NetworkBehaviour
 
                 //string queryAttach = "Cards/" + ((int)attachedCards[j].type).ToString() + "/" + attachedCards[j].art + "-01";
                 string queryAttach = attachedCards[j].art;
-                Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
+                //Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
+                if (!CardLoadManager.LoadedCards.ContainsKey(queryAttach))
+                {
+                    CardLoadManager.LoadNewCard(queryAttach);
+                }
+                Sprite[] spritesAttach = { CardLoadManager.LoadedCards[queryAttach] };
                 if (spritesAttach.Length == 1)
                 {
                     attachment.transform.GetChild(0).GetComponent<Image>().sprite = spritesAttach[0];

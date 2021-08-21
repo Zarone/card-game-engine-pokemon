@@ -67,7 +67,12 @@ public class DeckScript : MonoBehaviour
 
                             string targetPath = card.Key;
 
-                            Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
+                            //Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
+                            if (!CardLoadManager.LoadedCards.ContainsKey(targetPath))
+                            {
+                                CardLoadManager.LoadNewCard(targetPath);
+                            }
+                            Sprite[] cardSprites = { CardLoadManager.LoadedCards[targetPath] };
                             if (cardSprites.Length != 1)
                             {
                                 Debug.LogError("the number of sprites found for selected card was not zero");

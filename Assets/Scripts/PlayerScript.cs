@@ -416,7 +416,12 @@ public class PlayerScript : NetworkBehaviour
                         });
 
                         string query = Hand.Value[i].art;
-                        Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                        //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+                        if (!CardLoadManager.LoadedCards.ContainsKey(query))
+                        {
+                            CardLoadManager.LoadNewCard(query);
+                        }
+                        Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
                         if (sprites.Length == 1)
                         {
                             EditingCard.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
@@ -448,6 +453,7 @@ public class PlayerScript : NetworkBehaviour
                     GameObject EditingCard = Instantiate(CardPrefab, PlayerHand.transform);
                     EditingCard.GetComponent<RectTransform>().sizeDelta = new Vector2(67.5f, 109.5076f);
                     string query = CardManipulation.DefaultCard;
+                    //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
                     Sprite[] sprites = Resources.LoadAll<Sprite>(query);
                     if (sprites.Length == 1)
                     {
@@ -489,7 +495,12 @@ public class PlayerScript : NetworkBehaviour
         {
             query = CardManipulation.DefaultCard;
         }
-        Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+        //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+        if (!CardLoadManager.LoadedCards.ContainsKey(query))
+        {
+            CardLoadManager.LoadNewCard(query);
+        }
+        Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
         if (IsLocalPlayer)
         {
             gameManagerReference.playerDiscardSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
@@ -513,7 +524,12 @@ public class PlayerScript : NetworkBehaviour
         {
             query = CardManipulation.DefaultCard;
         }
-        Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+        //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+        if (!CardLoadManager.LoadedCards.ContainsKey(query))
+        {
+            CardLoadManager.LoadNewCard(query);
+        }
+        Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
         if (IsLocalPlayer)
         {
             gameManagerReference.playerLostZoneSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
@@ -536,7 +552,12 @@ public class PlayerScript : NetworkBehaviour
         if (SupporterCard.Value != null)
         {
             string query = SupporterCard.Value.art;
-            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            if (!CardLoadManager.LoadedCards.ContainsKey(query))
+            {
+                CardLoadManager.LoadNewCard(query);
+            }
+            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
             if (sprites.Length == 1)
             {
                 SupporterObj.transform.GetChild(0).GetComponent<Image>().color = Color.white;
@@ -559,7 +580,12 @@ public class PlayerScript : NetworkBehaviour
         if (gameManagerReference.CurrentStadium != null)
         {
             string query = gameManagerReference.CurrentStadium.art;
-            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            if (!CardLoadManager.LoadedCards.ContainsKey(query))
+            {
+                CardLoadManager.LoadNewCard(query);
+            }
+            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
             if (sprites.Length == 1)
             {
                 gameManagerReference.StadiumObj.transform.GetChild(0).GetComponent<Image>().color = Color.white;
@@ -1079,7 +1105,12 @@ public class PlayerScript : NetworkBehaviour
             animTempSprite = Instantiate(CardSpritePrefab, xObj.transform);
             animTempSprite.transform.rotation = Quaternion.identity;
             string query = lastDiscardedCard.art;
-            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            if (!CardLoadManager.LoadedCards.ContainsKey(query))
+            {
+                CardLoadManager.LoadNewCard(query);
+            }
+            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
             animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
             animTempSprite.transform.localScale = new Vector3(10, 10);
             animTempTarget = yObj.transform;
@@ -1218,7 +1249,12 @@ public class PlayerScript : NetworkBehaviour
         {
             animTempSprite = Instantiate(CardSpritePrefab, xObj.transform);
             string query = lastCardMovedFromXToY.art;
-            Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
+            if (!CardLoadManager.LoadedCards.ContainsKey(query))
+            {
+                CardLoadManager.LoadNewCard(query);
+            }
+            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
             animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
             animTempSprite.transform.localScale = new Vector3(10, 10);
             animTempTarget = yObj.transform;
