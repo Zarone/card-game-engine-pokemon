@@ -430,12 +430,8 @@ public class CardSection : NetworkBehaviour
                             playerRef.animTempSprite.transform.rotation = Quaternion.identity;
                             //string query = "Cards/" + ((int)lastDiscardedCard.type).ToString() + "/" + lastDiscardedCard.art + "-01";
                             string query = lastDiscardedCard.art;
-                            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-                            {
-                                CardLoadManager.LoadNewCard(query);
-                            }
-                            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-                            playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
+                            Sprite sprite = CollectionScript.LocationsToSprite(query);
+                            playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprite;
                             playerRef.animTempSprite.transform.localScale = new Vector3(10, 10);
                             playerRef.animTempTarget = EditingCard.transform.GetChild(0).gameObject.transform;
                             playerRef.animCallback = newCallback;
@@ -530,13 +526,8 @@ public class CardSection : NetworkBehaviour
                             //    (int)(playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].type)
                             //).ToString() + "/" + playerRef.SpecialDeck.Value[playerRef.gameManagerReference.selectedCards[0]].art + "-01";
                             string query = playerRef.Hand.Value[playerRef.gameManagerReference.selectedCards[0]].art;
-                            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-                            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-                            {
-                                CardLoadManager.LoadNewCard(query);
-                            }
-                            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-                            playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
+                            Sprite sprite = CollectionScript.LocationsToSprite(query);
+                            playerRef.animTempSprite.GetComponent<SpriteRenderer>().sprite = sprite;
                             playerRef.animTempSprite.transform.localScale = new Vector3(10, 10);
                             playerRef.animTempTarget = EditingCard.transform.GetChild(1).gameObject.transform;
                             playerRef.animCallback = newCallback;
@@ -554,20 +545,9 @@ public class CardSection : NetworkBehaviour
                 {
                     //string query = "Cards/" + ((int)cardlist[i].type).ToString() + "/" + cardlist[i].art + "-01";
                     string query = cardlist[i].art;
-                    //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-                    if (!CardLoadManager.LoadedCards.ContainsKey(query))
-                    {
-                        CardLoadManager.LoadNewCard(query);
-                    }
-                    Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-                    if (sprites.Length == 1)
-                    {
-                        EditingCard.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
-                    }
-                    else
-                    {
-                        Debug.LogError($"{query} returned {sprites.Length} results");
-                    }
+                    Sprite sprites = CollectionScript.LocationsToSprite(query);
+
+                    EditingCard.transform.GetChild(0).GetComponent<Image>().sprite = sprites;
                 }
 
                 if (cardStates != null && cardStates.Value.Length > i)
@@ -705,20 +685,10 @@ public class CardSection : NetworkBehaviour
 
             //string queryAttach = "Cards/" + ((int)levelInfo[j].type).ToString() + "/" + levelInfo[j].art + "-01";
             string queryAttach = levelInfo[j].art;
-            //Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
-            if (!CardLoadManager.LoadedCards.ContainsKey(queryAttach))
-            {
-                CardLoadManager.LoadNewCard(queryAttach);
-            }
-            Sprite[] spritesAttach = { CardLoadManager.LoadedCards[queryAttach] };
-            if (spritesAttach.Length == 1)
-            {
-                thisLevel.transform.GetChild(0).GetComponent<Image>().sprite = spritesAttach[0];
-            }
-            else
-            {
-                Debug.LogError($"{queryAttach} returned {spritesAttach.Length} results");
-            }
+            Sprite spriteAttach = CollectionScript.LocationsToSprite(queryAttach);
+
+            thisLevel.transform.GetChild(0).GetComponent<Image>().sprite = spriteAttach;
+
         }
     }
 
@@ -801,21 +771,10 @@ public class CardSection : NetworkBehaviour
 
                 //string queryAttach = "Cards/" + ((int)attachedCards[j].type).ToString() + "/" + attachedCards[j].art + "-01";
                 string queryAttach = attachedCards[j].art;
-                //Sprite[] spritesAttach = Resources.LoadAll<Sprite>(queryAttach);
-                if (!CardLoadManager.LoadedCards.ContainsKey(queryAttach))
-                {
-                    CardLoadManager.LoadNewCard(queryAttach);
-                }
-                Sprite[] spritesAttach = { CardLoadManager.LoadedCards[queryAttach] };
-                if (spritesAttach.Length == 1)
-                {
-                    attachment.transform.GetChild(0).GetComponent<Image>().sprite = spritesAttach[0];
-                    attachment.GetComponent<RectTransform>().sizeDelta = new Vector2(48.6f, 67.8857143f);
-                }
-                else
-                {
-                    Debug.LogError($"{queryAttach} returned {spritesAttach.Length} results");
-                }
+                Sprite spriteAttach = CollectionScript.LocationsToSprite(queryAttach);
+
+                attachment.transform.GetChild(0).GetComponent<Image>().sprite = spriteAttach;
+                attachment.GetComponent<RectTransform>().sizeDelta = new Vector2(48.6f, 67.8857143f);
             }
         }
     }

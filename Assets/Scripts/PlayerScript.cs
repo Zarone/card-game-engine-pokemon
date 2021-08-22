@@ -416,20 +416,9 @@ public class PlayerScript : NetworkBehaviour
                         });
 
                         string query = Hand.Value[i].art;
-                        //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-                        if (!CardLoadManager.LoadedCards.ContainsKey(query))
-                        {
-                            CardLoadManager.LoadNewCard(query);
-                        }
-                        Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-                        if (sprites.Length == 1)
-                        {
-                            EditingCard.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
-                        }
-                        else
-                        {
-                            Debug.LogError($"{query} returned {sprites.Length} results");
-                        }
+                        Sprite sprite = CollectionScript.LocationsToSprite(query);
+                        EditingCard.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
+
 
                         if (GameStateManager.selectingMode == GameStateManager.SelectingMode.SelectingStartingPokemon && Hand.Value[i].type == CardType.Pokemon)
                         {
@@ -453,16 +442,11 @@ public class PlayerScript : NetworkBehaviour
                     GameObject EditingCard = Instantiate(CardPrefab, PlayerHand.transform);
                     EditingCard.GetComponent<RectTransform>().sizeDelta = new Vector2(67.5f, 109.5076f);
                     string query = CardManipulation.DefaultCard;
-                    //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-                    Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-                    if (sprites.Length == 1)
-                    {
-                        EditingCard.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
-                    }
-                    else
-                    {
-                        Debug.LogError($"{query} returned {sprites.Length} results");
-                    }
+                    Sprite[] sprite = Resources.LoadAll<Sprite>(query);
+
+                    EditingCard.transform.GetChild(0).GetComponent<Image>().sprite = sprite[0];
+
+
                 }
             }
 
@@ -487,58 +471,53 @@ public class PlayerScript : NetworkBehaviour
     public void RenderDiscard()
     {
         string query;
+        Sprite[] sprite = null;
         if (Discard.Value.Length > 0)
         {
             query = Discard.Value[Discard.Value.Length - 1].art;
+            sprite = new Sprite[]{ CollectionScript.LocationsToSprite(query) };
         }
         else
         {
             query = CardManipulation.DefaultCard;
+            sprite = Resources.LoadAll<Sprite>(query);
         }
-        //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-        if (!CardLoadManager.LoadedCards.ContainsKey(query))
-        {
-            CardLoadManager.LoadNewCard(query);
-        }
-        Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
+        
         if (IsLocalPlayer)
         {
             gameManagerReference.playerDiscardSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
-            gameManagerReference.playerDiscardSprite.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            gameManagerReference.playerDiscardSprite.transform.GetChild(0).GetComponent<Image>().sprite = sprite[0];
         }
         else
         {
             gameManagerReference.oppDiscardSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
-            gameManagerReference.oppDiscardSprite.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            gameManagerReference.oppDiscardSprite.transform.GetChild(0).GetComponent<Image>().sprite = sprite[0];
         }
     }
 
     public void RenderRemoveFromPlay()
     {
         string query;
+        Sprite[] sprite = null;
         if (LostZone.Value.Length > 0)
         {
             query = LostZone.Value[LostZone.Value.Length - 1].art;
+            sprite = new Sprite[] { CollectionScript.LocationsToSprite(query) };
         }
         else
         {
             query = CardManipulation.DefaultCard;
+            sprite = Resources.LoadAll<Sprite>(query);
         }
-        //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-        if (!CardLoadManager.LoadedCards.ContainsKey(query))
-        {
-            CardLoadManager.LoadNewCard(query);
-        }
-        Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
         if (IsLocalPlayer)
         {
             gameManagerReference.playerLostZoneSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
-            gameManagerReference.playerLostZoneSprite.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            gameManagerReference.playerLostZoneSprite.transform.GetChild(0).GetComponent<Image>().sprite = sprite[0];
         }
         else
         {
             gameManagerReference.oppLostZoneSprite.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
-            gameManagerReference.oppLostZoneSprite.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            gameManagerReference.oppLostZoneSprite.transform.GetChild(0).GetComponent<Image>().sprite = sprite[0];
         }
     }
 
@@ -552,21 +531,11 @@ public class PlayerScript : NetworkBehaviour
         if (SupporterCard.Value != null)
         {
             string query = SupporterCard.Value.art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            if (sprites.Length == 1)
-            {
-                SupporterObj.transform.GetChild(0).GetComponent<Image>().color = Color.white;
-                SupporterObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
-            }
-            else
-            {
-                Debug.LogError($"{query} returned {sprites.Length} results");
-            }
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+
+            SupporterObj.transform.GetChild(0).GetComponent<Image>().color = Color.white;
+            SupporterObj.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
+
             SupporterObj.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
         }
         else
@@ -580,24 +549,17 @@ public class PlayerScript : NetworkBehaviour
         if (gameManagerReference.CurrentStadium != null)
         {
             string query = gameManagerReference.CurrentStadium.art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            if (sprites.Length == 1)
-            {
-                gameManagerReference.StadiumObj.transform.GetChild(0).GetComponent<Image>().color = Color.white;
-                gameManagerReference.StadiumObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
-                gameManagerReference.StadiumObj.GetComponent<RectTransform>().localRotation = Quaternion.Euler(0, 0,
-                    gameManagerReference.StadiumFacingSelf ? 180 : 0);
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            gameManagerReference.StadiumObj.transform.GetChild(0).GetComponent<Image>().color = Color.white;
+            gameManagerReference.StadiumObj.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
+            gameManagerReference.StadiumObj.GetComponent<RectTransform>().localRotation = Quaternion.Euler(0, 0,
+                gameManagerReference.StadiumFacingSelf ? 180 : 0);
 
-            }
-            else
-            {
-                Debug.LogError($"{query} returned {sprites.Length} results");
-            }
+
+
+
+
+
             gameManagerReference.StadiumObj.GetComponent<CardRightClickHandler>().onRightClick = gameManagerReference.OnCardRightClick;
         }
         else
@@ -1105,13 +1067,8 @@ public class PlayerScript : NetworkBehaviour
             animTempSprite = Instantiate(CardSpritePrefab, xObj.transform);
             animTempSprite.transform.rotation = Quaternion.identity;
             string query = lastDiscardedCard.art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            animTempSprite.GetComponent<SpriteRenderer>().sprite = sprite;
             animTempSprite.transform.localScale = new Vector3(10, 10);
             animTempTarget = yObj.transform;
             animCallback = newCallback;
@@ -1249,13 +1206,8 @@ public class PlayerScript : NetworkBehaviour
         {
             animTempSprite = Instantiate(CardSpritePrefab, xObj.transform);
             string query = lastCardMovedFromXToY.art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            animTempSprite.GetComponent<SpriteRenderer>().sprite = sprites[0];
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            animTempSprite.GetComponent<SpriteRenderer>().sprite = sprite;
             animTempSprite.transform.localScale = new Vector3(10, 10);
             animTempTarget = yObj.transform;
             animCallback = newCallback;

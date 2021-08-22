@@ -67,19 +67,9 @@ public class DeckScript : MonoBehaviour
 
                             string targetPath = card.Key;
 
-                            //Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
-                            if (!CardLoadManager.LoadedCards.ContainsKey(targetPath))
-                            {
-                                CardLoadManager.LoadNewCard(targetPath);
-                            }
-                            Sprite[] cardSprites = { CardLoadManager.LoadedCards[targetPath] };
-                            if (cardSprites.Length != 1)
-                            {
-                                Debug.LogError("the number of sprites found for selected card was not zero");
-                                return;
-                            }
+                            Sprite cardSprite = CollectionScript.LocationsToSprite(targetPath);
 
-                            collectionScript.ViewCard(cardSprites[0]);
+                            collectionScript.ViewCard(cardSprite);
                         });
                         cardObj.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(() =>
                         {

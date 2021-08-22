@@ -1091,13 +1091,8 @@ public class GameStateManager : MonoBehaviour
 
             //string query = "Cards/" + ((int)clientCode.Deck.Value[i].type).ToString() + "/" + clientCode.Deck.Value[i].art + "-01";
             string query = clientCode.Deck.Value[i].art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
@@ -1174,13 +1169,8 @@ public class GameStateManager : MonoBehaviour
 
             //string query = "Cards/" + ((int)clientCode.Deck.Value[i].type).ToString() + "/" + clientCode.Deck.Value[i].art + "-01";
             string query = clientCode.Deck.Value[i].art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
@@ -1256,13 +1246,8 @@ public class GameStateManager : MonoBehaviour
 
             //string query = "Cards/" + ((int)clientCode.Discard.Value[i].type).ToString() + "/" + clientCode.Discard.Value[i].art + "-01";
             string query = clientCode.Discard.Value[i].art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
@@ -1340,13 +1325,8 @@ public class GameStateManager : MonoBehaviour
 
             //string query = "Cards/" + ((int)clientCode.Discard.Value[i].type).ToString() + "/" + clientCode.Discard.Value[i].art + "-01";
             string query = clientCode.Prizes.Value[i].art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
@@ -1423,13 +1403,8 @@ public class GameStateManager : MonoBehaviour
 
             //string query = "Cards/" + ((int)clientCode.LostZone.Value[i].type).ToString() + "/" + clientCode.LostZone.Value[i].art + "-01";
             string query = clientCode.LostZone.Value[i].art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);
@@ -1560,13 +1535,8 @@ public class GameStateManager : MonoBehaviour
             };
 
             string query = cards[i].art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
         }
 
         MultiviewIndex = multiviewIndex;
@@ -1639,13 +1609,8 @@ public class GameStateManager : MonoBehaviour
 
             //string query = "Cards/" + ((int)cards[i].type).ToString() + "/" + cards[i].art + "-01";
             string query = cards[i].art;
-            //Sprite[] sprites = Resources.LoadAll<Sprite>(query);
-            if (!CardLoadManager.LoadedCards.ContainsKey(query))
-            {
-                CardLoadManager.LoadNewCard(query);
-            }
-            Sprite[] sprites = { CardLoadManager.LoadedCards[query] };
-            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprites[0];
+            Sprite sprite = CollectionScript.LocationsToSprite(query);
+            cardObj.transform.GetChild(0).GetComponent<Image>().sprite = sprite;
         }
 
         RenderCorrectButtons(SelectingMode.Gallery);

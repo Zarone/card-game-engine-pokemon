@@ -16,9 +16,6 @@ public class CollectionScript : MonoBehaviour
     //A List of strings that holds the file names with their respective extensions  
     //private List<string> fileNames;
 
-    Dictionary<string, Sprite[]> LoadedAssets = new Dictionary<string, Sprite[]>();
-
-
     [SerializeField] private DeckScript Deck;
 
     private Transform ContentDiv;
@@ -32,7 +29,7 @@ public class CollectionScript : MonoBehaviour
 
     void Start()
     {
-        directoryPath = Application.persistentDataPath + @"/Resources/Cards/";
+        directoryPath = Application.streamingAssetsPath + @"/Cards/";
 
         ContentDiv = gameObject.transform.GetChild(0).GetChild(0).GetChild(0);
 
@@ -80,7 +77,6 @@ public class CollectionScript : MonoBehaviour
         for (int i = 0; i < setList.Count; i++)
         {
             string currentPath = Path.GetFileName(setList[i]);
-            //print(currentPath);
 
             Dictionary<string, string> setInfo = null;
             if (passSetInfo)
@@ -96,6 +92,21 @@ public class CollectionScript : MonoBehaviour
         return cardsAdded;
     }
 
+    public static Sprite LocationsToSprite(string location)
+    {
+        byte[] imgData;
+        Texture2D tex = new Texture2D(2, 2);
+
+        imgData = File.ReadAllBytes($"{Application.streamingAssetsPath}/{location}.png");
+
+        //Load raw Data into Texture2D 
+        tex.LoadImage(imgData);
+
+        //Convert Texture2D to Sprite
+        Vector2 pivot = new Vector2(0.5f, 0.5f);
+        return Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), pivot, 100.0f);
+    }
+
     public int RenderSet(string eraName, string setName, int limit, string filter = default, Dictionary<string, string> setInfo = null)
     {
         List<string> typeList = new List<string>(Directory.GetDirectories(directoryPath + eraName + "/" + setName + "/"));
@@ -105,90 +116,76 @@ public class CollectionScript : MonoBehaviour
         // for each type
         for (int i = 0; i < typeList.Count; i++)
         {
-            //print(typeList[i]);
-            //List<string> fileNames = new List<string>(Directory.GetFiles(typeList[i] + "/"));
-            Sprite[] fileNames;
-            if (LoadedAssets.ContainsKey(typeList[i] + "/cards.unity3d"))
-            {
-                fileNames = LoadedAssets[typeList[i] + "/cards.unity3d"];
-            }
-            else
-            {
-                fileNames = AssetBundle.LoadFromFile(typeList[i] + "/cards.unity3d").LoadAllAssets<Sprite>();
-                LoadedAssets[typeList[i] + "/cards.unity3d"] = fileNames;
-            }
+            List<string> fileNames = new List<string>(Directory.GetFiles(typeList[i] + "/"));
 
             // for each card
-            for (int j = 0; j < fileNames.Length && cardsAdded < limit; j++)
+            for (int j = 0; j < fileNames.Count && cardsAdded < limit; j++)
             {
-                //string currentPath = Path.GetFileName(fileNames[j]);
+                string currentPath = Path.GetFileName(fileNames[j]);
 
-                //print(typeList[i] + "/" + fileNames[j].name);
-                string targetPath = typeList[i].Split(new string[] { "Resources/" }, StringSplitOptions.None)[1] + "/" + fileNames[j].name;//fileNames[j].name.Split(new string[] { "Resources/" }, StringSplitOptions.None)[1];
-                                                                                                                                           //targetPath = targetPath.Remove(targetPath.IndexOf("."), 4);
+                string targetPath = fileNames[j].Split(new string[] { "StreamingAssets/" }, StringSplitOptions.None)[1];
+                targetPath = targetPath.Remove(targetPath.IndexOf("."), 4);
 
                 //bool passFilter = false;
 
                 //print(targetPath);
 
-                //if (!currentPath.EndsWith(".png"))
-                //{
-                //continue;
-                //}
+                if (!currentPath.EndsWith(".png"))
+                {
+                    continue;
+                }
 
                 if (filter[0] == '"' && filter[filter.Length - 1] == '"' ?
                         setInfo[Path.GetFileName(targetPath)].ToLower() == filter.Substring(1, filter.Length - 2) :
                         filter == default || setInfo[Path.GetFileName(targetPath)].ToLower().Contains(filter))
 
                 {
-                    Sprite[] cardSprites = { fileNames[j] };
-                    //Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
-                    if (cardSprites.Length == 1)
+                    Sprite cardSprite = LocationsToSprite(targetPath);
+                    //if (cardSprites.Length == 1)
+                    //{
+
+                    if (CardPrefab != null && ContentDiv != null)
                     {
-                        Sprite card = cardSprites[0];
+                        GameObject clone = Instantiate(CardPrefab, ContentDiv);
+                        clone.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = cardSprite;
+                        cardsAdded++;
 
-                        if (CardPrefab != null && ContentDiv != null)
-                        {
-                            GameObject clone = Instantiate(CardPrefab, ContentDiv);
-                            clone.transform.GetChild(0).GetChild(0).GetComponent<Image>().sprite = card;
-                            cardsAdded++;
+                        CardType cardType = (CardType)i;
 
-                            CardType cardType = (CardType)i;
+                        //Add
+                        clone.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(
+                            () =>
+                            {
+                                Deck.AddToDeck(targetPath, cardType);
+                            }
+                        );
 
-                            //Add
-                            clone.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(
-                                () =>
-                                {
-                                    Deck.AddToDeck(targetPath, cardType);
-                                }
-                            );
+                        //Remove
+                        clone.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(
+                            () =>
+                            {
+                                Deck.RemoveFromDeck(targetPath, cardType);
+                            }
+                        );
 
-                            //Remove
-                            clone.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(
-                                () =>
-                                {
-                                    Deck.RemoveFromDeck(targetPath, cardType);
-                                }
-                            );
-
-                            //View
-                            clone.transform.GetChild(3).GetComponent<Button>().onClick.AddListener(
-                                () =>
-                                {
-                                    ViewCard(cardSprites[0]);
-                                }
-                            );
-                        }
-                        else
-                        {
-                            Debug.LogError("Content object or Card Prefab not found");
-                        }
+                        //View
+                        clone.transform.GetChild(3).GetComponent<Button>().onClick.AddListener(
+                            () =>
+                            {
+                                ViewCard(cardSprite);
+                            }
+                        );
                     }
                     else
                     {
-                        Debug.LogError("did not find exactly one result for sprite");
-                        Debug.LogError($"Target path was: {targetPath}, return {cardSprites.Length} results");
+                        Debug.LogError("Content object or Card Prefab not found");
                     }
+                    //}
+                    //else
+                    //{
+                    //    Debug.LogError("did not find exactly one result for sprite");
+                    //    Debug.LogError($"Target path was: {targetPath}, return {cardSprites.Length} results");
+                    //}
                 }
             }
         }
@@ -203,7 +200,7 @@ public class CollectionScript : MonoBehaviour
         string set = cardInfo[2];
         string cardNumber = cardInfo[4];
 
-        StreamReader reader = new StreamReader(Application.persistentDataPath + @"/Resources/Cards/" + era + "/" + set + ".json");
+        StreamReader reader = new StreamReader(Application.streamingAssetsPath + @"/Cards/" + era + "/" + set + ".json");
         Dictionary<string, string> setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
 
         reader.Close();
