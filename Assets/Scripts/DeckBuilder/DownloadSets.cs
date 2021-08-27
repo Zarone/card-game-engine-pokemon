@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using SimpleJSON;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.Windows;
@@ -24,16 +25,41 @@ public class DownloadSets : MonoBehaviour
     //    SunMoon
     //}
 
-    public IEnumerator GetEra(int index, System.Action callback = null)
+    public IEnumerator GetEra(string era, System.Action callback = null)
     {
-        UnityWebRequest www = UnityWebRequest.Get(PlayerInfoManager.baseUrl);
-        //yield return www.SendWebRequest();
+        UnityWebRequest www = UnityWebRequest.Get(AssetSourceUrl + era);
+        www.SendWebRequest();
         while (!www.isDone)
         {
-            print("rotate loading");
             LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -1));
             yield return new WaitForFixedUpdate();
         }
+
+        if (www.result == UnityWebRequest.Result.ConnectionError)
+        {
+            Debug.LogError(www.error);
+            yield break;
+        }
+
+        JSONNode allSets = JSON.Parse(www.downloadHandler.text);
+
+        for (int i = 0; i < allSets.Count; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                UnityWebRequest findCardsInTypeRequest = UnityWebRequest.Get($"{AssetSourceUrl}{era}/{allSets[i].ToString().Trim('"')}/{j}");
+                print($"{AssetSourceUrl}{era}/{allSets[i].ToString().Trim('"')}/{j}");
+                findCardsInTypeRequest.SendWebRequest();
+                while (!findCardsInTypeRequest.isDone)
+                {
+                    LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -1));
+                    yield return new WaitForFixedUpdate();
+                }
+                JSONNode allCardsInSet = JSON.Parse(findCardsInTypeRequest.downloadHandler.text);
+                print(allCardsInSet.Count);
+            }
+        }
+
         callback?.Invoke();
     }
 
@@ -54,7 +80,7 @@ public class DownloadSets : MonoBehaviour
         RenderCorrectButtons();
     }
 
-    public void RenderCorrectButtons ()
+    public void RenderCorrectButtons()
     {
         //for (int i = 0; i < EraDirectoryNames.Length; i++)
         for (int i = 0; i < Content.childCount; i++)
@@ -74,9 +100,8 @@ public class DownloadSets : MonoBehaviour
 
     public void DownloadEra(int index)
     {
-        print(EraDirectoryNames[index]);
         LoadingBackground.SetActive(true);
-        StartCoroutine(GetEra(index, () =>
+        StartCoroutine(GetEra(EraDirectoryNames[index], () =>
         {
             print("done");
             LoadingBackground.SetActive(false);
