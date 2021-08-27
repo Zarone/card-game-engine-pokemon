@@ -10,11 +10,10 @@ using CardInformation;
 public class CollectionScript : MonoBehaviour
 {
 
-    //A string that holds the directory path  
-    //private string directoryPath;
+    // this is the menu where you install eras
+    [SerializeField] private GameObject AssetsMenu;
 
-    //A List of strings that holds the file names with their respective extensions  
-    //private List<string> fileNames;
+
 
     [SerializeField] private DeckScript Deck;
 
@@ -347,6 +346,11 @@ public class CollectionScript : MonoBehaviour
         //    {
         //        Debug.LogError("ERROR: " + aEX.Message);
         //    }
+    }
+
+    public void OnAssets()
+    {
+        AssetsMenu.SetActive(true);
     }
 
 }
