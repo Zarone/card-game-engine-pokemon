@@ -43,12 +43,33 @@ public class DownloadSets : MonoBehaviour
 
         JSONNode allSets = JSON.Parse(www.downloadHandler.text);
 
+        if (allSets.Count > 0)
+        {
+            TryCreateDirectory($"{Application.streamingAssetsPath}/Cards/{era}");
+        }
+
+        // for each set in era
         for (int i = 0; i < allSets.Count; i++)
         {
+            print($"{i}/{allSets.Count}");
+            string thisSet = allSets[i].ToString().Trim('"');
+            TryCreateDirectory($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}");
+
+            // get JSON
+            UnityWebRequest jsonRequest = UnityWebRequest.Get($"{AssetSourceUrl}JSON/{thisSet}.json");
+            jsonRequest.SendWebRequest();
+            while (!jsonRequest.isDone)
+            {
+                LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -1));
+                yield return new WaitForFixedUpdate();
+            }
+
+            System.IO.File.WriteAllText($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}.json", jsonRequest.downloadHandler.text);
+
+            // for each type
             for (int j = 0; j < 3; j++)
             {
-                UnityWebRequest findCardsInTypeRequest = UnityWebRequest.Get($"{AssetSourceUrl}{era}/{allSets[i].ToString().Trim('"')}/{j}");
-                print($"{AssetSourceUrl}{era}/{allSets[i].ToString().Trim('"')}/{j}");
+                UnityWebRequest findCardsInTypeRequest = UnityWebRequest.Get($"{AssetSourceUrl}{era}/{thisSet}/{j}");
                 findCardsInTypeRequest.SendWebRequest();
                 while (!findCardsInTypeRequest.isDone)
                 {
@@ -56,11 +77,46 @@ public class DownloadSets : MonoBehaviour
                     yield return new WaitForFixedUpdate();
                 }
                 JSONNode allCardsInSet = JSON.Parse(findCardsInTypeRequest.downloadHandler.text);
-                print(allCardsInSet.Count);
+                if (allCardsInSet.Count > 0)
+                {
+
+
+                    TryCreateDirectory($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}/{j}");
+                    for (int k = 0; k < allCardsInSet.Count; k++)
+                    {
+                        string thisCardName = allCardsInSet[k]["name"].ToString().Trim('"');
+                        string thisCardID = allCardsInSet[k]["id"].ToString().Trim('"');
+                        UnityWebRequest requestCard = UnityWebRequestTexture.GetTexture($"{AssetSourceUrl}card/{thisCardID}");
+                        requestCard.SendWebRequest();
+                        while (!requestCard.isDone)
+                        {
+                            LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -1));
+                            yield return new WaitForFixedUpdate();
+                        }
+
+                        if (requestCard.result != UnityWebRequest.Result.Success)
+                        {
+                            Debug.Log(requestCard.error);
+                        }
+                        else
+                        {
+                            byte[] bytes = ((DownloadHandlerTexture)requestCard.downloadHandler).texture.EncodeToPNG();
+                            System.IO.File.WriteAllBytes($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}/{j}/{thisCardName}", bytes);
+                        }
+                    }
+                }
             }
         }
 
         callback?.Invoke();
+    }
+
+    public void TryCreateDirectory(string path)
+    {
+        if (!UnityEngine.Windows.Directory.Exists(path))
+        {
+            UnityEngine.Windows.Directory.CreateDirectory(path);
+        }
     }
 
     public string[] EraDirectoryNames = new string[] {
@@ -85,7 +141,7 @@ public class DownloadSets : MonoBehaviour
         //for (int i = 0; i < EraDirectoryNames.Length; i++)
         for (int i = 0; i < Content.childCount; i++)
         {
-            if (UnityEngine.Windows.Directory.Exists(Application.streamingAssetsPath + "/Cards/" + EraDirectoryNames))
+            if (UnityEngine.Windows.Directory.Exists(Application.streamingAssetsPath + "/Cards/" + EraDirectoryNames[i]))
             {
                 Content.GetChild(i).GetChild(1).gameObject.SetActive(false);
                 Content.GetChild(i).GetChild(2).gameObject.SetActive(true);
