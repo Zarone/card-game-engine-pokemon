@@ -4,6 +4,7 @@ using System.IO;
 using SimpleJSON;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 using UnityEngine.Windows;
 
 public class DownloadSets : MonoBehaviour
@@ -12,18 +13,10 @@ public class DownloadSets : MonoBehaviour
     public GameObject LoadingBackground;
     public Transform Content;
 
-    private readonly string AssetSourceUrl = "https://pokemon-card-api.herokuapp.com/";
+    public Text OverallPercentage;
+    public Text PercentageInSet;
 
-    //public enum Eras
-    //{
-    //    PreRubySaphire,
-    //    RubySaphire,
-    //    DiamondPearl,
-    //    HeartgoldSoulsilver,
-    //    BlackWhite,
-    //    XY,
-    //    SunMoon
-    //}
+    private readonly string AssetSourceUrl = "https://pokemon-card-api.herokuapp.com/";
 
     public IEnumerator GetEra(string era, System.Action callback = null)
     {
@@ -48,10 +41,11 @@ public class DownloadSets : MonoBehaviour
             TryCreateDirectory($"{Application.streamingAssetsPath}/Cards/{era}");
         }
 
+        OverallPercentage.text = $"Sets Downloaded: 0 / {allSets.Count * 3}";
+
         // for each set in era
         for (int i = 0; i < allSets.Count; i++)
         {
-            print($"{i}/{allSets.Count}");
             string thisSet = allSets[i].ToString().Trim('"');
             TryCreateDirectory($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}");
 
@@ -80,7 +74,6 @@ public class DownloadSets : MonoBehaviour
                 if (allCardsInSet.Count > 0)
                 {
 
-
                     TryCreateDirectory($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}/{j}");
                     for (int k = 0; k < allCardsInSet.Count; k++)
                     {
@@ -103,8 +96,10 @@ public class DownloadSets : MonoBehaviour
                             byte[] bytes = ((DownloadHandlerTexture)requestCard.downloadHandler).texture.EncodeToPNG();
                             System.IO.File.WriteAllBytes($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}/{j}/{thisCardName}", bytes);
                         }
+                        PercentageInSet.text = $"Cards in Set Downloaded: {k + 1} / {allCardsInSet.Count}";
                     }
                 }
+                OverallPercentage.text = $"Sets Downloaded: {i * 3 + j + 1} / {allSets.Count * 3}";
             }
         }
 
@@ -128,8 +123,6 @@ public class DownloadSets : MonoBehaviour
         "X & Y Era",
         "Sun & Moon Era"
     };
-
-    //public bool[] HasDownloaded;
 
     public void Start()
     {
@@ -159,8 +152,21 @@ public class DownloadSets : MonoBehaviour
         LoadingBackground.SetActive(true);
         StartCoroutine(GetEra(EraDirectoryNames[index], () =>
         {
-            print("done");
             LoadingBackground.SetActive(false);
+            Content.GetChild(index).GetChild(1).gameObject.SetActive(false);
+            Content.GetChild(index).GetChild(2).gameObject.SetActive(true);
         }));
+    }
+
+    public bool HasDownloadedSet()
+    {
+        for (int i = 0; i < Content.childCount; i++)
+        {
+            if (UnityEngine.Windows.Directory.Exists(Application.streamingAssetsPath + "/Cards/" + EraDirectoryNames[i]))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

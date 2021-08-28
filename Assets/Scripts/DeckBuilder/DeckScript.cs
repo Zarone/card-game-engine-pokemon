@@ -105,6 +105,7 @@ public class DeckScript : MonoBehaviour
         string deckName = nameField.GetComponent<InputField>().text;
         if (deckName == "")
         {
+            alertObj.transform.GetChild(0).GetChild(0).GetComponent<Text>().text = "You do not have a name for this deck";
             alertObj.SetActive(true);
             return;
         }

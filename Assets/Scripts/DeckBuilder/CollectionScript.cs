@@ -13,7 +13,7 @@ public class CollectionScript : MonoBehaviour
     // this is the menu where you install eras
     [SerializeField] private GameObject AssetsMenu;
 
-
+    [SerializeField] private GameObject alertObj;
 
     [SerializeField] private DeckScript Deck;
 
@@ -223,6 +223,14 @@ public class CollectionScript : MonoBehaviour
 
     public void OnSearch()
     {
+        if (!AssetsMenu.GetComponent<DownloadSets>().HasDownloadedSet())
+        {
+            alertObj.SetActive(true);
+            alertObj.transform.GetChild(0).GetChild(0).GetComponent<Text>().text =
+                "You do not have any cards installed, press asset to install card sets";
+            return;
+        }
+
         string check = SearchField.GetComponent<Text>().text.ToLower();
 
         var children = new List<GameObject>();
@@ -260,97 +268,16 @@ public class CollectionScript : MonoBehaviour
         {
             Debug.LogError("ERROR: " + aEX.Message);
         }
-
-        //try
-        //    {
-        //        for (int path = 0; path < 8; path++)
-        //        {
-        //            //Get the path of all files inside the directory and save them on a List  
-        //            List<string> fileNames = new List<string>(Directory.GetFiles(directoryPath + @"\" + path));
-
-        //            //For each string in the fileNames List   
-        //            for (int i = 0; i < fileNames.Count; i++)
-        //            {
-        //                string currentPath = Path.GetFileName(fileNames[i]);
-
-        //                //Remove the file path, leaving only the file name and extension  
-
-        //                if (currentPath.EndsWith(".jpg") && currentPath.ToLower().Contains(check))
-        //                {
-        //                    string targetPath = @"Cards/" + path + @"/" + currentPath.Remove(currentPath.IndexOf("."), 4);
-        //                    Sprite[] cardSprites = Resources.LoadAll<Sprite>(targetPath);
-        //                    if (cardSprites.Length == 1)
-        //                    {
-        //                        Sprite card = cardSprites[0];
-
-        //                        if (CardPrefab != null && ContentDiv != null)
-        //                        {
-        //                            GameObject clone = Instantiate(CardPrefab, ContentDiv);
-        //                            clone.GetComponentInChildren<Image>().sprite = card;
-
-        //                            CardType cardType = (CardType)path;
-
-        //                            //Add
-        //                            clone.transform.GetChild(1).GetComponent<Button>().onClick.AddListener(
-        //                                () =>
-        //                                {
-        //                                    Deck.AddToDeck(currentPath.Split(new string[] { "-01" }, StringSplitOptions.None)[0], cardType);
-        //                                }
-        //                            );
-
-        //                            //Remove
-        //                            clone.transform.GetChild(2).GetComponent<Button>().onClick.AddListener(
-        //                                () =>
-        //                                {
-        //                                    Deck.RemoveFromDeck(currentPath.Split(new string[] { "-01" }, StringSplitOptions.None)[0], cardType);
-        //                                }
-        //                            );
-
-        //                            //View
-        //                            clone.transform.GetChild(3).GetComponent<Button>().onClick.AddListener(
-        //                                () =>
-        //                                {
-        //                                    ViewCard(cardSprites[0], cardType == CardType.Event || cardType == CardType.EventClimax);
-        //                                }
-        //                            );
-        //                        }
-        //                        else
-        //                        {
-        //                            Debug.LogError("Content object or Card Prefab not found");
-        //                        }
-        //                    }
-        //                    else
-        //                    {
-        //                        Debug.LogError("did not find exactly one result for sprite");
-        //                        Debug.LogError($"Target path was: {targetPath}, return {cardSprites.Length} results");
-        //                    }
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    //Catch any of the following exceptions and store the error message at the outputMessage string  
-        //    catch (UnauthorizedAccessException UAEx)
-        //    {
-        //        Debug.LogError("ERROR: " + UAEx.Message);
-        //    }
-        //    catch (PathTooLongException PathEx)
-        //    {
-        //        Debug.LogError("ERROR: " + PathEx.Message);
-        //    }
-        //    catch (DirectoryNotFoundException DirNfEx)
-        //    {
-        //        Debug.LogError("ERROR: " + DirNfEx.Message);
-        //    }
-        //    catch (ArgumentException aEX)
-        //    {
-        //        Debug.LogError("ERROR: " + aEX.Message);
-        //    }
     }
 
     public void OnAssets()
     {
         AssetsMenu.SetActive(true);
+    }
+
+    public void OnAssetsClose()
+    {
+        AssetsMenu.SetActive(false);
     }
 
 }
