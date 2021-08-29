@@ -199,6 +199,9 @@ public class CollectionScript : MonoBehaviour
         string set = cardInfo[2];
         string cardNumber = cardInfo[4];
 
+        if (!File.Exists(Application.streamingAssetsPath + @"/Cards/" + era + "/" + set + ".json"))
+            return $"install {era} in \"assets\"";
+
         StreamReader reader = new StreamReader(Application.streamingAssetsPath + @"/Cards/" + era + "/" + set + ".json");
         Dictionary<string, string> setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
 
