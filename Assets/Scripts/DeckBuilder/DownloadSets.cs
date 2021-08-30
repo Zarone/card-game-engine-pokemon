@@ -1,6 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using ICSharpCode.SharpZipLib.Core;
+using ICSharpCode.SharpZipLib.Zip;
 using SimpleJSON;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -14,9 +17,100 @@ public class DownloadSets : MonoBehaviour
     public Transform Content;
 
     public Text OverallPercentage;
-    public Text PercentageInSet;
 
     private readonly string AssetSourceUrl = "https://pokemon-card-api.herokuapp.com/";
+
+    public void UnZip(string FilePath, string Set, System.Action callback)
+    {
+        if (!System.IO.File.Exists($"{FilePath}/{Set}.zip"))
+        {
+            Debug.LogError($"{FilePath}/{Set}.zip not found");
+            return;
+        }
+
+        // Read file
+        FileStream fs = null;
+        try
+        {
+            fs = new FileStream($"{FilePath}/{Set}.zip", FileMode.Open);
+        }
+        catch
+        {
+            Debug.LogError("GameData file open exception: " + $"{FilePath}/{Set}.zip");
+        }
+
+        if (fs != null)
+        {
+            print($"input file: {FilePath}/{Set}.zip");
+            TryCreateDirectory($"{FilePath}/{Set}");
+            TryCreateDirectory($"{FilePath}/{Set}/0");
+            TryCreateDirectory($"{FilePath}/{Set}/1");
+            TryCreateDirectory($"{FilePath}/{Set}/2");
+            try
+            {
+
+                // Read zip file
+                ZipFile zf = new ZipFile(fs);
+                int numFiles = 0;
+
+                if (zf.TestArchive(true) == false)
+                {
+                    Debug.LogError("Zip file failed integrity check!");
+                    zf.IsStreamOwner = false;
+                    zf.Close();
+                    fs.Close();
+                }
+                else
+                {
+                    foreach (ZipEntry zipEntry in zf)
+                    {
+                        // Ignore directories
+                        if (!zipEntry.IsFile)
+                            continue;
+
+                        String entryFileName = zipEntry.Name;
+                        print($"loading file: {entryFileName}");
+
+                        // Skip .DS_Store files (these appear on OSX)
+                        if (entryFileName.Contains("DS_Store") || entryFileName.Contains(".meta"))
+                            continue;
+
+                        //Debug.Log("Unpacking zip file entry: " + entryFileName);
+
+                        byte[] buffer = new byte[4096];     // 4K is optimum
+                        Stream zipStream = zf.GetInputStream(zipEntry);
+
+                        // Manipulate the output filename here as desired.
+                        string fullZipToPath = $"{FilePath}/{entryFileName}";
+
+                        // Unzip file in buffered chunks. This is just as fast as unpacking to a buffer the full size
+                        // of the file, but does not waste memory.
+                        // The "using" will close the stream even if an exception occurs.
+
+                        print($"output file: {fullZipToPath}");
+                        using (FileStream streamWriter = System.IO.File.Create(fullZipToPath))
+                        {
+                            StreamUtils.Copy(zipStream, streamWriter, buffer);
+                        }
+                        numFiles++;
+                    }
+
+                    zf.IsStreamOwner = false;
+                    zf.Close();
+                    fs.Close();
+                    callback?.Invoke();
+                }
+            }
+            catch
+            {
+                Debug.Log("Zip file error!");
+            }
+        }
+        else
+        {
+            Debug.LogError("fs is null");
+        }
+    }
 
     public IEnumerator GetEra(string era, System.Action callback = null)
     {
@@ -24,7 +118,7 @@ public class DownloadSets : MonoBehaviour
         www.SendWebRequest();
         while (!www.isDone)
         {
-            LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -1));
+            LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -3));
             yield return new WaitForFixedUpdate();
         }
 
@@ -41,7 +135,7 @@ public class DownloadSets : MonoBehaviour
             TryCreateDirectory($"{Application.streamingAssetsPath}/Cards/{era}");
         }
 
-        OverallPercentage.text = $"Sets Downloaded: 0 / {allSets.Count * 3}";
+        OverallPercentage.text = $"Sets Downloaded: 0 / {allSets.Count}";
 
         // for each set in era
         for (int i = 0; i < allSets.Count; i++)
@@ -54,53 +148,33 @@ public class DownloadSets : MonoBehaviour
             jsonRequest.SendWebRequest();
             while (!jsonRequest.isDone)
             {
-                LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -1));
+                LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -3));
                 yield return new WaitForFixedUpdate();
             }
 
             System.IO.File.WriteAllText($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}.json", jsonRequest.downloadHandler.text);
 
-            // for each type
-            for (int j = 0; j < 3; j++)
+            // get ZIP
+
+            UnityWebRequest zipRequest = UnityWebRequest.Get($"{AssetSourceUrl}zip/{thisSet}.zip");
+            zipRequest.SendWebRequest();
+            while (!zipRequest.isDone)
             {
-                UnityWebRequest findCardsInTypeRequest = UnityWebRequest.Get($"{AssetSourceUrl}{era}/{thisSet}/{j}");
-                findCardsInTypeRequest.SendWebRequest();
-                while (!findCardsInTypeRequest.isDone)
-                {
-                    LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -1));
-                    yield return new WaitForFixedUpdate();
-                }
-                JSONNode allCardsInSet = JSON.Parse(findCardsInTypeRequest.downloadHandler.text);
-                if (allCardsInSet.Count > 0)
-                {
-
-                    TryCreateDirectory($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}/{j}");
-                    for (int k = 0; k < allCardsInSet.Count; k++)
-                    {
-                        string thisCardName = allCardsInSet[k]["name"].ToString().Trim('"');
-                        string thisCardID = allCardsInSet[k]["id"].ToString().Trim('"');
-                        UnityWebRequest requestCard = UnityWebRequestTexture.GetTexture($"{AssetSourceUrl}card/{thisCardID}");
-                        requestCard.SendWebRequest();
-                        while (!requestCard.isDone)
-                        {
-                            LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -1));
-                            yield return new WaitForFixedUpdate();
-                        }
-
-                        if (requestCard.result != UnityWebRequest.Result.Success)
-                        {
-                            Debug.Log(requestCard.error);
-                        }
-                        else
-                        {
-                            byte[] bytes = ((DownloadHandlerTexture)requestCard.downloadHandler).texture.EncodeToPNG();
-                            System.IO.File.WriteAllBytes($"{Application.streamingAssetsPath}/Cards/{era}/{thisSet}/{j}/{thisCardName}", bytes);
-                        }
-                        PercentageInSet.text = $"Cards in Set Downloaded: {k + 1} / {allCardsInSet.Count}";
-                    }
-                }
-                OverallPercentage.text = $"Sets Downloaded: {i * 3 + j + 1} / {allSets.Count * 3}";
+                LoadingIcon.GetComponent<RectTransform>().Rotate(new Vector3(0, 0, -3));
+                yield return new WaitForFixedUpdate();
             }
+
+            string path = $"{Application.streamingAssetsPath}/Cards/{era}";
+
+            print("created zip at: " + $"{path}/{thisSet}.zip");
+            System.IO.File.WriteAllBytes($"{path}/{thisSet}.zip", zipRequest.downloadHandler.data);
+
+            UnZip(path, thisSet, () =>
+            {
+                System.IO.File.Delete($"{path}/{thisSet}.zip");
+                OverallPercentage.text = $"Sets Downloaded: {i + 1} / {allSets.Count}";
+            });
+
         }
 
         callback?.Invoke();
