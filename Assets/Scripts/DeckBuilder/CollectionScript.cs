@@ -81,7 +81,14 @@ public class CollectionScript : MonoBehaviour
             if (passSetInfo)
             {
                 StreamReader reader = new StreamReader(directoryPath + eraName + "/" + currentPath + ".json");
-                setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
+                try
+                {
+                    setInfo = JsonConvert.DeserializeObject<Dictionary<string, string>>(reader.ReadToEnd());
+                }
+                catch
+                {
+                    print($"error in {directoryPath + eraName + "/" + currentPath + ".json"}");
+                }
                 reader.Close();
             }
 
@@ -126,8 +133,6 @@ public class CollectionScript : MonoBehaviour
                 targetPath = targetPath.Remove(targetPath.IndexOf("."), 4);
 
                 //bool passFilter = false;
-
-                //print(targetPath);
 
                 if (!currentPath.EndsWith(".png"))
                 {

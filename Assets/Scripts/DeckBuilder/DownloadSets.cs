@@ -19,6 +19,7 @@ public class DownloadSets : MonoBehaviour
     public Text OverallPercentage;
 
     private readonly string AssetSourceUrl = "https://pokemon-card-api.herokuapp.com/";
+    //private readonly string AssetSourceUrl = "http://localhost:3000/";
 
     public void UnZip(string FilePath, string Set, System.Action callback)
     {
@@ -41,7 +42,6 @@ public class DownloadSets : MonoBehaviour
 
         if (fs != null)
         {
-            print($"input file: {FilePath}/{Set}.zip");
             TryCreateDirectory($"{FilePath}/{Set}");
             TryCreateDirectory($"{FilePath}/{Set}/0");
             TryCreateDirectory($"{FilePath}/{Set}/1");
@@ -64,12 +64,13 @@ public class DownloadSets : MonoBehaviour
                 {
                     foreach (ZipEntry zipEntry in zf)
                     {
+                        //print(zipEntry.Name);
+
                         // Ignore directories
                         if (!zipEntry.IsFile)
                             continue;
 
                         String entryFileName = zipEntry.Name;
-                        print($"loading file: {entryFileName}");
 
                         // Skip .DS_Store files (these appear on OSX)
                         if (entryFileName.Contains("DS_Store") || entryFileName.Contains(".meta"))
@@ -87,7 +88,6 @@ public class DownloadSets : MonoBehaviour
                         // of the file, but does not waste memory.
                         // The "using" will close the stream even if an exception occurs.
 
-                        print($"output file: {fullZipToPath}");
                         using (FileStream streamWriter = System.IO.File.Create(fullZipToPath))
                         {
                             StreamUtils.Copy(zipStream, streamWriter, buffer);
@@ -103,7 +103,7 @@ public class DownloadSets : MonoBehaviour
             }
             catch
             {
-                Debug.Log("Zip file error!");
+                Debug.LogError("Zip file error!");
             }
         }
         else
@@ -166,7 +166,6 @@ public class DownloadSets : MonoBehaviour
 
             string path = $"{Application.streamingAssetsPath}/Cards/{era}";
 
-            print("created zip at: " + $"{path}/{thisSet}.zip");
             System.IO.File.WriteAllBytes($"{path}/{thisSet}.zip", zipRequest.downloadHandler.data);
 
             UnZip(path, thisSet, () =>
@@ -182,9 +181,9 @@ public class DownloadSets : MonoBehaviour
 
     public void TryCreateDirectory(string path)
     {
-        if (!UnityEngine.Windows.Directory.Exists(path))
+        if (!System.IO.Directory.Exists(path))
         {
-            UnityEngine.Windows.Directory.CreateDirectory(path);
+            System.IO.Directory.CreateDirectory(path);
         }
     }
 
@@ -208,7 +207,7 @@ public class DownloadSets : MonoBehaviour
         //for (int i = 0; i < EraDirectoryNames.Length; i++)
         for (int i = 0; i < Content.childCount; i++)
         {
-            if (UnityEngine.Windows.Directory.Exists(Application.streamingAssetsPath + "/Cards/" + EraDirectoryNames[i]))
+            if (System.IO.Directory.Exists(Application.streamingAssetsPath + "/Cards/" + EraDirectoryNames[i]))
             {
                 Content.GetChild(i).GetChild(1).gameObject.SetActive(false);
                 Content.GetChild(i).GetChild(2).gameObject.SetActive(true);
@@ -236,7 +235,7 @@ public class DownloadSets : MonoBehaviour
     {
         for (int i = 0; i < Content.childCount; i++)
         {
-            if (UnityEngine.Windows.Directory.Exists(Application.streamingAssetsPath + "/Cards/" + EraDirectoryNames[i]))
+            if (System.IO.Directory.Exists(Application.streamingAssetsPath + "/Cards/" + EraDirectoryNames[i]))
             {
                 return true;
             }
