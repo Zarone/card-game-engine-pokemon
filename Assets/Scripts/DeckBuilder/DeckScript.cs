@@ -223,6 +223,21 @@ public class DeckScript : MonoBehaviour
         alertObj.SetActive(false);
     }
 
+    public void NewDeck()
+    {
+        nameField.GetComponent<InputField>().text = "";
+        options.GetComponent<Dropdown>().value = 0;
+
+        CurrentDeck = new Dictionary<CardType, Dictionary<string, int>>() 
+        {
+            { CardType.Pokemon, new Dictionary<string, int>() },
+            { CardType.Trainer, new Dictionary<string, int>() },
+            { CardType.Energy, new Dictionary<string, int>() },
+        };
+
+        RenderDeck();
+    }
+
     public void ExportDeck()
     {
         Application.OpenURL("file://" + Application.persistentDataPath);
