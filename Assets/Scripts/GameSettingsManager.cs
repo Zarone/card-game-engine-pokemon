@@ -38,6 +38,9 @@ public class GameSettingsManager : MonoBehaviour
         PlayerInfoManager.LostLastGame = PlayerInfoManager.TurnPriority.Undecided;
         StartCoroutine(PlayerScript.StopNetwork(() =>
         {
+            
+            CollectionScript.cachedImages = new Dictionary<string, Sprite>();
+            print("cleared cache");
             SceneManager.LoadScene("MainMenu");
         }));
 
