@@ -245,6 +245,7 @@ public class CollectionScript : MonoBehaviour
 
     public void OnSearch()
     {
+        CollectionScript.cachedImages = new Dictionary<string, Sprite>()
         if (!AssetsMenu.GetComponent<DownloadSets>().HasDownloadedSet())
         {
             alertObj.SetActive(true);
