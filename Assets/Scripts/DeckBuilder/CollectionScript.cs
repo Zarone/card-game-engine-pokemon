@@ -98,19 +98,33 @@ public class CollectionScript : MonoBehaviour
         return cardsAdded;
     }
 
+    public static IDictionary<string, Sprite> cachedImages = new Dictionary<string, Sprite>();
+
     public static Sprite LocationsToSprite(string location)
     {
+
+        string fullLocation = $"{Application.streamingAssetsPath}/{location}.png";
+
+        if (CollectionScript.cachedImages.ContainsKey(fullLocation)){
+            return CollectionScript.cachedImages[fullLocation];
+        }
+
         byte[] imgData;
         Texture2D tex = new Texture2D(2, 2);
-
-        imgData = File.ReadAllBytes($"{Application.streamingAssetsPath}/{location}.png");
+        
+        imgData = File.ReadAllBytes(fullLocation);
 
         //Load raw Data into Texture2D 
         tex.LoadImage(imgData);
 
         //Convert Texture2D to Sprite
         Vector2 pivot = new Vector2(0.5f, 0.5f);
-        return Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), pivot, 100.0f);
+
+        Sprite newSprite = Sprite.Create(tex, new Rect(0.0f, 0.0f, tex.width, tex.height), pivot, 100.0f);
+
+        CollectionScript.cachedImages.Add(fullLocation, newSprite);
+        
+        return newSprite;
     }
 
     public int RenderSet(string eraName, string setName, int limit, string filter = default, Dictionary<string, string> setInfo = null)
